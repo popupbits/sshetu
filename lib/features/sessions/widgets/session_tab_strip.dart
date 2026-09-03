@@ -4,6 +4,7 @@ import 'package:picons/picons.dart';
 
 import '../../../core/terminal/terminal_session.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/ui/context_menu.dart';
 import '../../../l10n/app_localizations.dart';
 import '../session_manager.dart';
 
@@ -56,11 +57,47 @@ class SessionTabStrip extends ConsumerWidget {
               itemCount: sessions.length,
               itemBuilder: (context, index) {
                 final session = sessions[index];
-                return _SessionTab(
-                  session: session,
-                  selected: session.id == activeId,
-                  onTap: () => manager.select(session.id),
-                  onClose: () => manager.close(session.id),
+                return ContextMenuRegion(
+                  title: session.title,
+                  actions: () => [
+                    if (session.isLive)
+                      MenuAction(
+                        label: AppLocalizations.of(context).sessionDisconnect,
+                        icon: PiconsRegular.plugs,
+                        // Ends the shell but keeps the tab, so the scrollback
+                        // is still there to read — which is the whole
+                        // difference between disconnecting and closing.
+                        onSelected: session.disconnect,
+                      ),
+                    MenuAction(
+                      label: AppLocalizations.of(context).terminalCloseTab,
+                      icon: PiconsRegular.x,
+                      onSelected: () => manager.close(session.id),
+                    ),
+                    if (sessions.length > 1)
+                      MenuAction(
+                        label: AppLocalizations.of(context).sessionCloseOthers,
+                        icon: PiconsRegular.xCircle,
+                        isDestructive: true,
+                        onSelected: () {
+                          // Snapshot first: closing mutates the list this
+                          // would otherwise be iterating.
+                          final others = [
+                            for (final other in sessions)
+                              if (other.id != session.id) other.id,
+                          ];
+                          for (final id in others) {
+                            manager.close(id);
+                          }
+                        },
+                      ),
+                  ],
+                  child: _SessionTab(
+                    session: session,
+                    selected: session.id == activeId,
+                    onTap: () => manager.select(session.id),
+                    onClose: () => manager.close(session.id),
+                  ),
                 );
               },
             ),

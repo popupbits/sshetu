@@ -46,6 +46,9 @@ abstract final class Chrome {
   /// A dense list row — the host sidebar on desktop.
   static const double row = 30;
 
+  /// A row in a popup or context menu.
+  static const double menuRow = 34;
+
   /// The accent rule marking the selected tab.
   ///
   /// Selection is a rule rather than an outline: against a neutral surface

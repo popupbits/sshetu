@@ -1,9 +1,12 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 import 'package:xterm2/xterm.dart';
 
 import '../../../core/terminal/terminal_session.dart';
+import '../../../core/theme/terminal_theme.dart';
+import '../../../core/ui/context_menu.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
@@ -32,6 +35,59 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
     super.dispose();
   }
 
+  /// Copy, paste and the two housekeeping actions.
+  ///
+  /// Built per open rather than once: whether there is anything to copy
+  /// depends on the selection at the moment the menu is asked for.
+  List<MenuAction> _terminalActions(
+    BuildContext context,
+    TerminalSession session,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final selection = _controller.selection;
+
+    return [
+      if (selection != null)
+        MenuAction(
+          label: l10n.actionCopy,
+          icon: PiconsRegular.copy,
+          onSelected: () async {
+            final text = session.terminal.buffer.getText(selection);
+            await Clipboard.setData(ClipboardData(text: text));
+            _controller.clearSelection();
+          },
+        ),
+      MenuAction(
+        label: l10n.actionPaste,
+        icon: PiconsRegular.clipboard,
+        onSelected: () async {
+          final data = await Clipboard.getData(Clipboard.kTextPlain);
+          final text = data?.text;
+          // `Terminal.paste` rather than writing the text as keystrokes: it
+          // handles bracketed paste, which is what stops a shell from running
+          // half a pasted script the moment it sees the first newline.
+          if (text != null && text.isNotEmpty) session.terminal.paste(text);
+        },
+      ),
+      MenuAction(
+        label: l10n.actionSelectAll,
+        icon: PiconsRegular.selection,
+        onSelected: () => _controller.setSelection(
+          session.terminal.buffer.createAnchor(0, 0),
+          session.terminal.buffer.createAnchor(
+            session.terminal.viewWidth - 1,
+            session.terminal.buffer.lines.length - 1,
+          ),
+        ),
+      ),
+      MenuAction(
+        label: l10n.actionClear,
+        icon: PiconsRegular.eraser,
+        onSelected: () => session.terminal.buffer.clearScrollback(),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
@@ -42,17 +98,32 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
       // session's status ticks. It repaints itself from the terminal's own
       // notifier; rebuilding it here would throw away its scroll position and
       // its selection every time a status line changed.
+      // Built from the app's ColorScheme, so the terminal follows the theme
+      // mode and accent the user chose instead of shipping xterm2's own
+      // palette regardless — which on a light theme meant a dark terminal
+      // pasted into a light window.
       child: TerminalView(
         session.terminal,
         controller: _controller,
         autofocus: true,
         backgroundOpacity: 1,
         padding: const EdgeInsets.all(Spacing.xs),
+        theme: appTerminalTheme(Theme.of(context).colorScheme),
+        textStyle: TerminalStyle(
+          fontFamily: Mono.family,
+          fontFamilyFallback: Mono.fallback,
+          fontSize: 13,
+        ),
       ),
       builder: (context, child) => Column(
         children: [
           if (!session.isLive) _PaneStatusBar(session: session),
-          Expanded(child: child!),
+          Expanded(
+            child: ContextMenuRegion(
+              actions: () => _terminalActions(context, session),
+              child: child!,
+            ),
+          ),
           // An accessory to the software keyboard: present only with one, and
           // never on a platform that has real modifier keys.
           if (context.usesSoftwareKeyboard && context.isSoftwareKeyboardVisible)

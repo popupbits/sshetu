@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
 import '../../../core/ssh/host_key.dart';
+import '../../../core/theme/terminal_theme.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -45,10 +46,7 @@ Future<bool> showHostKeyDialog(
           // character by character, against what the server operator published.
           SelectableText(
             presentation.fingerprint,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontFamily: 'monospace',
-              fontFamilyFallback: const ['Menlo', 'Consolas', 'monospace'],
-            ),
+            style: Mono.apply(theme.textTheme.bodySmall),
           ),
         ],
       ),

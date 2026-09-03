@@ -6,6 +6,7 @@ import '../../../core/router/navigation.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/ssh/ssh_target.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/ui/context_menu.dart';
 import '../../../core/ui/feedback.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../sessions/connect.dart';
@@ -29,94 +30,127 @@ class HostTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return ListTile(
-      onTap: () => connectToHost(context, ref, host),
-      // Denser than Material's default: this is a list to scan, and thirty
-      // servers at comfortable density is a lot of scrolling for no gain.
-      visualDensity: VisualDensity.compact,
-      minVerticalPadding: Spacing.sm,
-      leading: _Monogram(host: host),
-      title: Row(
-        children: [
-          Flexible(
-            child: Text(
-              host.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (host.jumpHostId != null) ...[
-            const SizedBox(width: Spacing.sm),
-            Tooltip(
-              message: l10n.hostEditorJump,
-              child: Icon(
-                PiconsRegular.arrowsLeftRight,
-                size: 13,
-                color: scheme.onSurfaceVariant,
+    return ContextMenuRegion(
+      title: host.label,
+      // Built on demand so it reflects the host as it is when opened, not as
+      // it was when the row was laid out.
+      actions: () => [
+        MenuAction(
+          label: l10n.hostsConnect,
+          icon: PiconsRegular.terminalWindow,
+          onSelected: () => connectToHost(context, ref, host),
+        ),
+        MenuAction(
+          label: l10n.hostsEdit,
+          icon: PiconsRegular.pencilSimple,
+          onSelected: () => context.pushTo(Routes.hostEditFor(host.id)),
+        ),
+        MenuAction(
+          label: l10n.hostsDelete,
+          icon: PiconsRegular.trash,
+          isDestructive: true,
+          onSelected: () async {
+            final confirmed = await context.confirm(
+              title: l10n.hostsDeleteConfirm,
+              message: l10n.hostsDeleteBody,
+              confirmLabel: l10n.hostsDelete,
+              isDestructive: true,
+            );
+            if (confirmed) {
+              await ref.read(hostsControllerProvider).delete(host.id);
+            }
+          },
+        ),
+      ],
+      child: ListTile(
+        onTap: () => connectToHost(context, ref, host),
+        // Denser than Material's default: this is a list to scan, and thirty
+        // servers at comfortable density is a lot of scrolling for no gain.
+        visualDensity: VisualDensity.compact,
+        minVerticalPadding: Spacing.sm,
+        leading: _Monogram(host: host),
+        title: Row(
+          children: [
+            Flexible(
+              child: Text(
+                host.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (host.jumpHostId != null) ...[
+              const SizedBox(width: Spacing.sm),
+              Tooltip(
+                message: l10n.hostEditorJump,
+                child: Icon(
+                  PiconsRegular.arrowsLeftRight,
+                  size: 13,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (host.allowLegacyAlgorithms) ...[
+              const SizedBox(width: Spacing.xs),
+              Tooltip(
+                // Not decoration: a host connecting on weakened algorithms
+                // should say so wherever it appears, not only in its editor.
+                message: l10n.hostEditorLegacy,
+                child: Icon(
+                  PiconsRegular.shieldWarning,
+                  size: 13,
+                  color: scheme.error,
+                ),
+              ),
+            ],
           ],
-          if (host.allowLegacyAlgorithms) ...[
+        ),
+        subtitle: Row(
+          children: [
+            // Auth and age move onto the second line, next to the address they
+            // describe. As a trailing cluster they cost 120px of the row, which
+            // in a 320px side panel is most of the name — every host came out as
+            // `192.168....`, and the octets are the only part that identifies it.
+            Icon(
+              // `password` draws a row of asterisks, which at this size is a
+              // smear rather than a symbol. A closed padlock reads instantly
+              // and pairs naturally with the key.
+              host.authMethod == SshAuthMethod.password
+                  ? PiconsRegular.lockSimple
+                  : PiconsRegular.key,
+              size: 12,
+              color: scheme.onSurfaceVariant,
+            ),
             const SizedBox(width: Spacing.xs),
-            Tooltip(
-              // Not decoration: a host connecting on weakened algorithms
-              // should say so wherever it appears, not only in its editor.
-              message: l10n.hostEditorLegacy,
-              child: Icon(
-                PiconsRegular.shieldWarning,
-                size: 13,
-                color: scheme.error,
+            Flexible(
+              child: Text(
+                host.subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
+            if (host.lastConnectedAt != null) ...[
+              Text(
+                ' · ',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                _lastUsed(context, host.lastConnectedAt),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
+        // Only the menu is trailing now, so the name has the row.
+        trailing: _HostMenu(host: host),
       ),
-      subtitle: Row(
-        children: [
-          // Auth and age move onto the second line, next to the address they
-          // describe. As a trailing cluster they cost 120px of the row, which
-          // in a 320px side panel is most of the name — every host came out as
-          // `192.168....`, and the octets are the only part that identifies it.
-          Icon(
-            // `password` draws a row of asterisks, which at this size is a
-            // smear rather than a symbol. A closed padlock reads instantly
-            // and pairs naturally with the key.
-            host.authMethod == SshAuthMethod.password
-                ? PiconsRegular.lockSimple
-                : PiconsRegular.key,
-            size: 12,
-            color: scheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: Spacing.xs),
-          Flexible(
-            child: Text(
-              host.subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
-          ),
-          if (host.lastConnectedAt != null) ...[
-            Text(
-              ' · ',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            Text(
-              _lastUsed(context, host.lastConnectedAt),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
-      ),
-      // Only the menu is trailing now, so the name has the row.
-      trailing: _HostMenu(host: host),
     );
   }
 

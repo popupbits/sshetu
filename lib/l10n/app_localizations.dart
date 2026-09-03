@@ -1683,6 +1683,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'the server'**
   String get tunnelPreviewServerFallback;
+
+  /// No description provided for @actionCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get actionCopy;
+
+  /// No description provided for @actionPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get actionPaste;
+
+  /// No description provided for @actionSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get actionSelectAll;
+
+  /// No description provided for @actionClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear scrollback'**
+  String get actionClear;
+
+  /// No description provided for @sessionDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get sessionDisconnect;
+
+  /// No description provided for @sessionCloseOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Close other tabs'**
+  String get sessionCloseOthers;
 }
 
 class _AppLocalizationsDelegate

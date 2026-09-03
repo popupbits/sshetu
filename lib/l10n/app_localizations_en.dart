@@ -875,4 +875,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tunnelPreviewServerFallback => 'the server';
+
+  @override
+  String get actionCopy => 'Copy';
+
+  @override
+  String get actionPaste => 'Paste';
+
+  @override
+  String get actionSelectAll => 'Select all';
+
+  @override
+  String get actionClear => 'Clear scrollback';
+
+  @override
+  String get sessionDisconnect => 'Disconnect';
+
+  @override
+  String get sessionCloseOthers => 'Close other tabs';
 }

@@ -3,6 +3,7 @@ import 'package:picons/picons.dart';
 
 import '../../core/error/error_logger.dart';
 import '../../core/error/error_record.dart';
+import '../../core/theme/terminal_theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/feedback.dart';
 import '../../core/ui/views.dart';
@@ -138,10 +139,7 @@ class _ErrorTile extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: SelectableText(
                 record.stack,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontFamily: 'monospace',
-                  fontFamilyFallback: const ['Courier'],
-                ),
+                style: Mono.apply(theme.textTheme.bodySmall),
               ),
             ),
           ),

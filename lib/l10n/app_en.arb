@@ -389,5 +389,11 @@
       }
     }
   },
-  "tunnelPreviewServerFallback": "the server"
+  "tunnelPreviewServerFallback": "the server",
+  "actionCopy": "Copy",
+  "actionPaste": "Paste",
+  "actionSelectAll": "Select all",
+  "actionClear": "Clear scrollback",
+  "sessionDisconnect": "Disconnect",
+  "sessionCloseOthers": "Close other tabs"
 }

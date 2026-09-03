@@ -78,6 +78,19 @@ class SessionShortcuts extends ConsumerWidget {
         ): const CycleSessionIntent(
           -1,
         ),
+        // Page Up/Down with the primary modifier: what every browser on
+        // Windows and Linux uses, and the binding people who live in tabs
+        // reach for first.
+        _primary(LogicalKeyboardKey.pageDown): const CycleSessionIntent(1),
+        _primary(LogicalKeyboardKey.pageUp): const CycleSessionIntent(-1),
+        // And the shifted brackets, which is the same gesture in Safari and
+        // Chrome on macOS. Costing nothing to support, and the alternative is
+        // a user concluding the app has no tab shortcuts at all because the
+        // one spelling they tried was not the one implemented.
+        _primary(LogicalKeyboardKey.bracketRight, shift: true):
+            const CycleSessionIntent(1),
+        _primary(LogicalKeyboardKey.bracketLeft, shift: true):
+            const CycleSessionIntent(-1),
         for (var i = 1; i <= 9; i++)
           _primary(_digits[i - 1]): SelectSessionIntent(i),
       };

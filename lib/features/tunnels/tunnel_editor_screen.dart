@@ -32,7 +32,14 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
   final _label = TextEditingController();
   final _listenHost = TextEditingController(text: Tunnel.defaultListenHost);
   final _listenPort = TextEditingController();
-  final _targetHost = TextEditingController();
+
+  /// Defaults to loopback, because that is nearly always the answer.
+  ///
+  /// A service you need a tunnel to reach is, by definition, one that is not
+  /// reachable directly — which usually means it is bound to its own machine's
+  /// loopback. Starting the field empty made every forward begin by typing the
+  /// same four numbers.
+  final _targetHost = TextEditingController(text: Tunnel.defaultListenHost);
   final _targetPort = TextEditingController();
 
   TunnelKind _kind = TunnelKind.local;
@@ -69,7 +76,7 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
     _label.text = tunnel.label;
     _listenHost.text = tunnel.listenHost;
     _listenPort.text = '${tunnel.listenPort}';
-    _targetHost.text = tunnel.targetHost ?? '';
+    _targetHost.text = tunnel.targetHost ?? Tunnel.defaultListenHost;
     _targetPort.text = tunnel.targetPort == null ? '' : '${tunnel.targetPort}';
     _kind = tunnel.kind;
     _selectedHostId = tunnel.hostId;

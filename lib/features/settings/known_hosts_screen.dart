@@ -5,6 +5,7 @@ import 'package:picons/picons.dart';
 
 import '../../core/providers.dart';
 import '../../core/ssh/host_key.dart';
+import '../../core/theme/terminal_theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/feedback.dart';
 import '../../core/ui/views.dart';
@@ -90,10 +91,7 @@ class _KnownHostTile extends ConsumerWidget {
           // whatever you are comparing it with.
           SelectableText(
             entry.fingerprint,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontFamily: 'monospace',
-              fontFamilyFallback: const ['Menlo', 'Consolas', 'monospace'],
-            ),
+            style: Mono.apply(theme.textTheme.bodySmall),
           ),
           Text(
             '${entry.keyType} · ${l10n.knownHostsTrustedOn(_date(entry.trustedAt))}',

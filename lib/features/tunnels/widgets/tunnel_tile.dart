@@ -5,6 +5,7 @@ import 'package:picons/picons.dart';
 import '../../../core/router/navigation.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/ssh/tunnel_runner.dart';
+import '../../../core/theme/terminal_theme.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/ui/feedback.dart';
 import '../../../l10n/app_localizations.dart';
@@ -68,12 +69,8 @@ class TunnelTile extends ConsumerWidget {
               tunnel.mapping,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontFeatures: const [FontFeature.tabularFigures()],
-                fontFamily: 'monospace',
-                fontFamilyFallback: const ['Menlo', 'Consolas', 'monospace'],
-              ),
+              style: Mono.apply(theme.textTheme.bodySmall)
+                  .copyWith(color: scheme.onSurfaceVariant),
             ),
           ),
           const SizedBox(width: Spacing.sm),
