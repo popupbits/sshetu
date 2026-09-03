@@ -22,22 +22,34 @@ class HostsScreen extends ConsumerWidget {
     final hosts = ref.watch(filteredHostsProvider);
     final query = ref.watch(hostSearchProvider);
 
+    // Whether there is anything to search — not whether the *filtered* list
+    // has anything in it. A field for narrowing an empty list can do nothing
+    // but sit there, and on an otherwise empty screen it is the heaviest
+    // thing on it, drawing the eye away from the two buttons that are the
+    // entire point. It stays as soon as one host exists, and stays while a
+    // query is typed even when that query matches nothing — otherwise the
+    // field would vanish along with the results and take with it the only
+    // way to clear it.
+    final hasAnyHost = ref.watch(hostsProvider).value?.isNotEmpty ?? false;
+    final showSearch = hasAnyHost || query.isNotEmpty;
+
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Spacing.lg,
-            Spacing.md,
-            Spacing.lg,
-            Spacing.sm,
+        if (showSearch)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Spacing.lg,
+              Spacing.md,
+              Spacing.lg,
+              Spacing.sm,
+            ),
+            child: SearchBar(
+              hintText: l10n.hostsSearch,
+              leading: const Icon(PiconsRegular.magnifyingGlass),
+              onChanged: (value) =>
+                  ref.read(hostSearchProvider.notifier).update(value),
+            ),
           ),
-          child: SearchBar(
-            hintText: l10n.hostsSearch,
-            leading: const Icon(PiconsRegular.magnifyingGlass),
-            onChanged: (value) =>
-                ref.read(hostSearchProvider.notifier).update(value),
-          ),
-        ),
         Expanded(
           child: hosts.when(
             loading: () => const LoadingView(),
