@@ -1,4 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+      The permission this app exists to use.
+
+      Flutter's template declares INTERNET only in the debug and profile
+      manifests, because what needs it there is the Dart VM service rather
+      than the app. That is a sensible default for an app that talks to
+      nothing, and exactly wrong for an SSH client: a release build inherits
+      no INTERNET permission and cannot open a socket at all. Every debug
+      run works, the shipped app reports "cannot reach host" for every
+      server, and nothing in the code is wrong.
+
+      Found on an emulator, by installing a release build and watching it
+      fail to reach a server a debug build had just connected to.
+      Guarded by test/android_manifest_test.dart.
+    -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="ssh_navigator"
         android:name="${applicationName}"

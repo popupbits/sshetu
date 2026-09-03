@@ -203,6 +203,43 @@ void main() {
     });
   });
 
+  group('after the user trusts a new host', () {
+    test('the verdict recorded is trusted, not the stale unknown', () async {
+      // Found on a real device. The dialog runs *inside* the handshake, so a
+      // user who actually reads the fingerprint — the only reason the dialog
+      // exists — can push the attempt past its deadline. When that happened,
+      // the connection reported [lastPresentation], still saying `unknown`,
+      // and told the user "the authenticity cannot be established" about a
+      // key they had just trusted. Worse, that verdict marks the failure a
+      // host-key rejection, which is deliberately not retryable, so the
+      // automatic retry that would have succeeded never ran.
+      final verifier = build(onUnknown: (_) async => true);
+
+      expect(await verifier.verify('ssh-ed25519', fp(kFingerprint)), isTrue);
+      expect(verifier.lastPresentation!.verdict, HostKeyVerdict.trusted);
+      expect(verifier.lastPresentation!.known?.fingerprint, kFingerprint);
+    });
+
+    test('and the key is in the store for the next attempt', () async {
+      final verifier = build(onUnknown: (_) async => true);
+      await verifier.verify('ssh-ed25519', fp(kFingerprint));
+
+      // A retry after a timeout must find it already trusted and connect
+      // without asking again.
+      final second = build();
+      expect(await second.verify('ssh-ed25519', fp(kFingerprint)), isTrue);
+      expect(second.lastPresentation!.verdict, HostKeyVerdict.trusted);
+    });
+
+    test('refusing records the refusal, and trusts nothing', () async {
+      final verifier = build(onUnknown: (_) async => false);
+
+      expect(await verifier.verify('ssh-ed25519', fp(kFingerprint)), isFalse);
+      expect(verifier.lastPresentation!.verdict, HostKeyVerdict.unknown);
+      expect(store.find('example.com', 22), isNull);
+    });
+  });
+
   group('robustness', () {
     test('a malformed fingerprint refuses rather than throwing', () async {
       // The server controls these bytes. Throwing out of a handshake callback

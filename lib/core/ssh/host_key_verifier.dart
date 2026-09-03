@@ -104,14 +104,35 @@ class SshHostKeyVerifier {
         final accepted = await decide(presentation);
         if (!accepted) return false;
 
-        await knownHosts.trust(
-          KnownHostKey(
-            hostname: hostname,
-            port: port,
-            keyType: keyType,
-            fingerprint: fingerprint,
-            trustedAt: _now(),
-          ),
+        final trusted = KnownHostKey(
+          hostname: hostname,
+          port: port,
+          keyType: keyType,
+          fingerprint: fingerprint,
+          trustedAt: _now(),
+        );
+        await knownHosts.trust(trusted);
+
+        // The verdict is now *trusted*, and saying so matters even though the
+        // handshake is about to continue with `true`.
+        //
+        // [lastPresentation] is what the connection reports when an attempt
+        // fails, and the prompt itself takes real time — a person comparing a
+        // SHA256 fingerprint against what their host's operator published is
+        // doing the one thing this dialog exists for. If that pushes the
+        // handshake past its deadline, the attempt dies *after* the user said
+        // yes; leaving the stale `unknown` here made the app announce "the
+        // authenticity cannot be established" about a key the user had just
+        // trusted, and marked the failure unretryable so it never tried again.
+        // Recorded as trusted, the same failure is an ordinary timeout: the
+        // retry is allowed, and it finds the key already in known hosts.
+        lastPresentation = HostKeyPresentation(
+          hostname: hostname,
+          port: port,
+          keyType: keyType,
+          fingerprint: fingerprint,
+          verdict: HostKeyVerdict.trusted,
+          known: trusted,
         );
         return true;
     }

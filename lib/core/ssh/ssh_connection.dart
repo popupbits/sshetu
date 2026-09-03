@@ -59,13 +59,34 @@ class SshConnection {
     required this.verifierFactory,
     this.credentials = const NoCredentials(),
     this.connectTimeout = const Duration(seconds: 15),
+    this.interactiveTimeout = const Duration(minutes: 5),
     this.maxAttempts = 3,
   });
 
   final SshTarget target;
   final HostKeyVerifierFactory verifierFactory;
   final SshCredentialSource credentials;
+
+  /// How long to wait for **TCP** to a host that may simply be down.
+  ///
+  /// Short on purpose: nothing is waiting on a person here, and a server that
+  /// has not answered in fifteen seconds is not about to.
   final Duration connectTimeout;
+
+  /// How long the handshake and authentication may take **once connected**.
+  ///
+  /// Deliberately human-scale, and that is the whole reason it is a separate
+  /// number. Both phases can stop and ask the user something: an unknown host
+  /// key raises a dialog from inside `onVerifyHostKey`, and a password prompt
+  /// runs inside authentication. Holding those to a network timeout means the
+  /// clock for *reading a SHA256 fingerprint and comparing it against what the
+  /// server operator published* is fifteen seconds — so the careful user, the
+  /// only one the dialog is for, is the one whose connection dies. Anyone who
+  /// tapped through without looking got connected.
+  ///
+  /// Five minutes still bounds a genuinely hung server, and the TCP timeout
+  /// above still catches one that never answered at all.
+  final Duration interactiveTimeout;
 
   /// How many attempts one [client] call makes before giving up.
   final int maxAttempts;
@@ -271,8 +292,9 @@ class SshConnection {
             'No password supplied for ${hop.address}.',
           )),
       keepAliveInterval: hop.keepaliveInterval,
-      handshakeTimeout: connectTimeout,
-      authTimeout: connectTimeout,
+      // Not [connectTimeout]: both of these can be waiting on a dialog.
+      handshakeTimeout: interactiveTimeout,
+      authTimeout: interactiveTimeout,
     );
 
     // Listened to immediately, not after authentication: a client that fails
