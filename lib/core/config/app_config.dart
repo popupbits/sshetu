@@ -7,16 +7,16 @@
 /// flutter build apk --dart-define=APPWRITE_ENDPOINT=https://staging/v1
 /// ```
 abstract final class AppConfig {
-  static const String appName = 'SSH Navigator';
+  static const String appName = 'SSHetu';
 
   /// Android applicationId / iOS bundle id. Must match the Gradle config —
   /// the store deep link is built from it.
-  static const String androidApplicationId = 'com.popupbits.ssh_navigator';
+  static const String androidApplicationId = 'com.popupbits.sshetu';
 
   static const String storeListingUrl =
-      'https://play.google.com/store/apps/details?id=com.popupbits.ssh_navigator';
+      'https://play.google.com/store/apps/details?id=com.popupbits.sshetu';
 
-  static const String legalese = '© 2026 SSH Navigator';
+  static const String legalese = '© 2026 SSHetu';
 
   // --- Appwrite ---
 
@@ -27,11 +27,11 @@ abstract final class AppConfig {
 
   static const String appwriteProjectId = String.fromEnvironment(
     'APPWRITE_PROJECT',
-    defaultValue: 'ssh_navigator',
+    defaultValue: 'sshetu',
   );
 
   static const String appwriteDatabaseId = String.fromEnvironment(
     'APPWRITE_DATABASE',
-    defaultValue: 'ssh_navigator',
+    defaultValue: 'sshetu',
   );
 }

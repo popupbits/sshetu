@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/features/files/domain/permissions.dart';
+import 'package:sshetu/features/files/domain/permissions.dart';
 
 void main() {
   group('formatPermissions', () {

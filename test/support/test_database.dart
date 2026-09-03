@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:ssh_navigator/core/db/database.dart';
+import 'package:sshetu/core/db/database.dart';
 
 /// An in-memory database with the real schema applied.
 ///

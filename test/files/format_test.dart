@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/features/files/domain/format.dart';
+import 'package:sshetu/features/files/domain/format.dart';
 
 void main() {
   group('humanFileSize', () {

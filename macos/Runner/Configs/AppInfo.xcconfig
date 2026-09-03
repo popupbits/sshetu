@@ -7,11 +7,12 @@
 // The application's name. By default this is also the title of the Flutter window.
 // The human-facing name: the macOS menu bar, the About panel and the
 // bundle all take this. `flutter create` seeds it from the Dart package
-// name, so it shipped as `ssh_navigator` — an identifier, not a name.
-PRODUCT_NAME = SSH Navigator
+// name, which is an identifier and not a name — so this is set by hand and
+// capitalised the way the product is written.
+PRODUCT_NAME = SSHetu
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.popupbits.sshNavigator
+PRODUCT_BUNDLE_IDENTIFIER = com.popupbits.sshetu
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 PopupBits. All rights reserved.

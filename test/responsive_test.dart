@@ -2,13 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ssh_navigator/core/app.dart';
-import 'package:ssh_navigator/core/util/responsive.dart';
-import 'package:ssh_navigator/core/settings/settings_controller.dart';
+import 'package:sshetu/core/app.dart';
+import 'package:sshetu/core/util/responsive.dart';
+import 'package:sshetu/core/settings/settings_controller.dart';
 import 'package:appwrite/models.dart' as models;
-import 'package:ssh_navigator/features/auth/auth_controller.dart';
-import 'package:ssh_navigator/features/hosts/hosts_controller.dart';
-import 'package:ssh_navigator/features/keys/keys_controller.dart';
+import 'package:sshetu/features/auth/auth_controller.dart';
+import 'package:sshetu/features/hosts/hosts_controller.dart';
+import 'package:sshetu/features/keys/keys_controller.dart';
 
 /// The app adapts to width, not to operating system.
 ///
@@ -44,7 +44,7 @@ void main() {
           identitiesProvider.overrideWith((ref) => []),
           authControllerProvider.overrideWith(_SignedInAuthController.new),
         ],
-        child: const SshNavigatorApp(),
+        child: const SshetuApp(),
       ),
     );
     await tester.pumpAndSettle();

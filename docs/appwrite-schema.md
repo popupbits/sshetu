@@ -9,8 +9,8 @@ that ships to end users is its own security question this project has not
 taken on.
 
 **The project id in `lib/core/config/app_config.dart` (`APPWRITE_PROJECT`,
-defaulting to `ssh_navigator`) is a placeholder.** So is the database id
-(`APPWRITE_DATABASE`, defaulting to `ssh_navigator`). Point them at a real
+defaulting to `sshetu`) is a placeholder.** So is the database id
+(`APPWRITE_DATABASE`, defaulting to `sshetu`). Point them at a real
 Appwrite project and database with `--dart-define` before any of this is
 reachable — see the doc comment on `AppConfig`.
 

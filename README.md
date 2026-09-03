@@ -1,4 +1,4 @@
-# SSH Navigator
+# SSHetu
 
 SSH client and server manager for every device.
 

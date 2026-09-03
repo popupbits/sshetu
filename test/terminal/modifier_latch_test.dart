@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/terminal/terminal_modifiers.dart';
+import 'package:sshetu/core/terminal/terminal_modifiers.dart';
 import 'package:xterm2/xterm.dart';
 
 /// Ctrl-C from a touch screen.

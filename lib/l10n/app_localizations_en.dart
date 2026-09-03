@@ -10,7 +10,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'SSH Navigator';
+  String get appTitle => 'SSHetu';
 
   @override
   String get navHosts => 'Hosts';
@@ -149,17 +149,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutLicensesSubtitle => 'Third-party packages this app uses';
 
   @override
-  String get aboutShare => 'Share SSH Navigator';
+  String get aboutShare => 'Share SSHetu';
 
   @override
   String get aboutShareSubtitle => 'Tell someone who\'d find it useful';
 
   @override
   String get aboutShareMessage =>
-      'I\'ve been using SSH Navigator — you might like it too.';
+      'I\'ve been using SSHetu — you might like it too.';
 
   @override
-  String get aboutRate => 'Rate SSH Navigator';
+  String get aboutRate => 'Rate SSHetu';
 
   @override
   String get aboutRateSubtitle => 'A rating genuinely helps';
@@ -177,7 +177,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutSupportSubtitle => '';
 
   @override
-  String get aboutSupportSubject => 'SSH Navigator support';
+  String get aboutSupportSubject => 'SSHetu support';
 
   @override
   String errorCouldNotOpen(String target) {
@@ -224,7 +224,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSignOut => 'Sign out';
 
   @override
-  String get authSignOutConfirm => 'Sign out of SSH Navigator?';
+  String get authSignOutConfirm => 'Sign out of SSHetu?';
 
   @override
   String get authAccount => 'Account';
@@ -275,7 +275,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diagnosticsShare => 'Share report';
 
   @override
-  String get diagnosticsShareSubject => 'SSH Navigator diagnostics';
+  String get diagnosticsShareSubject => 'SSHetu diagnostics';
 
   @override
   String get diagnosticsClear => 'Clear';

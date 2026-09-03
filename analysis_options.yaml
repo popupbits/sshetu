@@ -1,4 +1,4 @@
-# Static analysis for SSH Navigator.
+# Static analysis for SSHetu.
 #
 # One canonical config: `flutter_lints` plus the two leak rules the base set
 # omits. Platform folders are excluded because generated Gradle/Xcode helper

@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:ssh_navigator/core/ssh/sftp_service.dart';
-import 'package:ssh_navigator/features/files/file_browser_controller.dart';
-import 'package:ssh_navigator/features/files/widgets/remote_pane.dart';
-import 'package:ssh_navigator/l10n/app_localizations.dart';
+import 'package:sshetu/core/ssh/sftp_service.dart';
+import 'package:sshetu/features/files/file_browser_controller.dart';
+import 'package:sshetu/features/files/widgets/remote_pane.dart';
+import 'package:sshetu/l10n/app_localizations.dart';
 
 import 'fake_sftp_service.dart';
 

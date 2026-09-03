@@ -1,6 +1,6 @@
 # Skills
 
-Project-scoped skills for coding agents working in SSH Navigator. Each folder is
+Project-scoped skills for coding agents working in SSHetu. Each folder is
 one skill: a `SKILL.md` with YAML frontmatter, plus any `references/` it loads
 only when needed.
 

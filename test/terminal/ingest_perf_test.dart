@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/terminal/output_coalescer.dart';
+import 'package:sshetu/core/terminal/output_coalescer.dart';
 import 'package:xterm2/xterm.dart';
 
 /// How fast output can be taken in and parsed.

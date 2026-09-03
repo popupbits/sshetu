@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:picons/picons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ssh_navigator/core/app.dart';
-import 'package:ssh_navigator/core/settings/app_settings.dart';
-import 'package:ssh_navigator/core/settings/settings_controller.dart';
+import 'package:sshetu/core/app.dart';
+import 'package:sshetu/core/settings/app_settings.dart';
+import 'package:sshetu/core/settings/settings_controller.dart';
 
 import 'screenshot_helper.dart';
 
@@ -49,7 +49,7 @@ void main() {
               ),
             ),
         ],
-        child: const SshNavigatorApp(),
+        child: const SshetuApp(),
       ),
     );
     await tester.pumpAndSettle();

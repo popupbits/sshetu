@@ -1,5 +1,5 @@
 # The package name and the Play service account both come from the
 # environment, so this file is identical across every app and
 # no credential is ever committed.
-package_name(ENV["APP_IDENTIFIER"] || "com.popupbits.ssh_navigator")
+package_name(ENV["APP_IDENTIFIER"] || "com.popupbits.sshetu")
 json_key_file(ENV["PLAY_STORE_JSON_KEY_PATH"]) if ENV["PLAY_STORE_JSON_KEY_PATH"]

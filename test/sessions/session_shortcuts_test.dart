@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:ssh_navigator/features/sessions/session_shortcuts.dart';
+import 'package:sshetu/features/sessions/session_shortcuts.dart';
 
 /// The tab shortcuts have to use the *platform's* modifier: Command on macOS,
 /// Control on Windows and Linux. A hard-coded `meta` is wrong everywhere but

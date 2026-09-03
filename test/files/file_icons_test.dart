@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:picons/picons.dart';
-import 'package:ssh_navigator/features/files/domain/file_icons.dart';
+import 'package:sshetu/features/files/domain/file_icons.dart';
 
 void main() {
   test('a directory always gets the folder icon, extension or not', () {

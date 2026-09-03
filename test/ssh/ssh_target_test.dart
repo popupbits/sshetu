@@ -1,8 +1,8 @@
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/ssh/ssh_algorithm_policy.dart';
-import 'package:ssh_navigator/core/ssh/ssh_connection_state.dart';
-import 'package:ssh_navigator/core/ssh/ssh_target.dart';
+import 'package:sshetu/core/ssh/ssh_algorithm_policy.dart';
+import 'package:sshetu/core/ssh/ssh_connection_state.dart';
+import 'package:sshetu/core/ssh/ssh_target.dart';
 
 void main() {
   group('SshTarget', () {

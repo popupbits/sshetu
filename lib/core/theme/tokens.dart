@@ -1,4 +1,4 @@
-/// Design tokens for SSH Navigator.
+/// Design tokens for SSHetu.
 ///
 /// Single source of truth for every spacing, radius, duration and border value
 /// in the app. No `EdgeInsets.all(13)` in a widget file — pick the nearest step

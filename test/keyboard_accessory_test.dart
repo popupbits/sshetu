@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:ssh_navigator/core/ui/keyboard_accessory.dart';
+import 'package:sshetu/core/ui/keyboard_accessory.dart';
 
 /// The modifier bar above a phone's keyboard, and why it once never appeared.
 ///

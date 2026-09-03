@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/db/database.dart';
-import 'package:ssh_navigator/core/sync/sync_engine.dart';
+import 'package:sshetu/core/db/database.dart';
+import 'package:sshetu/core/sync/sync_engine.dart';
 
 import '../support/test_database.dart';
 import 'fake_sync_remote.dart';

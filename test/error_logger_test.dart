@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:ssh_navigator/core/error/error_logger.dart';
-import 'package:ssh_navigator/core/error/error_record.dart';
+import 'package:sshetu/core/error/error_logger.dart';
+import 'package:sshetu/core/error/error_record.dart';
 
 void main() {
   final logger = ErrorLogger.instance;

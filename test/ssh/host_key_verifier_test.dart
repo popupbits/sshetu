@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/ssh/host_key.dart';
-import 'package:ssh_navigator/core/ssh/host_key_verifier.dart';
-import 'package:ssh_navigator/core/ssh/known_hosts_store.dart';
+import 'package:sshetu/core/ssh/host_key.dart';
+import 'package:sshetu/core/ssh/host_key_verifier.dart';
+import 'package:sshetu/core/ssh/known_hosts_store.dart';
 
 Uint8List fp(String value) => Uint8List.fromList(utf8.encode(value));
 

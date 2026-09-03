@@ -1,4 +1,4 @@
-import 'package:ssh_navigator/core/sync/sync_remote.dart';
+import 'package:sshetu/core/sync/sync_remote.dart';
 
 /// An in-memory [SyncRemote], standing in for Appwrite in every sync test.
 ///

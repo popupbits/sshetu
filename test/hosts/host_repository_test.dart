@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/db/database.dart';
-import 'package:ssh_navigator/core/secrets/secret_ref.dart';
-import 'package:ssh_navigator/core/secrets/secret_vault.dart';
-import 'package:ssh_navigator/core/ssh/ssh_target.dart';
-import 'package:ssh_navigator/features/hosts/data/host_repository.dart';
-import 'package:ssh_navigator/features/hosts/domain/ssh_host.dart';
+import 'package:sshetu/core/db/database.dart';
+import 'package:sshetu/core/secrets/secret_ref.dart';
+import 'package:sshetu/core/secrets/secret_vault.dart';
+import 'package:sshetu/core/ssh/ssh_target.dart';
+import 'package:sshetu/features/hosts/data/host_repository.dart';
+import 'package:sshetu/features/hosts/domain/ssh_host.dart';
 
 import '../support/test_database.dart';
 

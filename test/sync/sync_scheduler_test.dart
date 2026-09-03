@@ -2,11 +2,11 @@ import 'package:appwrite/models.dart' as models;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/sync/sync_controller.dart';
-import 'package:ssh_navigator/core/sync/sync_scheduler.dart';
-import 'package:ssh_navigator/core/sync/sync_signal.dart';
-import 'package:ssh_navigator/core/sync/sync_status.dart';
-import 'package:ssh_navigator/features/auth/auth_controller.dart';
+import 'package:sshetu/core/sync/sync_controller.dart';
+import 'package:sshetu/core/sync/sync_scheduler.dart';
+import 'package:sshetu/core/sync/sync_signal.dart';
+import 'package:sshetu/core/sync/sync_status.dart';
+import 'package:sshetu/features/auth/auth_controller.dart';
 
 /// When sync runs, which before this was: never, unless someone found the
 /// button in Settings.

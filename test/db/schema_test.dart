@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:ssh_navigator/core/db/migrations/migrations.dart';
+import 'package:sshetu/core/db/migrations/migrations.dart';
 
 /// The v1 schema makes claims in its comments — this deleting cascades, that
 /// one is restricted, this column defaults to the safe value. Those are

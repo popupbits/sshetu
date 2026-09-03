@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/util/sort_entries.dart';
+import 'package:sshetu/core/util/sort_entries.dart';
 
 class _Entry {
   const _Entry(this.name, this.isDirectory, {this.size, this.modified});

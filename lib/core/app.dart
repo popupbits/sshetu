@@ -9,8 +9,8 @@ import '../l10n/app_localizations.dart';
 import 'update/update_listener.dart';
 
 /// Root of the widget tree.
-class SshNavigatorApp extends ConsumerWidget {
-  const SshNavigatorApp({super.key});
+class SshetuApp extends ConsumerWidget {
+  const SshetuApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,7 +23,7 @@ class SshNavigatorApp extends ConsumerWidget {
     ref.watch(syncSchedulerProvider);
 
     return MaterialApp.router(
-      title: 'SSH Navigator',
+      title: 'SSHetu',
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       scaffoldMessengerKey: rootMessengerKey,

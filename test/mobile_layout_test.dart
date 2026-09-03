@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ssh_navigator/core/app.dart';
-import 'package:ssh_navigator/core/settings/settings_controller.dart';
-import 'package:ssh_navigator/core/ui/views.dart';
-import 'package:ssh_navigator/features/auth/auth_controller.dart';
-import 'package:ssh_navigator/features/hosts/domain/ssh_host.dart';
-import 'package:ssh_navigator/features/hosts/hosts_controller.dart';
-import 'package:ssh_navigator/features/keys/domain/ssh_identity.dart';
-import 'package:ssh_navigator/features/keys/keys_controller.dart';
-import 'package:ssh_navigator/features/tunnels/domain/tunnel.dart';
-import 'package:ssh_navigator/features/tunnels/tunnels_controller.dart';
+import 'package:sshetu/core/app.dart';
+import 'package:sshetu/core/settings/settings_controller.dart';
+import 'package:sshetu/core/ui/views.dart';
+import 'package:sshetu/features/auth/auth_controller.dart';
+import 'package:sshetu/features/hosts/domain/ssh_host.dart';
+import 'package:sshetu/features/hosts/hosts_controller.dart';
+import 'package:sshetu/features/keys/domain/ssh_identity.dart';
+import 'package:sshetu/features/keys/keys_controller.dart';
+import 'package:sshetu/features/tunnels/domain/tunnel.dart';
+import 'package:sshetu/features/tunnels/tunnels_controller.dart';
 
 /// Every destination, at the smallest phone anyone still ships.
 ///
@@ -102,7 +102,7 @@ void main() {
           tunnelsProvider.overrideWith((ref) => tunnels),
           authControllerProvider.overrideWith(_SignedOutAuthController.new),
         ],
-        child: const SshNavigatorApp(),
+        child: const SshetuApp(),
       ),
     );
     await tester.pumpAndSettle();

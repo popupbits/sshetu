@@ -127,7 +127,7 @@ class SyncScheduler with WidgetsBindingObserver {
   }
 }
 
-/// Kept alive for the life of the app by `SshNavigatorApp`.
+/// Kept alive for the life of the app by `SshetuApp`.
 ///
 /// A `Provider` rather than something started in `runBootstrap`, because it
 /// needs a `Ref` to listen with — and because bootstrap runs before the first

@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/db/database.dart';
-import 'package:ssh_navigator/core/providers.dart';
-import 'package:ssh_navigator/core/secrets/secret_ref.dart';
-import 'package:ssh_navigator/core/secrets/secret_vault.dart';
-import 'package:ssh_navigator/core/ssh/openssh_import.dart';
-import 'package:ssh_navigator/core/ssh/ssh_target.dart';
-import 'package:ssh_navigator/features/import/import_controller.dart';
+import 'package:sshetu/core/db/database.dart';
+import 'package:sshetu/core/providers.dart';
+import 'package:sshetu/core/secrets/secret_ref.dart';
+import 'package:sshetu/core/secrets/secret_vault.dart';
+import 'package:sshetu/core/ssh/openssh_import.dart';
+import 'package:sshetu/core/ssh/ssh_target.dart';
+import 'package:sshetu/features/import/import_controller.dart';
 
 import '../support/test_database.dart';
 
@@ -34,7 +34,7 @@ b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
       'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP1kR7QhQxPPFdMbCfvhLDNyIYAmYaLPnJTMkQGDtxNu me@laptop';
 
   setUp(() async {
-    sshDir = await Directory.systemTemp.createTemp('ssh_navigator_import');
+    sshDir = await Directory.systemTemp.createTemp('sshetu_import');
     database = await openTestDatabase();
     vault = InMemorySecretVault();
 

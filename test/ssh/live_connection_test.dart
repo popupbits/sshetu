@@ -5,17 +5,17 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/secrets/secret_ref.dart';
-import 'package:ssh_navigator/core/secrets/secret_vault.dart';
-import 'package:ssh_navigator/core/ssh/host_key.dart';
-import 'package:ssh_navigator/core/ssh/host_key_verifier.dart';
-import 'package:ssh_navigator/core/ssh/known_hosts_store.dart';
-import 'package:ssh_navigator/core/ssh/sftp_service.dart';
-import 'package:ssh_navigator/core/ssh/ssh_connection.dart';
-import 'package:ssh_navigator/core/ssh/ssh_credentials.dart';
-import 'package:ssh_navigator/core/ssh/ssh_target.dart';
-import 'package:ssh_navigator/core/ssh/vault_credential_source.dart';
-import 'package:ssh_navigator/core/terminal/terminal_session.dart';
+import 'package:sshetu/core/secrets/secret_ref.dart';
+import 'package:sshetu/core/secrets/secret_vault.dart';
+import 'package:sshetu/core/ssh/host_key.dart';
+import 'package:sshetu/core/ssh/host_key_verifier.dart';
+import 'package:sshetu/core/ssh/known_hosts_store.dart';
+import 'package:sshetu/core/ssh/sftp_service.dart';
+import 'package:sshetu/core/ssh/ssh_connection.dart';
+import 'package:sshetu/core/ssh/ssh_credentials.dart';
+import 'package:sshetu/core/ssh/ssh_target.dart';
+import 'package:sshetu/core/ssh/vault_credential_source.dart';
+import 'package:sshetu/core/terminal/terminal_session.dart';
 
 /// End-to-end against a **real OpenSSH server**, started by this test.
 ///
@@ -50,7 +50,7 @@ void main() {
     // clock, and a test that drives a real socket needs a real one — with the
     // binding in place the shell appeared to exit instantly. The coalescer
     // copes with having no binding.
-    dir = await Directory.systemTemp.createTemp('ssh_navigator_live');
+    dir = await Directory.systemTemp.createTemp('sshetu_live');
 
     Future<void> keygen(String name) async {
       final result = await Process.run('ssh-keygen', [
@@ -377,7 +377,7 @@ Subsystem sftp /usr/libexec/sftp-server
 
     setUp(() async {
       if (!available) return;
-      work = await Directory.systemTemp.createTemp('ssh_navigator_sftp');
+      work = await Directory.systemTemp.createTemp('sshetu_sftp');
     });
 
     tearDown(() {

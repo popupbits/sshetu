@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// The app name, shown in the title bar and the About screen
   ///
   /// In en, this message translates to:
-  /// **'SSH Navigator'**
+  /// **'SSHetu'**
   String get appTitle;
 
   /// No description provided for @navHosts.
@@ -367,7 +367,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutShare.
   ///
   /// In en, this message translates to:
-  /// **'Share SSH Navigator'**
+  /// **'Share SSHetu'**
   String get aboutShare;
 
   /// No description provided for @aboutShareSubtitle.
@@ -379,13 +379,13 @@ abstract class AppLocalizations {
   /// No description provided for @aboutShareMessage.
   ///
   /// In en, this message translates to:
-  /// **'I\'ve been using SSH Navigator — you might like it too.'**
+  /// **'I\'ve been using SSHetu — you might like it too.'**
   String get aboutShareMessage;
 
   /// No description provided for @aboutRate.
   ///
   /// In en, this message translates to:
-  /// **'Rate SSH Navigator'**
+  /// **'Rate SSHetu'**
   String get aboutRate;
 
   /// No description provided for @aboutRateSubtitle.
@@ -421,7 +421,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutSupportSubject.
   ///
   /// In en, this message translates to:
-  /// **'SSH Navigator support'**
+  /// **'SSHetu support'**
   String get aboutSupportSubject;
 
   /// No description provided for @errorCouldNotOpen.
@@ -511,7 +511,7 @@ abstract class AppLocalizations {
   /// No description provided for @authSignOutConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Sign out of SSH Navigator?'**
+  /// **'Sign out of SSHetu?'**
   String get authSignOutConfirm;
 
   /// No description provided for @authAccount.
@@ -595,7 +595,7 @@ abstract class AppLocalizations {
   /// No description provided for @diagnosticsShareSubject.
   ///
   /// In en, this message translates to:
-  /// **'SSH Navigator diagnostics'**
+  /// **'SSHetu diagnostics'**
   String get diagnosticsShareSubject;
 
   /// No description provided for @diagnosticsClear.

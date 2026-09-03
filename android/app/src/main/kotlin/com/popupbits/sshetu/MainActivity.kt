@@ -1,4 +1,4 @@
-package com.popupbits.ssh_navigator
+package com.popupbits.sshetu
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:ssh_navigator/core/db/migrations/migrations.dart';
+import 'package:sshetu/core/db/database.dart';
+import 'package:sshetu/core/db/migrations/migrations.dart';
 
 /// Proves the migrations actually apply.
 ///
@@ -87,6 +88,58 @@ CREATE TABLE a (id TEXT);
 
     test('keeps a trailing statement with no semicolon', () {
       expect(splitSqlStatements('SELECT 1'), ['SELECT 1']);
+    });
+  });
+
+  group('the rename from ssh_navigator to SSHetu', () {
+    // The database file is named after the app, so renaming the app renames
+    // the file. To a user that reads as "every host I imported is gone" —
+    // while the rows sit on disk under a name nothing opens any more.
+    late Directory dir;
+
+    setUp(() => dir = Directory.systemTemp.createTempSync('sshetu-rename'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    String pathTo(String name) => '${dir.path}/$name';
+
+    test('adopts the old file, and its journal', () async {
+      final legacy = File(pathTo(AppDatabase.legacyFileName))
+        ..writeAsStringSync('old-database');
+      File('${legacy.path}-journal').writeAsStringSync('old-journal');
+
+      await AppDatabase.adoptLegacyFile(pathTo(AppDatabase.fileName));
+
+      expect(legacy.existsSync(), isFalse, reason: 'moved, not copied');
+      expect(
+        File(pathTo(AppDatabase.fileName)).readAsStringSync(),
+        'old-database',
+      );
+      expect(
+        File(pathTo('${AppDatabase.fileName}-journal')).readAsStringSync(),
+        'old-journal',
+        reason: 'a journal left beside the old name is worse than none',
+      );
+    });
+
+    test('leaves an existing database alone', () async {
+      // Both files present means the app has already run under the new name.
+      // Adopting the old one here would silently roll the user back.
+      File(pathTo(AppDatabase.fileName)).writeAsStringSync('current');
+      File(pathTo(AppDatabase.legacyFileName)).writeAsStringSync('stale');
+
+      await AppDatabase.adoptLegacyFile(pathTo(AppDatabase.fileName));
+
+      expect(File(pathTo(AppDatabase.fileName)).readAsStringSync(), 'current');
+      expect(
+        File(pathTo(AppDatabase.legacyFileName)).existsSync(),
+        isTrue,
+        reason: 'left where it was, not merged and not deleted',
+      );
+    });
+
+    test('a fresh install with neither file is not an error', () async {
+      await AppDatabase.adoptLegacyFile(pathTo(AppDatabase.fileName));
+      expect(File(pathTo(AppDatabase.fileName)).existsSync(), isFalse);
     });
   });
 }

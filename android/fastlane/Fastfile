@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------
-# Fastfile — Android build and deployment lanes for SSH Navigator.
+# Fastfile — Android build and deployment lanes for SSHetu.
 # ---------------------------------------------------------------
 # All the logic lives in fastlane-plugin-play_publisher. This file
 # only names the lanes; see that plugin's README for the full env

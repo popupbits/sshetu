@@ -123,7 +123,7 @@ class StartupFailureApp extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'SSH Navigator could not start',
+                  'SSHetu could not start',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),

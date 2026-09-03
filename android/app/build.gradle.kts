@@ -19,7 +19,7 @@ if (hasReleaseKeystore) {
 }
 
 android {
-    namespace = "com.popupbits.ssh_navigator"
+    namespace = "com.popupbits.sshetu"
     // Pinned above `flutter.compileSdkVersion` (36 on this Flutter release).
     // flutter_secure_storage's AAR declares a minimum compileSdk of 37, and
     // the build fails outright rather than degrading:
@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.popupbits.ssh_navigator"
+        applicationId = "com.popupbits.sshetu"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

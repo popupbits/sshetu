@@ -1,4 +1,4 @@
--- v1 — initial schema for SSH Navigator.
+-- v1 — initial schema for SSHetu.
 --
 -- Two rules run through every table here.
 --

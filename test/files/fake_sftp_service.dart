@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:ssh_navigator/core/ssh/sftp_service.dart';
+import 'package:sshetu/core/ssh/sftp_service.dart';
 
 /// An in-memory [SftpService] for `FileBrowserController` tests — no socket,
 /// no server, just a map of directory listings the test sets up.

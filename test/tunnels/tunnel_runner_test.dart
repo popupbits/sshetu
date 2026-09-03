@@ -4,8 +4,8 @@ import 'dart:io';
 
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/ssh/tunnel_runner.dart';
-import 'package:ssh_navigator/features/tunnels/domain/tunnel.dart';
+import 'package:sshetu/core/ssh/tunnel_runner.dart';
+import 'package:sshetu/features/tunnels/domain/tunnel.dart';
 
 /// Binds a loopback server and returns one accepted connection paired with
 /// the client end that dialed it — two independent, real TCP sockets, no SSH

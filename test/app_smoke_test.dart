@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ssh_navigator/core/app.dart';
-import 'package:ssh_navigator/core/settings/settings_controller.dart';
+import 'package:sshetu/core/app.dart';
+import 'package:sshetu/core/settings/settings_controller.dart';
 import 'package:appwrite/models.dart' as models;
-import 'package:ssh_navigator/features/auth/auth_controller.dart';
-import 'package:ssh_navigator/features/hosts/hosts_controller.dart';
-import 'package:ssh_navigator/features/keys/keys_controller.dart';
+import 'package:sshetu/features/auth/auth_controller.dart';
+import 'package:sshetu/features/hosts/hosts_controller.dart';
+import 'package:sshetu/features/keys/keys_controller.dart';
 
 /// The app builds, routes to its first screen, and renders without throwing.
 ///
@@ -14,9 +14,7 @@ import 'package:ssh_navigator/features/keys/keys_controller.dart';
 /// startup — a missing provider override, a bad route table, a theme that
 /// throws — not to assert anything about a particular screen.
 void main() {
-  testWidgets('SSH Navigator starts and renders its first screen', (
-    tester,
-  ) async {
+  testWidgets('SSHetu starts and renders its first screen', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
 
@@ -33,7 +31,7 @@ void main() {
           identitiesProvider.overrideWith((ref) => []),
           authControllerProvider.overrideWith(_SignedOutAuthController.new),
         ],
-        child: const SshNavigatorApp(),
+        child: const SshetuApp(),
       ),
     );
     await tester.pumpAndSettle();

@@ -1,4 +1,4 @@
-import 'package:ssh_navigator/core/secrets/secret_remote.dart';
+import 'package:sshetu/core/secrets/secret_remote.dart';
 
 /// An in-memory [SecretRemote], standing in for Appwrite's `secrets` table.
 class FakeSecretRemote implements SecretRemote {

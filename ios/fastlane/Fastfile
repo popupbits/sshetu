@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------
-# Fastfile — iOS build and deployment lanes for SSH Navigator.
+# Fastfile — iOS build and deployment lanes for SSHetu.
 # ---------------------------------------------------------------
 # Signing goes through `match`, so certificates live in the shared
 # private certificates repo rather than on anyone's laptop.

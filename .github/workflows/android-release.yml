@@ -15,7 +15,7 @@
 #   ANDROID_KEYSTORE_PASSWORD  keystore password
 #   ANDROID_KEY_ALIAS          key alias inside the keystore
 #   ANDROID_KEY_PASSWORD       key password
-#   APP_IDENTIFIER             com.popupbits.ssh_navigator
+#   APP_IDENTIFIER             com.popupbits.sshetu
 #
 # Optional, forwarded as --dart-define when set:
 #   APPWRITE_ENDPOINT, APPWRITE_PROJECT

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
-import 'package:ssh_navigator/features/files/data/local_fs_service.dart';
+import 'package:sshetu/features/files/data/local_fs_service.dart';
 
 /// Against a real temporary directory, the same way
 /// `test/import/import_controller_test.dart` exercises real files on disk —

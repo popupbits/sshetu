@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:ssh_navigator/core/util/responsive.dart';
+import 'package:sshetu/core/util/responsive.dart';
 
 /// The terminal's key bar is an accessory to the software keyboard: it appears
 /// with one and never without. These pin the two conditions that decide it,

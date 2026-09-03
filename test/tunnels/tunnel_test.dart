@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/features/tunnels/domain/tunnel.dart';
+import 'package:sshetu/features/tunnels/domain/tunnel.dart';
 
 void main() {
   final now = DateTime.utc(2026, 1, 1);

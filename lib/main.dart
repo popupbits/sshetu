@@ -51,7 +51,7 @@ void main() {
           ),
           databaseProvider.overrideWithValue(bootstrap.database),
         ],
-        child: const SshNavigatorApp(),
+        child: const SshetuApp(),
       ),
     );
   });

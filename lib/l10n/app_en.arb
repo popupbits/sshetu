@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "SSH Navigator",
+  "appTitle": "SSHetu",
   "@appTitle": {
     "description": "The app name, shown in the title bar and the About screen"
   },
@@ -56,16 +56,16 @@
   "aboutPrivacyPolicySubtitle": "What we collect, and what we don't",
   "aboutLicenses": "Open-source licences",
   "aboutLicensesSubtitle": "Third-party packages this app uses",
-  "aboutShare": "Share SSH Navigator",
+  "aboutShare": "Share SSHetu",
   "aboutShareSubtitle": "Tell someone who'd find it useful",
-  "aboutShareMessage": "I've been using SSH Navigator — you might like it too.",
-  "aboutRate": "Rate SSH Navigator",
+  "aboutShareMessage": "I've been using SSHetu — you might like it too.",
+  "aboutRate": "Rate SSHetu",
   "aboutRateSubtitle": "A rating genuinely helps",
   "aboutMoreApps": "More apps",
   "aboutMoreAppsSubtitle": "Other apps we make",
   "aboutSupport": "Contact support",
   "aboutSupportSubtitle": "",
-  "aboutSupportSubject": "SSH Navigator support",
+  "aboutSupportSubject": "SSHetu support",
   "errorCouldNotOpen": "Couldn't open {target}",
   "@errorCouldNotOpen": {
     "placeholders": {
@@ -88,7 +88,7 @@
   "authNoAccount": "No account yet? Create one",
   "authHaveAccount": "Already have an account? Sign in",
   "authSignOut": "Sign out",
-  "authSignOutConfirm": "Sign out of SSH Navigator?",
+  "authSignOutConfirm": "Sign out of SSHetu?",
   "authAccount": "Account",
   "authEmailRequired": "Enter your email",
   "authEmailInvalid": "That doesn't look like an email address",
@@ -110,7 +110,7 @@
   "diagnosticsEmpty": "No errors recorded",
   "diagnosticsEmptyBody": "When something goes wrong, it is collected here so you can send us the details.",
   "diagnosticsShare": "Share report",
-  "diagnosticsShareSubject": "SSH Navigator diagnostics",
+  "diagnosticsShareSubject": "SSHetu diagnostics",
   "diagnosticsClear": "Clear",
   "diagnosticsClearConfirm": "Clear all recorded errors?",
   "diagnosticsSeenTimes": "{count, plural, =1{seen once} other{seen {count} times}}",

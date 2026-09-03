@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/ssh/openssh_config.dart';
-import 'package:ssh_navigator/core/ssh/openssh_import.dart';
+import 'package:sshetu/core/ssh/openssh_config.dart';
+import 'package:sshetu/core/ssh/openssh_import.dart';
 
 void main() {
   group('OpenSshConfig.parse', () {

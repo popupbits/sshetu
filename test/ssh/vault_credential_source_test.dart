@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/secrets/secret_ref.dart';
-import 'package:ssh_navigator/core/secrets/secret_vault.dart';
-import 'package:ssh_navigator/core/ssh/ssh_credentials.dart';
-import 'package:ssh_navigator/core/ssh/ssh_target.dart';
-import 'package:ssh_navigator/core/ssh/vault_credential_source.dart';
+import 'package:sshetu/core/secrets/secret_ref.dart';
+import 'package:sshetu/core/secrets/secret_vault.dart';
+import 'package:sshetu/core/ssh/ssh_credentials.dart';
+import 'package:sshetu/core/ssh/ssh_target.dart';
+import 'package:sshetu/core/ssh/vault_credential_source.dart';
 
 /// A vault that counts what it was asked for.
 ///

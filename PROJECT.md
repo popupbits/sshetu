@@ -1,4 +1,4 @@
-# SSH Navigator — project guide
+# SSHetu — project guide
 
 SSH client and server manager for every device.
 

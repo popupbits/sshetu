@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
-import 'package:ssh_navigator/features/files/domain/browse_path.dart';
+import 'package:sshetu/features/files/domain/browse_path.dart';
 
 void main() {
   // Remote paths are always POSIX regardless of what OS this app runs on, so

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ssh_navigator/core/secrets/locked_secret_vault.dart';
-import 'package:ssh_navigator/core/secrets/secret_ref.dart';
-import 'package:ssh_navigator/core/secrets/secret_vault.dart';
+import 'package:sshetu/core/secrets/locked_secret_vault.dart';
+import 'package:sshetu/core/secrets/secret_ref.dart';
+import 'package:sshetu/core/secrets/secret_vault.dart';
 
 void main() {
   group('SecretRef', () {
