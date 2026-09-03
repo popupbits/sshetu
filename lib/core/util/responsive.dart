@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:material_ui/material_ui.dart';
 
 import '../theme/tokens.dart';
@@ -32,6 +34,24 @@ extension ResponsiveContext on BuildContext {
 
   /// Bottom navigation below this, a rail at or above it.
   bool get useRail => formFactor != FormFactor.compact;
+
+  /// Whether text is typed on a **software** keyboard on this platform.
+  ///
+  /// Platform, not window size: a Flutter desktop window narrowed to phone
+  /// width still has a physical keyboard with a real Ctrl and Esc, and a
+  /// tablet held in portrait still does not.
+  bool get usesSoftwareKeyboard =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  /// Whether a software keyboard is on screen right now.
+  ///
+  /// `viewInsets.bottom` is what the keyboard occludes. Reading it means this
+  /// rebuilds through the keyboard animation, which is what makes anything
+  /// keyed on it track the keyboard rather than snap after it.
+  bool get isSoftwareKeyboardVisible =>
+      MediaQuery.viewInsetsOf(this).bottom > 0;
 
   /// A sensible column count for card grids, capped at [max].
   int gridColumns({int max = 4}) {

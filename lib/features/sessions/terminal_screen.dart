@@ -6,6 +6,7 @@ import 'package:xterm2/xterm.dart';
 
 import '../../core/terminal/terminal_session.dart';
 import '../../core/ui/views.dart';
+import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import 'session_manager.dart';
 import 'widgets/terminal_key_bar.dart';
@@ -105,7 +106,23 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
                 padding: const EdgeInsets.all(4),
               ),
             ),
-            TerminalKeyBar(onSend: session.send),
+            // The key bar is an accessory to the *software* keyboard, so it
+            // appears with one and never without.
+            //
+            //  * Not on desktop, where Ctrl, Esc, Tab and the arrows are real
+            //    keys — a strip of on-screen buttons duplicating them is a row
+            //    of wasted pixels above the thing that actually matters.
+            //  * Not while the software keyboard is dismissed, so it sits
+            //    directly above the keyboard rather than floating at the
+            //    bottom of a screen the user is only reading. Scaffold's
+            //    resizeToAvoidBottomInset shrinks this Column by the keyboard
+            //    inset, so "last child" *is* "just above the keyboard".
+            //
+            // A phone with a Bluetooth keyboard attached raises no software
+            // keyboard, so it correctly gets no bar either.
+            if (context.usesSoftwareKeyboard &&
+                context.isSoftwareKeyboardVisible)
+              TerminalKeyBar(onSend: session.send),
           ],
         ),
       ),
