@@ -276,6 +276,24 @@
   "filesNoSessionBody": "Open a terminal first, then open its files from there.",
   "filesDownload": "Download",
   "filesUpload": "Upload",
+  "filesUploadTitle": "Upload to the server",
+  "filesUploadAs": "Save on the server as",
+  "@filesUploadAs": {
+    "description": "Prefilled with the picker's name, which on Android may carry an extension it guessed rather than the one the file had."
+  },
+  "filesUploadFromDevice": "Upload from device…",
+  "@filesUploadFromDevice": {
+    "description": "Opens the system file picker to send a file to the server. The only way to upload from a phone, whose local pane cannot leave this app's storage."
+  },
+  "filesSaveToDevice": "Save to device…",
+  "@filesSaveToDevice": {
+    "description": "Downloads a remote file and hands it to the system share sheet, so it can be saved somewhere the user can actually reach."
+  },
+  "filesUploadedName": "Uploaded {name}",
+  "@filesUploadedName": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "filesUpload": "Upload",
   "filesDelete": "Delete",
   "filesDeleteConfirm": "Delete this?",
   "filesDeleteBody": "{name} is deleted permanently. This cannot be undone.",

@@ -668,6 +668,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filesUpload => 'Upload';
 
   @override
+  String get filesUploadTitle => 'Upload to the server';
+
+  @override
+  String get filesUploadAs => 'Save on the server as';
+
+  @override
+  String get filesUploadFromDevice => 'Upload from device…';
+
+  @override
+  String get filesSaveToDevice => 'Save to device…';
+
+  @override
+  String filesUploadedName(String name) {
+    return 'Uploaded $name';
+  }
+
+  @override
   String get filesDelete => 'Delete';
 
   @override

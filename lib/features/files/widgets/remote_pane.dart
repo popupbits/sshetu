@@ -1,6 +1,8 @@
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/ssh/sftp_service.dart';
 import '../../../core/ui/context_menu.dart';
@@ -15,6 +17,7 @@ import 'entry_row.dart';
 import 'pane_header.dart';
 import 'path_bar.dart';
 import 'selection_bar.dart';
+import 'upload_name_dialog.dart';
 
 /// The host's filesystem, browsed over the session's SFTP channel.
 class RemotePane extends StatelessWidget {
@@ -39,6 +42,18 @@ class RemotePane extends StatelessWidget {
           onToggleHidden: controller.toggleRemoteShowHidden,
           selectionMode: controller.remoteSelectionMode,
           onToggleSelectionMode: controller.toggleRemoteSelectionMode,
+          extraActions: [
+            // Only where the local pane cannot reach the user's own files.
+            // On a desktop there is a whole filesystem in the other pane and
+            // a picker would be a second, worse way to do the same thing.
+            if (controller.localIsSandboxed)
+              IconButton(
+                tooltip: l10n.filesUploadFromDevice,
+                icon: const Icon(PiconsRegular.uploadSimple, size: 16),
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _uploadFromDevice(context, controller),
+              ),
+          ],
         ),
         controller.remoteSelectionMode
             ? SelectionBar(
@@ -123,6 +138,16 @@ class RemotePane extends StatelessWidget {
                               label: l10n.filesDownload,
                               icon: PiconsRegular.downloadSimple,
                               onSelected: () => controller.download(entry),
+                            ),
+                          // A plain download on a phone puts the file where
+                          // only this app can see it, which is not what
+                          // anybody means by "download".
+                          if (!entry.isDirectory && controller.localIsSandboxed)
+                            MenuAction(
+                              label: l10n.filesSaveToDevice,
+                              icon: PiconsRegular.export,
+                              onSelected: () =>
+                                  _saveToDevice(context, controller, entry),
                             ),
                           MenuAction(
                             label: l10n.filesChmod,
@@ -212,6 +237,61 @@ Future<void> _chmod(
   } on Object catch (e) {
     if (context.mounted) context.toast('$e', isError: true);
   }
+}
+
+/// Picks files off the device and uploads them into the current directory.
+///
+/// The system picker rather than the local pane, because on a phone the local
+/// pane can only see this app's own storage — the photo or document the user
+/// wants to send is never in it. The picker is the one component that can see
+/// everything, and choosing a file in it *is* the permission grant.
+Future<void> _uploadFromDevice(
+  BuildContext context,
+  FileBrowserController controller,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final picked = await openFiles();
+  if (picked.isEmpty || !context.mounted) return;
+
+  // One file gets its name confirmed, because the picker's idea of the name
+  // is not always the file's — see [showUploadNameDialog]. Several files do
+  // not: a dialog per file would be worse than the problem it solves.
+  if (picked.length == 1) {
+    final file = picked.first;
+    final name = await showUploadNameDialog(
+      context,
+      suggestion: file.name,
+      destination: controller.remotePath,
+    );
+    if (name == null) return;
+    await controller.uploadPickedFile(localPath: file.path, name: name);
+    if (context.mounted) context.toast(l10n.filesUploadedName(name));
+    return;
+  }
+
+  for (final file in picked) {
+    await controller.uploadPickedFile(localPath: file.path, name: file.name);
+  }
+  if (context.mounted) context.toast(l10n.filesUploadedName(picked.first.name));
+}
+
+/// Downloads [entry] and hands it to the system share sheet.
+///
+/// "Save to Files", a messaging app, another device — every destination the
+/// phone has, and this app never asks for permission to write to any of them.
+Future<void> _saveToDevice(
+  BuildContext context,
+  FileBrowserController controller,
+  RemoteEntry entry,
+) async {
+  final path = await controller.downloadForExport(entry);
+  // Null means the transfer failed or was cancelled, and the job row already
+  // says so; a second message here would only repeat it.
+  if (path == null || !context.mounted) return;
+
+  await SharePlus.instance.share(
+    ShareParams(files: [XFile(path)], fileNameOverrides: [entry.name]),
+  );
 }
 
 Future<void> _delete(

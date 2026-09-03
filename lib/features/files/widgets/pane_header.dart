@@ -22,6 +22,7 @@ class PaneHeader extends StatelessWidget {
     required this.onToggleHidden,
     required this.selectionMode,
     required this.onToggleSelectionMode,
+    this.extraActions = const [],
     super.key,
   });
 
@@ -35,6 +36,11 @@ class PaneHeader extends StatelessWidget {
   final VoidCallback onToggleHidden;
   final bool selectionMode;
   final VoidCallback onToggleSelectionMode;
+
+  /// Shown before the standard controls. Used for actions only one pane has —
+  /// picking a file off the device, which exists because the local pane
+  /// cannot browse to one.
+  final List<Widget> extraActions;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +62,7 @@ class PaneHeader extends StatelessWidget {
               ),
             ),
           ),
+          ...extraActions,
           IconButton(
             tooltip: showHidden ? l10n.filesHideHidden : l10n.filesShowHidden,
             icon: Icon(

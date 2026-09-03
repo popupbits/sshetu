@@ -1312,6 +1312,36 @@ abstract class AppLocalizations {
   /// **'Upload'**
   String get filesUpload;
 
+  /// No description provided for @filesUploadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload to the server'**
+  String get filesUploadTitle;
+
+  /// Prefilled with the picker's name, which on Android may carry an extension it guessed rather than the one the file had.
+  ///
+  /// In en, this message translates to:
+  /// **'Save on the server as'**
+  String get filesUploadAs;
+
+  /// Opens the system file picker to send a file to the server. The only way to upload from a phone, whose local pane cannot leave this app's storage.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload from device…'**
+  String get filesUploadFromDevice;
+
+  /// Downloads a remote file and hands it to the system share sheet, so it can be saved somewhere the user can actually reach.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to device…'**
+  String get filesSaveToDevice;
+
+  /// No description provided for @filesUploadedName.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded {name}'**
+  String filesUploadedName(String name);
+
   /// No description provided for @filesDelete.
   ///
   /// In en, this message translates to:

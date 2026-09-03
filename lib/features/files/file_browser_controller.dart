@@ -509,6 +509,87 @@ class FileBrowserController extends ChangeNotifier {
     }
   }
 
+  /// Uploads a file the user picked from the system file picker.
+  ///
+  /// The way anything reaches a server from a phone. The local pane is
+  /// confined to this app's own storage — neither Android nor iOS will hand an
+  /// app the whole filesystem — so browsing to a photo or a document the user
+  /// actually wants to send is not possible and never will be. The system
+  /// picker is: it is the one component that *can* see everything, and the
+  /// user grants access to exactly the file they chose by choosing it.
+  ///
+  /// [localPath] is whatever the picker handed back, which on Android is a
+  /// copy the platform made in the app's cache — a real path, readable, and
+  /// nothing to clean up here.
+  Future<void> uploadPickedFile({
+    required String localPath,
+    required String name,
+  }) async {
+    final remoteTarget = _remoteNav.join(_remotePath, name);
+    final cancelToken = SftpCancelToken();
+    final job = _startTransfer(
+      name: name,
+      direction: TransferDirection.upload,
+      cancelToken: cancelToken,
+    );
+    try {
+      await _sftp.upload(
+        localPath: localPath,
+        remotePath: remoteTarget,
+        cancelToken: cancelToken,
+        onProgress: (transferred, total) =>
+            _updateTransfer(job.id, transferred: transferred, total: total),
+      );
+      _finishTransfer(job.id);
+      await refreshRemote();
+    } on SftpCancelledException {
+      _finishTransfer(job.id, cancelled: true);
+    } on Object catch (e) {
+      _finishTransfer(job.id, error: '$e');
+    }
+  }
+
+  /// Downloads [entry] to a temporary file and returns its path, for handing
+  /// to the system share sheet.
+  ///
+  /// The other half of the sandbox problem. A download lands in storage only
+  /// this app can see, which on a phone means the file is *somewhere* and the
+  /// user cannot get at it — no Files app, no Photos, no attaching it to
+  /// anything. Handing it to the share sheet gives them every destination the
+  /// device has, including "Save to Files", without this app asking for
+  /// permission to write anywhere.
+  ///
+  /// Returns null if the transfer failed or was cancelled; the job row already
+  /// says which.
+  Future<String?> downloadForExport(RemoteEntry entry) async {
+    if (entry.isDirectory) return null;
+    final localTarget = _localNav.join(_localPath, entry.name);
+    final cancelToken = SftpCancelToken();
+    final job = _startTransfer(
+      name: entry.name,
+      direction: TransferDirection.download,
+      cancelToken: cancelToken,
+    );
+    try {
+      await _sftp.download(
+        remotePath: entry.path,
+        localPath: localTarget,
+        cancelToken: cancelToken,
+        onProgress: (transferred, total) =>
+            _updateTransfer(job.id, transferred: transferred, total: total),
+      );
+      _finishTransfer(job.id);
+      await refreshLocal();
+      return localTarget;
+    } on SftpCancelledException {
+      _finishTransfer(job.id, cancelled: true);
+      return null;
+    } on Object catch (e) {
+      _finishTransfer(job.id, error: '$e');
+      return null;
+    }
+  }
+
   /// Downloads every selected remote file, one [TransferJob] each, and
   /// leaves selection mode once the batch finishes. A failure on one file
   /// does not stop the rest — `download` already reports each job's outcome
