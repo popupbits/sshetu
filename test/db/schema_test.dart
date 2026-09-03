@@ -1,0 +1,294 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:ssh_navigator/core/db/migrations/migrations.dart';
+
+/// The v1 schema makes claims in its comments — this deleting cascades, that
+/// one is restricted, this column defaults to the safe value. Those are
+/// behaviours, not documentation, and SQLite only enforces the referential
+/// ones when `PRAGMA foreign_keys` is on. Every one of them is checked here
+/// against real SQLite, because the alternative is finding out on a device
+/// that deleting a folder silently orphaned someone's servers.
+void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
+  Future<Database> open() async {
+    final db = await databaseFactory.openDatabase(inMemoryDatabasePath);
+    await db.execute('PRAGMA foreign_keys = ON');
+    for (final migration in migrations) {
+      await migration.run(db, (path) async => File(path).readAsString());
+    }
+    return db;
+  }
+
+  late Database db;
+  setUp(() async => db = await open());
+  tearDown(() async => db.close());
+
+  const t = 1735689600000; // an arbitrary fixed epoch
+
+  Future<void> insertGroup(String id, {String? parent}) => db.insert(
+    'host_groups',
+    {
+      'id': id,
+      'name': id,
+      'parent_id': parent,
+      'created_at': t,
+      'updated_at': t,
+    },
+  );
+
+  Future<void> insertHost(
+    String id, {
+    String? group,
+    String? jump,
+  }) => db.insert('hosts', {
+    'id': id,
+    'group_id': group,
+    'label': id,
+    'hostname': '$id.example.com',
+    'username': 'root',
+    'jump_host_id': jump,
+    'created_at': t,
+    'updated_at': t,
+  });
+
+  group('tables', () {
+    test('every table the app needs exists', () async {
+      final rows = await db.query(
+        'sqlite_master',
+        columns: ['name'],
+        where: "type = 'table' AND name NOT LIKE 'sqlite_%'",
+      );
+      final names = rows.map((r) => r['name']! as String).toSet();
+
+      expect(names, containsAll(<String>{
+        'host_groups',
+        'identities',
+        'hosts',
+        'known_hosts',
+        'tunnels',
+      }));
+    });
+
+    test('the placeholder table beej generated is gone', () async {
+      final rows = await db.query(
+        'sqlite_master',
+        where: "type = 'table' AND name = 'items'",
+      );
+      expect(rows, isEmpty);
+    });
+  });
+
+  group('defaults are the safe ones', () {
+    test('a host defaults to port 22, modern algorithms and a keepalive', () async {
+      await insertHost('h1');
+      final row = (await db.query('hosts', where: "id = 'h1'")).single;
+
+      expect(row['port'], 22);
+      expect(
+        row['allow_legacy_algorithms'],
+        0,
+        reason: 'weakened algorithms must never be the stored default',
+      );
+      expect(row['keepalive_seconds'], 30);
+      expect(row['auth_method'], 'publicKey');
+      expect(row['deleted_at'], isNull);
+      expect(row['dirty'], 1, reason: 'a new row has not reached the backend');
+    });
+
+    test('a tunnel binds loopback unless told otherwise', () async {
+      await insertHost('h1');
+      await db.insert('tunnels', {
+        'id': 'tn1',
+        'host_id': 'h1',
+        'label': 'db',
+        'kind': 'local',
+        'listen_port': 5432,
+        'created_at': t,
+        'updated_at': t,
+      });
+
+      final row = (await db.query('tunnels', where: "id = 'tn1'")).single;
+      expect(
+        row['listen_host'],
+        '127.0.0.1',
+        reason: 'binding 0.0.0.0 exposes the forward to the whole network and '
+            'must be an explicit choice',
+      );
+      expect(row['auto_start'], 0);
+    });
+  });
+
+  group('referential behaviour', () {
+    test('deleting a group leaves its hosts, unfiled', () async {
+      await insertGroup('g1');
+      await insertHost('h1', group: 'g1');
+
+      await db.delete('host_groups', where: "id = 'g1'");
+
+      final row = (await db.query('hosts', where: "id = 'h1'")).single;
+      expect(
+        row['group_id'],
+        isNull,
+        reason: 'deleting a folder must never delete the servers in it',
+      );
+    });
+
+    test('deleting a group that still has subgroups is refused', () async {
+      await insertGroup('parent');
+      await insertGroup('child', parent: 'parent');
+
+      await expectLater(
+        db.delete('host_groups', where: "id = 'parent'"),
+        throwsA(isA<DatabaseException>()),
+      );
+    });
+
+    test('deleting a host removes its tunnels', () async {
+      await insertHost('h1');
+      await db.insert('tunnels', {
+        'id': 'tn1',
+        'host_id': 'h1',
+        'label': 'db',
+        'kind': 'local',
+        'listen_port': 5432,
+        'created_at': t,
+        'updated_at': t,
+      });
+
+      await db.delete('hosts', where: "id = 'h1'");
+
+      expect(
+        await db.query('tunnels'),
+        isEmpty,
+        reason: 'a forward to a host that no longer exists is unusable',
+      );
+    });
+
+    test('deleting a host still used as a jump host is refused', () async {
+      await insertHost('bastion');
+      await insertHost('db', jump: 'bastion');
+
+      await expectLater(
+        db.delete('hosts', where: "id = 'bastion'"),
+        throwsA(isA<DatabaseException>()),
+        // Silently allowing it breaks every host behind the bastion, and only
+        // at connect time — long after the delete that caused it.
+      );
+    });
+
+    test('an identity can be deleted; hosts using it fall back to no key', () async {
+      await db.insert('identities', {
+        'id': 'k1',
+        'label': 'laptop',
+        'key_type': 'ssh-ed25519',
+        'created_at': t,
+        'updated_at': t,
+      });
+      await db.insert('hosts', {
+        'id': 'h1',
+        'label': 'h1',
+        'hostname': 'h1.example.com',
+        'username': 'root',
+        'identity_id': 'k1',
+        'created_at': t,
+        'updated_at': t,
+      });
+
+      await db.delete('identities', where: "id = 'k1'");
+
+      final row = (await db.query('hosts', where: "id = 'h1'")).single;
+      expect(row['identity_id'], isNull);
+    });
+  });
+
+  group('known_hosts', () {
+    test('is keyed by address, so re-trusting replaces rather than duplicates', () async {
+      Future<void> trust(String fingerprint) => db.insert(
+        'known_hosts',
+        {
+          'hostname': 'example.com',
+          'port': 22,
+          'key_type': 'ssh-ed25519',
+          'fingerprint': fingerprint,
+          'trusted_at': t,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      await trust('SHA256:one');
+      await trust('SHA256:two');
+
+      final rows = await db.query('known_hosts');
+      expect(rows, hasLength(1));
+      expect(rows.single['fingerprint'], 'SHA256:two');
+    });
+
+    test('the same hostname on another port is a separate identity', () async {
+      for (final port in [22, 2222]) {
+        await db.insert('known_hosts', {
+          'hostname': 'example.com',
+          'port': port,
+          'key_type': 'ssh-ed25519',
+          'fingerprint': 'SHA256:port$port',
+          'trusted_at': t,
+        });
+      }
+      expect(await db.query('known_hosts'), hasLength(2));
+    });
+
+    test('carries no column that could hold key material', () async {
+      final columns = await db.rawQuery('PRAGMA table_info(known_hosts)');
+      final names = columns.map((c) => c['name']! as String).toSet();
+
+      // The fingerprint is enough to detect a substituted key. Storing the key
+      // itself would put a secret-adjacent blob in an unencrypted, backed-up
+      // file for no gain.
+      expect(names, {
+        'hostname',
+        'port',
+        'key_type',
+        'fingerprint',
+        'trusted_at',
+      });
+    });
+  });
+
+  group('no table stores a secret', () {
+    test('no column is named like a credential', () async {
+      final tables = (await db.query(
+        'sqlite_master',
+        columns: ['name'],
+        where: "type = 'table' AND name NOT LIKE 'sqlite_%'",
+      )).map((r) => r['name']! as String);
+
+      // A guard against the easy mistake: adding `password` to `hosts`
+      // "just for now". Secrets belong in the SecretVault, never here — this
+      // file is unencrypted and goes into device backups.
+      const forbidden = {
+        'password',
+        'passphrase',
+        'private_key',
+        'secret',
+        'token',
+      };
+
+      for (final table in tables) {
+        final columns = await db.rawQuery('PRAGMA table_info($table)');
+        for (final column in columns) {
+          expect(
+            forbidden,
+            isNot(contains(column['name'])),
+            reason: '$table.${column['name']} looks like a credential; '
+                'secrets belong in the SecretVault',
+          );
+        }
+      }
+    });
+  });
+}
