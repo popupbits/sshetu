@@ -237,5 +237,10 @@
   "settingsSyncBody": "Optional. Everything works on this device without an account.",
   "importChooseFolder": "Choose folder",
   "importChooseFolderConfirm": "Read this folder",
-  "importChooseFolderBody": "Choose your .ssh folder so it can be read. Nothing in it is changed."
+  "importChooseFolderBody": "Choose your .ssh folder so it can be read. Nothing in it is changed.",
+  "hostsNoMatches": "No hosts match",
+  "sessionsEmptyPickHost": "Pick a host on the left to open a session.",
+  "sessionsGoToHosts": "Choose a host",
+  "terminalSessionEnded": "Session ended",
+  "timeNow": "now"
 }

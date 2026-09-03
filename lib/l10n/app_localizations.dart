@@ -1125,6 +1125,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose your .ssh folder so it can be read. Nothing in it is changed.'**
   String get importChooseFolderBody;
+
+  /// No description provided for @hostsNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No hosts match'**
+  String get hostsNoMatches;
+
+  /// No description provided for @sessionsEmptyPickHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a host on the left to open a session.'**
+  String get sessionsEmptyPickHost;
+
+  /// No description provided for @sessionsGoToHosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a host'**
+  String get sessionsGoToHosts;
+
+  /// No description provided for @terminalSessionEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Session ended'**
+  String get terminalSessionEnded;
+
+  /// No description provided for @timeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get timeNow;
 }
 
 class _AppLocalizationsDelegate

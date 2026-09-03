@@ -28,6 +28,32 @@ abstract final class Spacing {
   static const double fabClearance = 96;
 }
 
+/// Fixed row heights for application chrome.
+///
+/// Chrome is measured, not spaced: a tab strip is a *row of a known height*,
+/// not padding around a label, and the same height has to be reused or the top
+/// of a window reads as several slabs that nearly line up. Borrowed from
+/// karmashala, whose terminal shell made the same argument — vertical space in
+/// a terminal is the scarcest thing on the screen, so every row of chrome has
+/// to justify itself and none of them may drift.
+abstract final class Chrome {
+  /// The session tab strip, and any pane header that shares its row.
+  static const double tabStrip = 34;
+
+  /// The thin bar a pane draws when it has no live session behind it.
+  static const double statusBar = 26;
+
+  /// A dense list row — the host sidebar on desktop.
+  static const double row = 30;
+
+  /// The accent rule marking the selected tab.
+  ///
+  /// Selection is a rule rather than an outline: against a neutral surface
+  /// ramp at this size an outline is simply invisible, and tinting the label
+  /// would collide with liveness, which is already carrying meaning.
+  static const double selectionRule = 2;
+}
+
 abstract final class Radii {
   static const double xs = 8;
   static const double sm = 12;

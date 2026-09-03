@@ -5,13 +5,12 @@ import 'package:picons/picons.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/ui/feedback.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
-import '../sessions/connect.dart';
 import 'domain/ssh_host.dart';
 import 'hosts_controller.dart';
+import 'widgets/host_tile.dart';
 
 /// The Hosts destination: the app's front door.
 class HostsScreen extends ConsumerWidget {
@@ -113,65 +112,7 @@ class _HostList extends ConsumerWidget {
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: Spacing.fabClearance),
         itemCount: hosts.length,
-        itemBuilder: (context, index) => _HostTile(host: hosts[index]),
-      ),
-    );
-  }
-}
-
-class _HostTile extends ConsumerWidget {
-  const _HostTile({required this.host});
-
-  final SshHost host;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-        child: Icon(
-          PiconsRegular.hardDrive,
-          size: 20,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-      title: Text(host.label),
-      subtitle: Text(host.address),
-      onTap: () => connectToHost(context, ref, host),
-      trailing: MenuAnchor(
-        menuChildren: [
-          MenuItemButton(
-            leadingIcon: const Icon(PiconsRegular.pencilSimple),
-            onPressed: () => context.pushTo(Routes.hostEditFor(host.id)),
-            child: Text(l10n.hostsEdit),
-          ),
-          MenuItemButton(
-            leadingIcon: Icon(
-              PiconsRegular.trash,
-              color: theme.colorScheme.error,
-            ),
-            onPressed: () async {
-              final confirmed = await context.confirm(
-                title: l10n.hostsDeleteConfirm,
-                message: l10n.hostsDeleteBody,
-                confirmLabel: l10n.hostsDelete,
-                isDestructive: true,
-              );
-              if (confirmed) {
-                await ref.read(hostsControllerProvider).delete(host.id);
-              }
-            },
-            child: Text(l10n.hostsDelete),
-          ),
-        ],
-        builder: (context, controller, _) => IconButton(
-          icon: const Icon(PiconsRegular.dotsThreeVertical),
-          onPressed: () =>
-              controller.isOpen ? controller.close() : controller.open(),
-        ),
+        itemBuilder: (context, index) => HostTile(host: hosts[index]),
       ),
     );
   }

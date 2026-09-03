@@ -61,6 +61,40 @@ class SshHost {
   /// `user@host:port`. Carries no secret.
   String get address => '$username@$hostname${port == 22 ? '' : ':$port'}';
 
+  /// The second line of a list row.
+  ///
+  /// Imported hosts very often have no alias, so [label] *is* the hostname —
+  /// and printing `192.168.68.58` above `root@192.168.68.58` spends a whole
+  /// line repeating what the line above already said. When they match, only
+  /// the parts that add something are shown.
+  String get subtitle {
+    final port = this.port == 22 ? '' : ':${this.port}';
+    if (label == hostname) {
+      return port.isEmpty ? username : '$username$port';
+    }
+    return '$username@$hostname$port';
+  }
+
+  /// A one- or two-character monogram for the row's avatar.
+  ///
+  /// Servers are often named as addresses, and a column of near-identical
+  /// numbers is unscannable. A monogram gives each row something to recognise
+  /// at a glance before any of the text is read.
+  String get monogram {
+    final source = label.trim();
+    if (source.isEmpty) return '?';
+    // An address leads with digits; its octets are what distinguishes it, so
+    // the first two characters would make every host on a subnet identical.
+    final firstAlpha = RegExp(r'[A-Za-z]').firstMatch(source);
+    if (firstAlpha == null) {
+      final parts = source.split('.');
+      return parts.length > 1 ? parts.last : source.substring(0, 1);
+    }
+    return source
+        .substring(firstAlpha.start, firstAlpha.start + 1)
+        .toUpperCase();
+  }
+
   /// Whether [query] matches this host, for the search field.
   ///
   /// Deliberately searches the address and tags too, not just the label:

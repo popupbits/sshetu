@@ -25,6 +25,36 @@ class SessionManager extends Notifier<List<TerminalSession>> {
 
   var _counter = 0;
 
+  String? _activeId;
+
+  /// The session the workspace is showing.
+  ///
+  /// Held here rather than in a screen so that switching destinations, or
+  /// moving between the phone's full-screen terminal and the desktop
+  /// workspace, does not lose which tab you were in.
+  String? get activeId {
+    // A tab that has been closed must not stay "active" — the getter resolves
+    // against live state rather than trusting a stored id.
+    if (_activeId != null && state.any((s) => s.id == _activeId)) {
+      return _activeId;
+    }
+    return state.isEmpty ? null : state.last.id;
+  }
+
+  /// The session the workspace is showing, if any.
+  TerminalSession? get active {
+    final id = activeId;
+    return id == null ? null : byId(id);
+  }
+
+  void select(String id) {
+    if (_activeId == id) return;
+    _activeId = id;
+    // The list itself has not changed, but which of them is showing has, and
+    // that is what the strip and the pane are watching.
+    state = [...state];
+  }
+
   /// Opens a session to [host] and returns it.
   ///
   /// [onUnknownHostKey] and [prompt] come from the screen, because both end in
@@ -70,6 +100,7 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       startupCommand: host.startupCommand,
     );
 
+    _activeId = session.id;
     state = [...state, session];
     await hosts.touch(host.id, now: DateTime.now().toUtc());
     // Started after the tab exists, so the UI can show "connecting" and the
@@ -78,8 +109,17 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     return session;
   }
 
-  /// Closes one tab and releases its connection.
+  /// Closes one tab and, with it, the SSH session behind it.
+  ///
+  /// Deliberately: a tab *is* the session. Leaving the connection alive after
+  /// its only window is gone would be a process leak with good intentions —
+  /// nothing would show it and nothing could end it. Navigating away from a
+  /// terminal does not come through here, so backing out of a session keeps it
+  /// running, which is the difference the user actually cares about.
   void close(String id) {
+    final index = state.indexWhere((s) => s.id == id);
+    if (index < 0) return;
+
     final remaining = <TerminalSession>[];
     for (final session in state) {
       if (session.id == id) {
@@ -88,6 +128,16 @@ class SessionManager extends Notifier<List<TerminalSession>> {
         remaining.add(session);
       }
     }
+
+    // Focus the neighbour, the way every tabbed interface does: closing the
+    // tab you are looking at should leave you next to where you were, not on
+    // whichever tab happens to be last.
+    if (_activeId == id) {
+      _activeId = remaining.isEmpty
+          ? null
+          : remaining[(index - 1).clamp(0, remaining.length - 1)].id;
+    }
+
     state = remaining;
   }
 

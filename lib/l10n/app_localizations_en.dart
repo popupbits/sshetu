@@ -564,4 +564,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importChooseFolderBody =>
       'Choose your .ssh folder so it can be read. Nothing in it is changed.';
+
+  @override
+  String get hostsNoMatches => 'No hosts match';
+
+  @override
+  String get sessionsEmptyPickHost =>
+      'Pick a host on the left to open a session.';
+
+  @override
+  String get sessionsGoToHosts => 'Choose a host';
+
+  @override
+  String get terminalSessionEnded => 'Session ended';
+
+  @override
+  String get timeNow => 'now';
 }

@@ -7,6 +7,7 @@ import '../../core/router/routes.dart';
 import '../../core/ssh/host_key.dart';
 import '../../core/terminal/terminal_session.dart';
 import '../../core/ui/feedback.dart';
+import '../../core/util/responsive.dart';
 import '../hosts/domain/ssh_host.dart';
 import '../hosts/widgets/host_key_dialog.dart';
 import '../hosts/widgets/secret_dialog.dart';
@@ -66,5 +67,18 @@ Future<void> connectToHost(
     context.toast(session.error ?? 'Could not connect');
   }
 
-  if (context.mounted) context.pushTo(Routes.terminalFor(session.id));
+  if (!context.mounted) return;
+
+  // Where a session opens depends on the form factor, because the two shapes
+  // are genuinely different:
+  //
+  //  * Desktop has a workspace — sidebar, tabs, terminal — so connecting means
+  //    switching to it. Pushing a full-screen route over it would throw away
+  //    the tabs and the sidebar that are the point of having a desktop layout.
+  //  * A phone has no room for all three, so the terminal is a page of its own.
+  if (context.useRail) {
+    context.goTo(Routes.sessions);
+  } else {
+    context.pushTo(Routes.terminalFor(session.id));
+  }
 }
