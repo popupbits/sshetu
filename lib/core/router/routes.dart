@@ -32,6 +32,12 @@ abstract final class Routes {
 
   static String terminalFor(String sessionId) => '$terminal/$sessionId';
 
+  /// The SFTP browser for one session's connection.
+  static const String files = '/files';
+
+  /// The file browser for the session with this id — see [terminalFor].
+  static String filesFor(String sessionId) => '$files/$sessionId';
+
   /// The import screen, limited to one kind of thing.
   ///
   /// Opening "import keys" and being shown a list of servers — every one of

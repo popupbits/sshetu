@@ -1263,6 +1263,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Security'**
   String get settingsSecurity;
+
+  /// No description provided for @filesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get filesTitle;
+
+  /// No description provided for @filesRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote'**
+  String get filesRemote;
+
+  /// No description provided for @filesLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get filesLocal;
+
+  /// No description provided for @filesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is empty'**
+  String get filesEmptyTitle;
+
+  /// No description provided for @filesNoSessionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No session to browse'**
+  String get filesNoSessionTitle;
+
+  /// No description provided for @filesNoSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a terminal first, then open its files from there.'**
+  String get filesNoSessionBody;
+
+  /// No description provided for @filesDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get filesDownload;
+
+  /// No description provided for @filesUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get filesUpload;
+
+  /// No description provided for @filesDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get filesDelete;
+
+  /// No description provided for @filesDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this?'**
+  String get filesDeleteConfirm;
+
+  /// No description provided for @filesDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is deleted permanently. This cannot be undone.'**
+  String filesDeleteBody(String name);
+
+  /// No description provided for @filesTransferFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get filesTransferFailed;
 }
 
 class _AppLocalizationsDelegate

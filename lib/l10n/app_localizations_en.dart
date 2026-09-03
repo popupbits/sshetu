@@ -640,4 +640,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSecurity => 'Security';
+
+  @override
+  String get filesTitle => 'Files';
+
+  @override
+  String get filesRemote => 'Remote';
+
+  @override
+  String get filesLocal => 'This device';
+
+  @override
+  String get filesEmptyTitle => 'This folder is empty';
+
+  @override
+  String get filesNoSessionTitle => 'No session to browse';
+
+  @override
+  String get filesNoSessionBody =>
+      'Open a terminal first, then open its files from there.';
+
+  @override
+  String get filesDownload => 'Download';
+
+  @override
+  String get filesUpload => 'Upload';
+
+  @override
+  String get filesDelete => 'Delete';
+
+  @override
+  String get filesDeleteConfirm => 'Delete this?';
+
+  @override
+  String filesDeleteBody(String name) {
+    return '$name is deleted permanently. This cannot be undone.';
+  }
+
+  @override
+  String get filesTransferFailed => 'Failed';
 }

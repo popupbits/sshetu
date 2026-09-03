@@ -267,5 +267,25 @@
       }
     }
   },
-  "settingsSecurity": "Security"
+  "settingsSecurity": "Security",
+  "filesTitle": "Files",
+  "filesRemote": "Remote",
+  "filesLocal": "This device",
+  "filesEmptyTitle": "This folder is empty",
+  "filesNoSessionTitle": "No session to browse",
+  "filesNoSessionBody": "Open a terminal first, then open its files from there.",
+  "filesDownload": "Download",
+  "filesUpload": "Upload",
+  "filesDelete": "Delete",
+  "filesDeleteConfirm": "Delete this?",
+  "filesDeleteBody": "{name} is deleted permanently. This cannot be undone.",
+  "@filesDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.txt"
+      }
+    }
+  },
+  "filesTransferFailed": "Failed"
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../features/hosts/host_editor_screen.dart';
+import '../../features/files/file_browser_screen.dart';
 import '../../features/hosts/hosts_screen.dart';
 import '../../features/import/import_screen.dart';
 import '../../features/sessions/terminal_screen.dart';
@@ -67,6 +68,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (_, state) =>
             TerminalScreen(sessionId: state.pathParameters['sessionId']!),
+      ),
+      GoRoute(
+        path: '${Routes.files}/:sessionId',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (_, state) =>
+            FileBrowserScreen(sessionId: state.pathParameters['sessionId']!),
       ),
       GoRoute(
         path: Routes.importOpenSsh,

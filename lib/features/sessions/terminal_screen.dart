@@ -3,6 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../core/router/navigation.dart';
+import '../../core/router/routes.dart';
 import '../../core/ui/views.dart';
 import '../../l10n/app_localizations.dart';
 import 'session_manager.dart';
@@ -88,6 +90,13 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
             ],
           ),
           actions: [
+            // Opens the SFTP browser over this session's *existing*
+            // connection rather than dialling the host a second time.
+            IconButton(
+              tooltip: l10n.filesTitle,
+              icon: const Icon(PiconsRegular.folderOpen),
+              onPressed: () => context.pushTo(Routes.filesFor(session.id)),
+            ),
             IconButton(
               tooltip: l10n.terminalCloseTab,
               icon: const Icon(PiconsRegular.x),
