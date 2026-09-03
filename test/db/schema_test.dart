@@ -70,10 +70,12 @@ void main() {
       // the user's keys here; the row said to prompt for a password instead.
       await insertPasswordHost('imported');
 
-      // Re-run the migrations over the existing rows, as an upgrade does.
-      for (final migration in migrations.skip(1)) {
-        await migration.run(db, (path) async => File(path).readAsString());
-      }
+      // Re-run v2 over the existing row, as an upgrade does. Just v2, not
+      // "everything after v1": `db` is already fully migrated by setUp's
+      // open(), so replaying a later, non-repeatable schema migration (v3's
+      // CREATE TABLE) here would fail on "already exists" rather than test
+      // anything about v2.
+      await migrations[1].run(db, (path) async => File(path).readAsString());
 
       final row = (await db.query('hosts', where: "id = 'imported'")).single;
       expect(row['auth_method'], 'publicKey');
@@ -91,9 +93,8 @@ void main() {
       });
       await insertPasswordHost('deliberate', identity: 'k1');
 
-      for (final migration in migrations.skip(1)) {
-        await migration.run(db, (path) async => File(path).readAsString());
-      }
+      // Just v2 — see the comment on the first test in this group.
+      await migrations[1].run(db, (path) async => File(path).readAsString());
 
       final row = (await db.query('hosts', where: "id = 'deliberate'")).single;
       expect(row['auth_method'], 'password');
@@ -102,9 +103,8 @@ void main() {
     test('a key host is untouched', () async {
       await insertHost('keyed');
 
-      for (final migration in migrations.skip(1)) {
-        await migration.run(db, (path) async => File(path).readAsString());
-      }
+      // Just v2 — see the comment on the first test in this group.
+      await migrations[1].run(db, (path) async => File(path).readAsString());
 
       final row = (await db.query('hosts', where: "id = 'keyed'")).single;
       expect(row['auth_method'], 'publicKey');

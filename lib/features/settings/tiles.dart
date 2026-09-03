@@ -13,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../auth/auth_controller.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/language_tile.dart';
+import 'widgets/sync_status_tile.dart';
 import 'widgets/text_scale_tile.dart';
 import 'widgets/theme_mode_tile.dart';
 
@@ -75,6 +76,10 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
             leading: const Icon(PiconsRegular.user),
             title: Text(user.email),
           ),
+          // Only built while signed in — see SyncStatusTile's own doc
+          // comment for why that matters beyond just "there is nothing to
+          // sync yet".
+          const SyncStatusTile(),
           ListTile(
             leading: const Icon(PiconsRegular.signOut),
             title: Text(l10n.authSignOut),

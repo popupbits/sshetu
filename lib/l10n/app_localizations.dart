@@ -1719,6 +1719,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close other tabs'**
   String get sessionCloseOthers;
+
+  /// No description provided for @settingsSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get settingsSyncNow;
+
+  /// No description provided for @settingsSyncSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing…'**
+  String get settingsSyncSyncing;
+
+  /// No description provided for @settingsSyncNeverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get settingsSyncNeverSynced;
+
+  /// No description provided for @settingsSyncLastSyncedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced {time}'**
+  String settingsSyncLastSyncedAt(String time);
+
+  /// No description provided for @settingsSyncPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Up to date} =1{1 change waiting to sync} other{{count} changes waiting to sync}}'**
+  String settingsSyncPendingCount(int count);
+
+  /// No description provided for @settingsSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String settingsSyncFailed(String error);
+
+  /// No description provided for @filesTransferCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get filesTransferCancelled;
+
+  /// No description provided for @filesPathEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit path'**
+  String get filesPathEdit;
+
+  /// No description provided for @filesPathHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an absolute path'**
+  String get filesPathHint;
+
+  /// No description provided for @filesPathNotAbsolute.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an absolute path, starting with / or ~'**
+  String get filesPathNotAbsolute;
+
+  /// No description provided for @filesPathNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No such path'**
+  String get filesPathNotFound;
+
+  /// No description provided for @filesPathNotADirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'That is a file, not a folder'**
+  String get filesPathNotADirectory;
+
+  /// No description provided for @filesPathOutsideSandbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the app\'s storage on this device'**
+  String get filesPathOutsideSandbox;
+
+  /// No description provided for @filesPathFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check that path'**
+  String get filesPathFailed;
+
+  /// No description provided for @filesPermissionDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission denied'**
+  String get filesPermissionDeniedTitle;
+
+  /// No description provided for @filesPermissionDeniedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have access to {path}.'**
+  String filesPermissionDeniedBody(String path);
+
+  /// No description provided for @filesNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found'**
+  String get filesNotFoundTitle;
+
+  /// No description provided for @filesNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{path} no longer exists.'**
+  String filesNotFoundBody(String path);
+
+  /// No description provided for @filesSandboxNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited to this app\'s own storage on this device — neither iOS nor Android lets an app browse the rest of the filesystem without extra permissions this app does not request.'**
+  String get filesSandboxNotice;
+
+  /// No description provided for @filesChmod.
+  ///
+  /// In en, this message translates to:
+  /// **'Change permissions'**
+  String get filesChmod;
+
+  /// No description provided for @filesChmodOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get filesChmodOwner;
+
+  /// No description provided for @filesChmodGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get filesChmodGroup;
+
+  /// No description provided for @filesChmodOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get filesChmodOther;
+
+  /// No description provided for @filesChmodRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get filesChmodRead;
+
+  /// No description provided for @filesChmodWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Write'**
+  String get filesChmodWrite;
+
+  /// No description provided for @filesChmodExecute.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute'**
+  String get filesChmodExecute;
+
+  /// No description provided for @filesChmodOctalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Octal'**
+  String get filesChmodOctalLabel;
+
+  /// No description provided for @filesChmodOctalInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 1-4 octal digits, 0-7 each'**
+  String get filesChmodOctalInvalid;
+
+  /// No description provided for @filesChmodApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get filesChmodApply;
+
+  /// No description provided for @filesShowHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Show hidden files'**
+  String get filesShowHidden;
+
+  /// No description provided for @filesHideHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide hidden files'**
+  String get filesHideHidden;
+
+  /// No description provided for @filesSortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get filesSortBy;
+
+  /// No description provided for @filesSortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get filesSortName;
+
+  /// No description provided for @filesSortSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get filesSortSize;
+
+  /// No description provided for @filesSortModified.
+  ///
+  /// In en, this message translates to:
+  /// **'Modified'**
+  String get filesSortModified;
+
+  /// No description provided for @filesSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get filesSelect;
+
+  /// No description provided for @filesSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get filesSelectAll;
+
+  /// No description provided for @filesSelectionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String filesSelectionCount(int count);
+
+  /// No description provided for @filesDownloadSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Download selected'**
+  String get filesDownloadSelected;
+
+  /// No description provided for @filesUploadSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload selected'**
+  String get filesUploadSelected;
+
+  /// No description provided for @filesDeleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected'**
+  String get filesDeleteSelected;
+
+  /// No description provided for @filesDeleteSelectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items are deleted permanently. This cannot be undone.'**
+  String filesDeleteSelectedBody(int count);
 }
 
 class _AppLocalizationsDelegate

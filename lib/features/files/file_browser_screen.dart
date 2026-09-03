@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -56,9 +57,32 @@ class _FileBrowserScreenState extends ConsumerState<FileBrowserScreen> {
     final docs = await getApplicationDocumentsDirectory();
     if (!mounted) return;
 
+    // Mobile local storage, decided once here rather than left to whatever
+    // `dart:io` happens to do:
+    //
+    // - iOS sandboxes every app to its own container. There is no "rest of
+    //   the filesystem" to browse even in principle, so the honest answer is
+    //   to scope the pane to the app's documents directory and say so, not
+    //   to open a `Directory('/')` that lists nothing the user can act on.
+    // - Android's scoped storage (API 30+, which is this app's floor) makes
+    //   general filesystem access require either a manifest permission this
+    //   app does not otherwise need, or the `MANAGE_EXTERNAL_STORAGE`
+    //   special permission, which the Play Store only grants to apps whose
+    //   *primary* purpose is file management. Neither is a fit for a
+    //   terminal app that grew an SFTP browser. The directory `path_provider`
+    //   already hands back needs no permission on either platform and is
+    //   fully writable, so the two platforms get the same honest answer:
+    //   scoped to the app's own storage, told to the user, rather than an
+    //   empty root that reads like a bug.
+    //
+    // Desktop keeps the unrestricted filesystem it already had — none of the
+    // above applies there.
+    final isMobile = Platform.isIOS || Platform.isAndroid;
+
     final controller = FileBrowserController(
       sftp: SshSftpService(session.connection),
       localRoot: docs.path,
+      localBoundary: isMobile ? docs.path : null,
     );
     setState(() => _controller = controller);
   }
@@ -218,8 +242,13 @@ class _TransfersPanel extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: Spacing.xs),
           shrinkWrap: true,
           itemCount: transfers.length,
-          itemBuilder: (context, index) =>
-              TransferTile(job: transfers[transfers.length - 1 - index]),
+          itemBuilder: (context, index) {
+            final job = transfers[transfers.length - 1 - index];
+            return TransferTile(
+              job: job,
+              onCancel: () => controller.cancelTransfer(job.id),
+            );
+          },
         ),
       ),
     );

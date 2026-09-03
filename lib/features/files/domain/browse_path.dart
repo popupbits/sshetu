@@ -64,4 +64,20 @@ class BrowsePath {
     if (isRoot(path)) return rootOf(path);
     return context.basename(path);
   }
+
+  /// True for `~` or `~/rest` — the one shorthand every shell honours that
+  /// no [p.Context] method knows about, since `path` deliberately has no
+  /// concept of a user's home directory.
+  bool isHomeShorthand(String input) => input == '~' || input.startsWith('~/');
+
+  /// Whether a path a user *typed* is shaped like something this pane could
+  /// navigate to: absolute, or the `~` shorthand. A bare relative fragment
+  /// ("build/output") is deliberately rejected rather than resolved against
+  /// the current directory — with two panes on screen "relative to what" is
+  /// ambiguous, and guessing silently is worse than asking again.
+  bool looksNavigable(String input) {
+    final trimmed = input.trim();
+    if (trimmed.isEmpty) return false;
+    return isHomeShorthand(trimmed) || context.isAbsolute(trimmed);
+  }
 }

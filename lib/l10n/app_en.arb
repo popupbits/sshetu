@@ -395,5 +395,101 @@
   "actionSelectAll": "Select all",
   "actionClear": "Clear scrollback",
   "sessionDisconnect": "Disconnect",
-  "sessionCloseOthers": "Close other tabs"
+  "sessionCloseOthers": "Close other tabs",
+  "settingsSyncNow": "Sync now",
+  "settingsSyncSyncing": "Syncing…",
+  "settingsSyncNeverSynced": "Not synced yet",
+  "settingsSyncLastSyncedAt": "Synced {time}",
+  "@settingsSyncLastSyncedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSyncPendingCount": "{count, plural, =0{Up to date} =1{1 change waiting to sync} other{{count} changes waiting to sync}}",
+  "@settingsSyncPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "settingsSyncFailed": "Sync failed: {error}",
+  "@settingsSyncFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filesTransferCancelled": "Cancelled",
+  "filesPathEdit": "Edit path",
+  "filesPathHint": "Enter an absolute path",
+  "filesPathNotAbsolute": "Enter an absolute path, starting with / or ~",
+  "filesPathNotFound": "No such path",
+  "filesPathNotADirectory": "That is a file, not a folder",
+  "filesPathOutsideSandbox": "Outside the app's storage on this device",
+  "filesPathFailed": "Could not check that path",
+  "filesPermissionDeniedTitle": "Permission denied",
+  "filesPermissionDeniedBody": "You don't have access to {path}.",
+  "@filesPermissionDeniedBody": {
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "/root"
+      }
+    }
+  },
+  "filesNotFoundTitle": "Not found",
+  "filesNotFoundBody": "{path} no longer exists.",
+  "@filesNotFoundBody": {
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "/tmp/gone"
+      }
+    }
+  },
+  "filesSandboxNotice": "Limited to this app's own storage on this device — neither iOS nor Android lets an app browse the rest of the filesystem without extra permissions this app does not request.",
+  "filesChmod": "Change permissions",
+  "filesChmodOwner": "Owner",
+  "filesChmodGroup": "Group",
+  "filesChmodOther": "Other",
+  "filesChmodRead": "Read",
+  "filesChmodWrite": "Write",
+  "filesChmodExecute": "Execute",
+  "filesChmodOctalLabel": "Octal",
+  "filesChmodOctalInvalid": "Enter 1-4 octal digits, 0-7 each",
+  "filesChmodApply": "Apply",
+  "filesShowHidden": "Show hidden files",
+  "filesHideHidden": "Hide hidden files",
+  "filesSortBy": "Sort by",
+  "filesSortName": "Name",
+  "filesSortSize": "Size",
+  "filesSortModified": "Modified",
+  "filesSelect": "Select",
+  "filesSelectAll": "Select all",
+  "filesSelectionCount": "{count} selected",
+  "@filesSelectionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "filesDownloadSelected": "Download selected",
+  "filesUploadSelected": "Upload selected",
+  "filesDeleteSelected": "Delete selected",
+  "filesDeleteSelectedBody": "{count} items are deleted permanently. This cannot be undone.",
+  "@filesDeleteSelectedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  }
 }

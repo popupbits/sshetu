@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -23,19 +24,58 @@ class FakeSftpService implements SftpService {
   /// permission error or a deleted directory would.
   String? failListPath;
 
+  /// What kind of [SftpException] [failListPath] raises — permission denied
+  /// by default, since that is the state exercised most: a directory that
+  /// exists but this account cannot read.
+  SftpFailureKind failListKind = SftpFailureKind.permissionDenied;
+
   /// Set by a test to make the next [download] fail after recording the
   /// attempt, the way a dropped connection mid-transfer would.
   Object? downloadError;
 
+  /// Set by a test to make the next [upload] fail after recording the
+  /// attempt.
+  Object? uploadError;
+
+  /// Set by a test that needs a download to still be "in flight" at a known
+  /// point — e.g. to prove `FileBrowserController.cancelTransfer` reaches a
+  /// running job's own token. [download] awaits this before doing anything
+  /// else, so the controller has already created the `TransferJob` and
+  /// returned control to the test by the time it matters.
+  Future<void>? downloadGate;
+
+  /// Path that fails [delete] with [deleteError] — a test's way to prove a
+  /// batch delete keeps going after one entry refuses, instead of a raw
+  /// exception escaping the loop and abandoning the rest of the batch.
+  String? deleteFailPath;
+  Object deleteError = SftpException(
+    'Could not delete: simulated failure.',
+    kind: SftpFailureKind.permissionDenied,
+  );
+
+  /// `~`/relative-input -> the path [resolveRemotePath] should report for it
+  /// — the fake's stand-in for the server-side `realpath` a test cannot
+  /// otherwise observe. Anything not listed here resolves to itself.
+  final Map<String, String> resolveOverrides = {};
+
+  /// Explicit [statPath] answers for a test that wants to force "missing" or
+  /// "file" for a path that is not naturally derivable from [directories]
+  /// (e.g. a path nobody has listed yet).
+  final Map<String, RemotePathKind> statOverrides = {};
+
   final List<String> downloadedRemotePaths = [];
   final List<String> uploadedRemotePaths = [];
   final List<String> deletedPaths = [];
+  final Map<String, int> chmodCalls = {};
   var closeCallCount = 0;
 
   @override
   Future<List<RemoteEntry>> list(String path) async {
     if (failListPath == path) {
-      throw SftpException('Could not read $path: no such file.');
+      throw SftpException(
+        'Could not read $path: simulated failure.',
+        kind: failListKind,
+      );
     }
     return directories[path] ?? const [];
   }
@@ -45,10 +85,16 @@ class FakeSftpService implements SftpService {
     required String remotePath,
     required String localPath,
     SftpProgress? onProgress,
+    SftpCancelToken? cancelToken,
   }) async {
     downloadedRemotePaths.add(remotePath);
+    final gate = downloadGate;
+    if (gate != null) await gate;
     final error = downloadError;
     if (error != null) throw error;
+    if (cancelToken?.isCancelled ?? false) {
+      throw const SftpCancelledException();
+    }
     onProgress?.call(5, 10);
     onProgress?.call(10, 10);
     await File(localPath).writeAsString('downloaded');
@@ -59,8 +105,14 @@ class FakeSftpService implements SftpService {
     required String localPath,
     required String remotePath,
     SftpProgress? onProgress,
+    SftpCancelToken? cancelToken,
   }) async {
     uploadedRemotePaths.add(remotePath);
+    final error = uploadError;
+    if (error != null) throw error;
+    if (cancelToken?.isCancelled ?? false) {
+      throw const SftpCancelledException();
+    }
     onProgress?.call(5, 10);
     onProgress?.call(10, 10);
     // A real server would show the new file on the next listing; reflecting
@@ -83,6 +135,7 @@ class FakeSftpService implements SftpService {
 
   @override
   Future<void> delete(RemoteEntry entry) async {
+    if (deleteFailPath == entry.path) throw deleteError;
     deletedPaths.add(entry.path);
     final dir = p.posix.dirname(entry.path);
     directories[dir]?.removeWhere((e) => e.path == entry.path);
@@ -90,6 +143,52 @@ class FakeSftpService implements SftpService {
 
   @override
   Future<void> mkdir(String path) async {}
+
+  @override
+  Future<void> setPermissions(String path, int mode) async {
+    chmodCalls[path] = mode;
+    // Reflect the change into whatever listing already carries this entry,
+    // the same way a real server's next `list()` would — otherwise a
+    // controller test could never observe the `drwx...` string it just
+    // asked to change.
+    for (final entry in directories.values) {
+      final index = entry.indexWhere((e) => e.path == path);
+      if (index < 0) continue;
+      final old = entry[index];
+      entry[index] = RemoteEntry(
+        name: old.name,
+        path: old.path,
+        isDirectory: old.isDirectory,
+        size: old.size,
+        modified: old.modified,
+        permissions: mode,
+      );
+    }
+  }
+
+  final List<String> resolveCalls = [];
+
+  @override
+  Future<String> resolveRemotePath(String path) async {
+    resolveCalls.add(path);
+    return resolveOverrides[path] ?? path;
+  }
+
+  @override
+  Future<RemotePathKind> statPath(String path) async {
+    final override = statOverrides[path];
+    if (override != null) return override;
+    if (directories.containsKey(path)) return RemotePathKind.directory;
+    for (final entry in directories.values) {
+      if (entry.any((e) => e.path == path)) {
+        final match = entry.firstWhere((e) => e.path == path);
+        return match.isDirectory
+            ? RemotePathKind.directory
+            : RemotePathKind.file;
+      }
+    }
+    return RemotePathKind.missing;
+  }
 
   @override
   Future<void> close() async {

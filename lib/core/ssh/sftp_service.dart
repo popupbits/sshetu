@@ -45,18 +45,88 @@ class RemoteEntry {
   String toString() => 'RemoteEntry($path)';
 }
 
+/// What kind of failure an [SftpException] wraps, drawn only from the status
+/// codes the SFTP protocol actually defines (`sftp_status_code.dart`) — never
+/// from parsing the human-readable message a server chose to send, which
+/// varies by implementation and is not something to branch on.
+enum SftpFailureKind {
+  /// `SSH_FX_NO_SUCH_FILE`.
+  notFound,
+
+  /// `SSH_FX_PERMISSION_DENIED`.
+  permissionDenied,
+
+  /// Every other status — including `SSH_FX_FAILURE`, the protocol's one
+  /// catch-all, which is also what a non-empty `rmdir` comes back as on most
+  /// servers. There is no dedicated status for that case to switch on, so it
+  /// lands here with whatever text the server sent still attached to
+  /// [SftpException.message].
+  other,
+}
+
 /// Raised by every [SftpService] operation. The message is written to be
 /// shown to a user directly — never a raw dartssh2 or platform exception,
 /// whose text can include a handle, a byte offset, or the shape of a wire
 /// packet.
 class SftpException implements Exception {
-  SftpException(this.message, {this.cause});
+  SftpException(this.message, {this.cause, this.kind = SftpFailureKind.other});
 
   final String message;
   final Object? cause;
 
+  /// What a caller can safely switch on to render a distinct UI state (a
+  /// "permission denied" pane vs. a "not found" one) without string-matching
+  /// [message], which is written for reading, not parsing.
+  final SftpFailureKind kind;
+
   @override
   String toString() => 'SftpException: $message';
+}
+
+/// What [SftpService.statPath] found at a path — or that there was nothing
+/// there. A dedicated stat rather than inferring this from a failed
+/// [SftpService.list] call: opening a file as a directory fails with
+/// whatever status code a given server happens to use for "not a directory"
+/// (there is no dedicated one in the SFTP spec), which is not reliable
+/// enough to build a "you typed a file, not a folder" message on. Asking the
+/// server what the path actually is, instead, is.
+enum RemotePathKind { missing, file, directory }
+
+/// A cooperative cancellation flag threaded through one transfer.
+///
+/// Not a wrapper around closing the SFTP file handle mid-flight: dartssh2
+/// gives no guarantee that a server responds to requests already in flight
+/// on a handle that gets closed out from under them, so that path risks a
+/// hang instead of a clean stop. Checking a flag between chunks — the same
+/// technique [SftpFileWriter.abort] already uses on the upload side — is
+/// slower to react but always terminates.
+class SftpCancelToken {
+  var _cancelled = false;
+  void Function()? _onCancel;
+
+  bool get isCancelled => _cancelled;
+
+  /// Stops the transfer this token is attached to. Safe to call more than
+  /// once, and safe to call before a transfer has attached its callback —
+  /// [isCancelled] is checked independently of it.
+  void cancel() {
+    _cancelled = true;
+    _onCancel?.call();
+  }
+
+  void attach(void Function() onCancel) => _onCancel = onCancel;
+  void detach() => _onCancel = null;
+}
+
+/// Thrown by [SftpService.download]/[SftpService.upload] when
+/// [SftpCancelToken.cancel] stopped the transfer partway. Distinct from
+/// [SftpException] so a caller can tell "the user stopped this" from "this
+/// failed" — the transfer list should not show a cancelled row as an error.
+class SftpCancelledException implements Exception {
+  const SftpCancelledException();
+
+  @override
+  String toString() => 'SftpCancelledException';
 }
 
 /// What a transfer reports as it runs. [total] is null when the server did
@@ -77,19 +147,26 @@ abstract interface class SftpService {
   /// Copies the remote file at [remotePath] to [localPath].
   ///
   /// [onProgress] exists because a large file with no feedback is
-  /// indistinguishable from a hung connection.
+  /// indistinguishable from a hung connection. Never leaves a truncated file
+  /// at [localPath]: on failure or [SftpCancelToken.cancel], whatever was
+  /// written so far is discarded rather than left in place under the
+  /// destination's name.
   Future<void> download({
     required String remotePath,
     required String localPath,
     SftpProgress? onProgress,
+    SftpCancelToken? cancelToken,
   });
 
   /// Copies the local file at [localPath] to [remotePath], creating or
-  /// replacing it.
+  /// replacing it. Like [download], failure or cancellation removes whatever
+  /// was written to [remotePath] rather than leaving a truncated file behind
+  /// under the original name.
   Future<void> upload({
     required String localPath,
     required String remotePath,
     SftpProgress? onProgress,
+    SftpCancelToken? cancelToken,
   });
 
   Future<void> rename(String fromPath, String toPath);
@@ -99,6 +176,23 @@ abstract interface class SftpService {
   Future<void> delete(RemoteEntry entry);
 
   Future<void> mkdir(String path);
+
+  /// Changes [path]'s POSIX permission bits to [mode] (the low 9 bits of a
+  /// `chmod`-style value; see `domain/permissions.dart`). File-type bits are
+  /// not settable this way and are not read from [mode] — a server that
+  /// received them would simply ignore them, since permissions is the only
+  /// thing `SSH_FXP_SETSTAT`'s mode field can change.
+  Future<void> setPermissions(String path, int mode);
+
+  /// Resolves [path] against the server's own notion of `~`, `.` and `..` —
+  /// the client has no way to know a remote user's home directory or working
+  /// directory on its own. Used before committing to a path someone typed in.
+  Future<String> resolveRemotePath(String path);
+
+  /// What is at [path] right now: missing, a file, or a directory. See
+  /// [RemotePathKind] for why this is a dedicated call rather than inferred
+  /// from a failed [list].
+  Future<RemotePathKind> statPath(String path);
 
   /// Releases the SFTP channel. Does **not** touch the underlying
   /// [SshConnection] — a terminal session using the same connection must keep
@@ -172,24 +266,47 @@ class SshSftpService implements SftpService {
     required String remotePath,
     required String localPath,
     SftpProgress? onProgress,
+    SftpCancelToken? cancelToken,
   }) async {
     RandomAccessFile? local;
     SftpFile? remote;
+    // Written to a sibling temp path and only renamed onto `localPath` once
+    // every byte has arrived — the bug this guards against: the old
+    // implementation opened `localPath` itself in `FileMode.write`, which
+    // truncates it immediately, so a connection drop or a cancel partway
+    // through left a half-downloaded file sitting under the real name,
+    // indistinguishable from a complete one until something tried to read it.
+    final tempPath = '$localPath.sftp-partial';
+    var cancelled = false;
     try {
       final sftp = await _client();
       remote = await sftp.open(remotePath);
       final total = (await remote.stat()).size;
-      local = await File(localPath).open(mode: FileMode.write);
-      await remote.downloadToRandomAccess(
-        local,
+      local = await File(tempPath).open(mode: FileMode.write);
+      final writer = local;
+      final chunks = remote.read(
         length: total,
         onProgress: (n) => onProgress?.call(n, total),
       );
+      await for (final chunk in chunks) {
+        if (cancelToken?.isCancelled ?? false) {
+          cancelled = true;
+          break;
+        }
+        await writer.writeFrom(chunk);
+      }
+      if (cancelled) throw const SftpCancelledException();
+      await local.close();
+      local = null;
+      await File(tempPath).rename(localPath);
     } on Object catch (e) {
+      if (e is SftpCancelledException) rethrow;
       throw _wrap(e, 'Could not download ${_basename(remotePath)}');
     } finally {
       await remote?.close();
       await local?.close();
+      final temp = File(tempPath);
+      if (await temp.exists()) await temp.delete();
     }
   }
 
@@ -198,8 +315,15 @@ class SshSftpService implements SftpService {
     required String localPath,
     required String remotePath,
     SftpProgress? onProgress,
+    SftpCancelToken? cancelToken,
   }) async {
     SftpFile? remote;
+    // `truncate` below means opening the handle already discards whatever
+    // was at `remotePath`, so a failure or cancel from here on has to remove
+    // the file it just emptied rather than leave that half-written state
+    // sitting under the original name — the same guarantee `download` gives
+    // the local side, mirrored for the remote one.
+    var wroteAnyBytes = false;
     try {
       final localFile = File(localPath);
       final total = await localFile.length();
@@ -211,16 +335,44 @@ class SshSftpService implements SftpService {
             SftpFileOpenMode.write |
             SftpFileOpenMode.truncate,
       );
+      wroteAnyBytes = true;
       final stream = localFile.openRead().map(
         (chunk) => chunk is Uint8List ? chunk : Uint8List.fromList(chunk),
       );
-      await remote
-          .write(stream, onProgress: (n) => onProgress?.call(n, total))
-          .done;
+      final writer = remote.write(
+        stream,
+        onProgress: (n) => onProgress?.call(n, total),
+      );
+      cancelToken?.attach(writer.abort);
+      await writer.done;
+      // `abort()` completes `writer.done` cleanly, with no error — so
+      // "was cancel() ever called" is not enough to tell a genuine abort
+      // from a cancel that arrived just as the last byte was acknowledged.
+      // Comparing bytes actually written against the file's size is: a
+      // completed transfer always reaches `total`, an aborted one never does.
+      if ((cancelToken?.isCancelled ?? false) && writer.progress < total) {
+        throw const SftpCancelledException();
+      }
     } on Object catch (e) {
+      if (wroteAnyBytes) await _cleanupPartialUpload(remotePath);
+      if (e is SftpCancelledException) rethrow;
       throw _wrap(e, 'Could not upload ${_basename(localPath)}');
     } finally {
+      cancelToken?.detach();
       await remote?.close();
+    }
+  }
+
+  /// Best-effort removal of a remote file this upload truncated and then
+  /// failed to finish writing. Swallows its own errors: the failure already
+  /// being reported to the caller explains what went wrong, and a secondary
+  /// "also could not clean up" error would only bury it.
+  Future<void> _cleanupPartialUpload(String remotePath) async {
+    try {
+      final sftp = await _client();
+      await sftp.remove(remotePath);
+    } on Object {
+      // Best effort, see above.
     }
   }
 
@@ -259,6 +411,47 @@ class SshSftpService implements SftpService {
   }
 
   @override
+  Future<void> setPermissions(String path, int mode) async {
+    try {
+      final sftp = await _client();
+      // Only the low 9 bits are permissions; masking here means a caller
+      // that accidentally hands back a full `st_mode` (file-type bits and
+      // all) still only changes what `chmod` would have changed.
+      await sftp.setStat(
+        path,
+        SftpFileAttrs(mode: SftpFileMode.value(mode & 0x1FF)),
+      );
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not change permissions on ${_basename(path)}');
+    }
+  }
+
+  @override
+  Future<String> resolveRemotePath(String path) async {
+    try {
+      final sftp = await _client();
+      return await sftp.absolute(path);
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not resolve $path');
+    }
+  }
+
+  @override
+  Future<RemotePathKind> statPath(String path) async {
+    try {
+      final sftp = await _client();
+      final attrs = await sftp.stat(path);
+      return attrs.isDirectory ? RemotePathKind.directory : RemotePathKind.file;
+    } on Object catch (e) {
+      final wrapped = _wrap(e, 'Could not read $path');
+      if (wrapped.kind == SftpFailureKind.notFound) {
+        return RemotePathKind.missing;
+      }
+      throw wrapped;
+    }
+  }
+
+  @override
   Future<void> close() async {
     final sftp = _sftp;
     _sftp = null;
@@ -291,11 +484,27 @@ class SshSftpService implements SftpService {
     if (error is SftpStatusError) {
       switch (error.code) {
         case SftpStatusCode.noSuchFile:
-          return SftpException('$action: no such file.', cause: error);
+          return SftpException(
+            '$action: no such file.',
+            cause: error,
+            kind: SftpFailureKind.notFound,
+          );
         case SftpStatusCode.permissionDenied:
-          return SftpException('$action: permission denied.', cause: error);
+          return SftpException(
+            '$action: permission denied.',
+            cause: error,
+            kind: SftpFailureKind.permissionDenied,
+          );
         default:
-          return SftpException('$action.', cause: error);
+          // SSH_FX_FAILURE (and everything else the spec leaves
+          // unspecified) is the protocol's one catch-all — it is what a
+          // non-empty `rmdir` comes back as on most servers, among other
+          // things, and there is no dedicated status to switch on for that
+          // case. The server's own message is the only diagnostic detail
+          // available, so it is shown rather than discarded — this reports
+          // it, it does not parse it, so `_wrap` still never *decides*
+          // anything by matching the string.
+          return SftpException('$action: ${error.message}.', cause: error);
       }
     }
     return SftpException('$action.', cause: error);

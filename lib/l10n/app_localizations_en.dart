@@ -894,4 +894,154 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sessionCloseOthers => 'Close other tabs';
+
+  @override
+  String get settingsSyncNow => 'Sync now';
+
+  @override
+  String get settingsSyncSyncing => 'Syncing…';
+
+  @override
+  String get settingsSyncNeverSynced => 'Not synced yet';
+
+  @override
+  String settingsSyncLastSyncedAt(String time) {
+    return 'Synced $time';
+  }
+
+  @override
+  String settingsSyncPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes waiting to sync',
+      one: '1 change waiting to sync',
+      zero: 'Up to date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsSyncFailed(String error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get filesTransferCancelled => 'Cancelled';
+
+  @override
+  String get filesPathEdit => 'Edit path';
+
+  @override
+  String get filesPathHint => 'Enter an absolute path';
+
+  @override
+  String get filesPathNotAbsolute =>
+      'Enter an absolute path, starting with / or ~';
+
+  @override
+  String get filesPathNotFound => 'No such path';
+
+  @override
+  String get filesPathNotADirectory => 'That is a file, not a folder';
+
+  @override
+  String get filesPathOutsideSandbox =>
+      'Outside the app\'s storage on this device';
+
+  @override
+  String get filesPathFailed => 'Could not check that path';
+
+  @override
+  String get filesPermissionDeniedTitle => 'Permission denied';
+
+  @override
+  String filesPermissionDeniedBody(String path) {
+    return 'You don\'t have access to $path.';
+  }
+
+  @override
+  String get filesNotFoundTitle => 'Not found';
+
+  @override
+  String filesNotFoundBody(String path) {
+    return '$path no longer exists.';
+  }
+
+  @override
+  String get filesSandboxNotice =>
+      'Limited to this app\'s own storage on this device — neither iOS nor Android lets an app browse the rest of the filesystem without extra permissions this app does not request.';
+
+  @override
+  String get filesChmod => 'Change permissions';
+
+  @override
+  String get filesChmodOwner => 'Owner';
+
+  @override
+  String get filesChmodGroup => 'Group';
+
+  @override
+  String get filesChmodOther => 'Other';
+
+  @override
+  String get filesChmodRead => 'Read';
+
+  @override
+  String get filesChmodWrite => 'Write';
+
+  @override
+  String get filesChmodExecute => 'Execute';
+
+  @override
+  String get filesChmodOctalLabel => 'Octal';
+
+  @override
+  String get filesChmodOctalInvalid => 'Enter 1-4 octal digits, 0-7 each';
+
+  @override
+  String get filesChmodApply => 'Apply';
+
+  @override
+  String get filesShowHidden => 'Show hidden files';
+
+  @override
+  String get filesHideHidden => 'Hide hidden files';
+
+  @override
+  String get filesSortBy => 'Sort by';
+
+  @override
+  String get filesSortName => 'Name';
+
+  @override
+  String get filesSortSize => 'Size';
+
+  @override
+  String get filesSortModified => 'Modified';
+
+  @override
+  String get filesSelect => 'Select';
+
+  @override
+  String get filesSelectAll => 'Select all';
+
+  @override
+  String filesSelectionCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get filesDownloadSelected => 'Download selected';
+
+  @override
+  String get filesUploadSelected => 'Upload selected';
+
+  @override
+  String get filesDeleteSelected => 'Delete selected';
+
+  @override
+  String filesDeleteSelectedBody(int count) {
+    return '$count items are deleted permanently. This cannot be undone.';
+  }
 }

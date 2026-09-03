@@ -13,9 +13,12 @@ import '../file_browser_controller.dart';
 /// indistinguishable from a stalled connection — see the download/upload
 /// contract in `core/ssh/sftp_service.dart`.
 class TransferTile extends StatelessWidget {
-  const TransferTile({required this.job, super.key});
+  const TransferTile({required this.job, this.onCancel, super.key});
 
   final TransferJob job;
+
+  /// Null once the job is done — see `TransferJob.canCancel`.
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +65,7 @@ class TransferTile extends StatelessWidget {
                       color: scheme.error,
                     ),
                   )
-                else
+                else if (!job.cancelled)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(Radii.pill),
                     child: LinearProgressIndicator(
@@ -75,7 +78,9 @@ class TransferTile extends StatelessWidget {
           ),
           const SizedBox(width: Spacing.sm),
           Text(
-            job.failed
+            job.cancelled
+                ? l10n.filesTransferCancelled
+                : job.failed
                 ? l10n.filesTransferFailed
                 : total == null
                 ? humanFileSize(job.transferred)
@@ -84,6 +89,13 @@ class TransferTile extends StatelessWidget {
               color: scheme.onSurfaceVariant,
             ),
           ),
+          if (job.canCancel)
+            IconButton(
+              tooltip: l10n.actionCancel,
+              icon: const Icon(PiconsRegular.xCircle, size: 16),
+              visualDensity: VisualDensity.compact,
+              onPressed: onCancel,
+            ),
         ],
       ),
     );

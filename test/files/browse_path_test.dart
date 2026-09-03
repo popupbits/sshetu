@@ -52,6 +52,38 @@ void main() {
     test('join composes a child path under a directory', () {
       expect(nav.join('/var/log', 'nginx'), '/var/log/nginx');
     });
+
+    group('looksNavigable (path entry)', () {
+      test('an absolute path is navigable', () {
+        expect(nav.looksNavigable('/var/log'), isTrue);
+      });
+
+      test('a bare relative fragment is rejected', () {
+        // The bug this guards against: with two panes on screen, resolving
+        // "build/output" against "whichever directory happens to be open" is
+        // a silent guess a typo could send somewhere the user never meant.
+        expect(nav.looksNavigable('build/output'), isFalse);
+        expect(nav.looksNavigable('relative'), isFalse);
+      });
+
+      test('~ alone and ~/rest are navigable', () {
+        expect(nav.looksNavigable('~'), isTrue);
+        expect(nav.looksNavigable('~/projects'), isTrue);
+      });
+
+      test('a tilde not followed by a slash is not the shorthand', () {
+        // "~foo" names another user's home in a real shell (`~foo` expands
+        // via getpwnam), which this app cannot resolve — treating it as
+        // relative and rejecting it is honest; silently mangling it into
+        // something else would not be.
+        expect(nav.looksNavigable('~foo'), isFalse);
+      });
+
+      test('blank input is not navigable', () {
+        expect(nav.looksNavigable(''), isFalse);
+        expect(nav.looksNavigable('   '), isFalse);
+      });
+    });
   });
 
   // A local pane on Windows gets a drive letter root, not '/' — `p.windows`

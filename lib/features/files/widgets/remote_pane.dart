@@ -3,13 +3,18 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
 import '../../../core/ssh/sftp_service.dart';
+import '../../../core/ui/context_menu.dart';
 import '../../../core/ui/feedback.dart';
 import '../../../core/ui/views.dart';
 import '../../../l10n/app_localizations.dart';
+import '../domain/file_icons.dart';
+import '../domain/permissions.dart';
 import '../file_browser_controller.dart';
-import 'breadcrumb_bar.dart';
+import 'chmod_dialog.dart';
 import 'entry_row.dart';
 import 'pane_header.dart';
+import 'path_bar.dart';
+import 'selection_bar.dart';
 
 /// The host's filesystem, browsed over the session's SFTP channel.
 class RemotePane extends StatelessWidget {
@@ -20,7 +25,6 @@ class RemotePane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     return Column(
       children: [
@@ -28,20 +32,48 @@ class RemotePane extends StatelessWidget {
           icon: PiconsRegular.hardDrives,
           label: l10n.filesRemote,
           onRefresh: controller.refreshRemote,
+          sortField: controller.remoteSortField,
+          sortAscending: controller.remoteSortAscending,
+          onSort: controller.setRemoteSort,
+          showHidden: controller.remoteShowHidden,
+          onToggleHidden: controller.toggleRemoteShowHidden,
+          selectionMode: controller.remoteSelectionMode,
+          onToggleSelectionMode: controller.toggleRemoteSelectionMode,
         ),
-        BreadcrumbBar(
-          segments: controller.remoteAncestry,
-          labelOf: controller.remoteLabel,
-          onTap: controller.openRemote,
-        ),
+        controller.remoteSelectionMode
+            ? SelectionBar(
+                count: controller.remoteSelection.length,
+                onSelectAll: controller.selectAllRemote,
+                onDone: controller.toggleRemoteSelectionMode,
+                actions: [
+                  SelectionAction(
+                    label: l10n.filesDownloadSelected,
+                    icon: PiconsRegular.downloadSimple,
+                    onSelected: controller.downloadSelected,
+                  ),
+                  SelectionAction(
+                    label: l10n.filesDeleteSelected,
+                    icon: PiconsRegular.trash,
+                    isDestructive: true,
+                    onSelected: () => _deleteSelected(context, controller),
+                  ),
+                ],
+              )
+            : PathBar(
+                currentPath: controller.remotePath,
+                segments: controller.remoteAncestry,
+                labelOf: controller.remoteLabel,
+                onTap: controller.openRemote,
+                onSubmit: controller.submitRemotePath,
+              ),
         const Divider(height: 1),
         Expanded(
           child: controller.remoteEntries.when(
             loading: () => const LoadingView(),
-            error: (error, _) => ErrorView(
-              message: '$error',
+            error: (error, _) => _RemoteFailureView(
+              error: error,
+              path: controller.remotePath,
               onRetry: controller.refreshRemote,
-              retryLabel: l10n.actionRetry,
             ),
             data: (entries) => entries.isEmpty
                 ? EmptyView(
@@ -52,9 +84,17 @@ class RemotePane extends StatelessWidget {
                     itemCount: entries.length,
                     itemBuilder: (context, index) {
                       final entry = entries[index];
-                      return EntryRow(
+                      final selecting = controller.remoteSelectionMode;
+                      final row = EntryRow(
+                        icon: fileIcon(
+                          isDirectory: entry.isDirectory,
+                          name: entry.name,
+                        ),
                         name: entry.name,
                         isDirectory: entry.isDirectory,
+                        permissions: entry.permissions == null
+                            ? null
+                            : formatPermissions(entry.permissions!),
                         subtitle: paneRowSubtitle(
                           context,
                           isDirectory: entry.isDirectory,
@@ -62,36 +102,43 @@ class RemotePane extends StatelessWidget {
                           size: entry.size,
                           modified: entry.modified,
                         ),
+                        selected: selecting
+                            ? controller.remoteSelection.contains(entry.path)
+                            : null,
                         onTap: entry.isDirectory
                             ? () => controller.openRemote(entry.path)
                             : null,
-                        trailing: entry.isDirectory
-                            ? null
-                            : Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    tooltip: l10n.filesDownload,
-                                    icon: const Icon(
-                                      PiconsRegular.downloadSimple,
-                                      size: 18,
-                                    ),
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () => controller.download(entry),
-                                  ),
-                                  IconButton(
-                                    tooltip: l10n.filesDelete,
-                                    icon: Icon(
-                                      PiconsRegular.trash,
-                                      size: 18,
-                                      color: theme.colorScheme.error,
-                                    ),
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () =>
-                                        _delete(context, controller, entry),
-                                  ),
-                                ],
-                              ),
+                        onSelectToggle: () =>
+                            controller.toggleRemoteSelected(entry.path),
+                      );
+                      if (selecting) return row;
+                      return ContextMenuRegion(
+                        // A builder, not a list: the shared menu re-reads its
+                        // actions when it opens, so a row's menu reflects the
+                        // entry as it is then rather than as it was when the
+                        // list was laid out.
+                        actions: () => [
+                          if (!entry.isDirectory)
+                            MenuAction(
+                              label: l10n.filesDownload,
+                              icon: PiconsRegular.downloadSimple,
+                              onSelected: () => controller.download(entry),
+                            ),
+                          MenuAction(
+                            label: l10n.filesChmod,
+                            icon: PiconsRegular.lockSimple,
+                            onSelected: () =>
+                                _chmod(context, controller, entry),
+                          ),
+                          MenuAction(
+                            label: l10n.filesDelete,
+                            icon: PiconsRegular.trash,
+                            isDestructive: true,
+                            onSelected: () =>
+                                _delete(context, controller, entry),
+                          ),
+                        ],
+                        child: row,
                       );
                     },
                   ),
@@ -99,6 +146,71 @@ class RemotePane extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// A permission-denied or not-found listing renders as its own state, not
+/// the generic `ErrorView`: a user who cannot read `/root` needs to see that
+/// plainly and know retrying will not help, which "Could not read /root:
+/// permission denied." buried in a wall of `ErrorView` text does not make
+/// obvious the way a dedicated icon and title do.
+class _RemoteFailureView extends StatelessWidget {
+  const _RemoteFailureView({
+    required this.error,
+    required this.path,
+    required this.onRetry,
+  });
+
+  final Object error;
+  final String path;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final kind = error is SftpException
+        ? (error as SftpException).kind
+        : SftpFailureKind.other;
+
+    return switch (kind) {
+      SftpFailureKind.permissionDenied => EmptyView(
+        icon: PiconsRegular.lockSimple,
+        title: l10n.filesPermissionDeniedTitle,
+        message: l10n.filesPermissionDeniedBody(path),
+        action: OutlinedButton(
+          onPressed: onRetry,
+          child: Text(l10n.actionRetry),
+        ),
+      ),
+      SftpFailureKind.notFound => EmptyView(
+        icon: PiconsRegular.fileX,
+        title: l10n.filesNotFoundTitle,
+        message: l10n.filesNotFoundBody(path),
+        action: OutlinedButton(
+          onPressed: onRetry,
+          child: Text(l10n.actionRetry),
+        ),
+      ),
+      SftpFailureKind.other => ErrorView(
+        message: '$error',
+        onRetry: onRetry,
+        retryLabel: l10n.actionRetry,
+      ),
+    };
+  }
+}
+
+Future<void> _chmod(
+  BuildContext context,
+  FileBrowserController controller,
+  RemoteEntry entry,
+) async {
+  final mode = await ChmodDialog.show(context, entry.permissions ?? 0);
+  if (mode == null) return;
+  try {
+    await controller.chmodRemote(entry, mode);
+  } on Object catch (e) {
+    if (context.mounted) context.toast('$e', isError: true);
   }
 }
 
@@ -119,5 +231,24 @@ Future<void> _delete(
     await controller.deleteRemote(entry);
   } on Object catch (e) {
     if (context.mounted) context.toast('$e', isError: true);
+  }
+}
+
+Future<void> _deleteSelected(
+  BuildContext context,
+  FileBrowserController controller,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final count = controller.remoteSelection.length;
+  final confirmed = await context.confirm(
+    title: l10n.filesDeleteConfirm,
+    message: l10n.filesDeleteSelectedBody(count),
+    confirmLabel: l10n.filesDelete,
+    isDestructive: true,
+  );
+  if (!confirmed) return;
+  final failures = await controller.deleteSelectedRemote();
+  if (context.mounted && failures.isNotEmpty) {
+    context.toast(failures.join('; '), isError: true);
   }
 }

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ssh_navigator/core/ssh/sftp_service.dart';
+import 'package:ssh_navigator/core/util/sort_entries.dart';
 import 'package:ssh_navigator/features/files/file_browser_controller.dart';
 
 import 'fake_sftp_service.dart';
@@ -198,5 +200,266 @@ void main() {
     // `close()` runs unawaited from dispose(); give it a turn to complete.
     await Future<void>.delayed(Duration.zero);
     expect(sftp.closeCallCount, 1);
+  });
+
+  group('remote path entry', () {
+    test('an absolute path navigates directly', () async {
+      final controller = build();
+      final result = await controller.submitRemotePath('/projects');
+      expect(result, PathSubmitResult.ok);
+      expect(controller.remotePath, '/projects');
+    });
+
+    test('a relative path is rejected before any network call', () async {
+      // The bug this guards against: resolving "projects" against whichever
+      // directory happens to be open is a silent guess, and the fix has to
+      // reject it client-side rather than send it to the server and hope the
+      // server's own relative-path handling matches what the user meant.
+      final controller = build();
+      final result = await controller.submitRemotePath('projects');
+
+      expect(result, PathSubmitResult.notAbsolute);
+      expect(controller.remotePath, '/');
+      expect(sftp.resolveCalls, isEmpty);
+    });
+
+    test('~ is expanded by the server before navigating', () async {
+      // dartssh2's `absolute()` (SSH_FXP_REALPATH) is the only thing that
+      // knows a *remote* user's home directory — the client cannot expand
+      // `~` on its own, unlike the local pane where `$HOME` is available
+      // directly.
+      sftp
+        ..resolveOverrides['~'] = '/home/test'
+        ..directories['/home/test'] = [nestedFile];
+
+      final controller = build();
+      final result = await controller.submitRemotePath('~');
+
+      expect(result, PathSubmitResult.ok);
+      expect(controller.remotePath, '/home/test');
+    });
+
+    test('a path that does not exist reports notFound', () async {
+      final controller = build();
+      final result = await controller.submitRemotePath('/nowhere');
+      expect(result, PathSubmitResult.notFound);
+      // The path bar must not navigate on a rejected submission.
+      expect(controller.remotePath, '/');
+    });
+
+    test(
+      'a path that is a file, not a directory, reports notADirectory',
+      () async {
+        final controller = build();
+        final result = await controller.submitRemotePath('/a.txt');
+        expect(result, PathSubmitResult.notADirectory);
+        expect(controller.remotePath, '/');
+      },
+    );
+  });
+
+  group('local path entry', () {
+    test('an absolute path to a real directory navigates directly', () async {
+      final controller = build();
+      final result = await controller.submitLocalPath(localRoot.path);
+      expect(result, PathSubmitResult.ok);
+      expect(controller.localPath, localRoot.path);
+    });
+
+    test('a relative path is rejected', () async {
+      final controller = build();
+      final result = await controller.submitLocalPath('Documents');
+      expect(result, PathSubmitResult.notAbsolute);
+    });
+
+    test('a path that does not exist reports notFound', () async {
+      final controller = build();
+      final result = await controller.submitLocalPath(
+        '${localRoot.path}/nowhere',
+      );
+      expect(result, PathSubmitResult.notFound);
+    });
+
+    test(
+      'a path that is a file, not a directory, reports notADirectory',
+      () async {
+        final file = File('${localRoot.path}/note.txt');
+        await file.writeAsString('x');
+        final controller = build();
+        final result = await controller.submitLocalPath(file.path);
+        expect(result, PathSubmitResult.notADirectory);
+      },
+    );
+  });
+
+  group('hidden files', () {
+    test('a dotfile is filtered out of the listing by default', () async {
+      sftp.directories['/'] = [
+        fileA,
+        const RemoteEntry(name: '.ssh', path: '/.ssh', isDirectory: true),
+      ];
+      final controller = build();
+      await controller.refreshRemote();
+
+      expect(
+        controller.remoteEntries.value?.map((e) => e.name),
+        isNot(contains('.ssh')),
+      );
+    });
+
+    test('toggling show-hidden reveals it', () async {
+      sftp.directories['/'] = [
+        fileA,
+        const RemoteEntry(name: '.ssh', path: '/.ssh', isDirectory: true),
+      ];
+      final controller = build();
+      await controller.refreshRemote();
+
+      controller.toggleRemoteShowHidden();
+
+      expect(
+        controller.remoteEntries.value?.map((e) => e.name),
+        contains('.ssh'),
+      );
+    });
+  });
+
+  group('sorting', () {
+    test('choosing a field twice reverses direction instead of a no-op', () {
+      final controller = build();
+      expect(controller.remoteSortAscending, isTrue);
+
+      controller.setRemoteSort(SortField.size);
+      expect(controller.remoteSortField, SortField.size);
+      expect(controller.remoteSortAscending, isTrue);
+
+      controller.setRemoteSort(SortField.size);
+      expect(
+        controller.remoteSortAscending,
+        isFalse,
+        reason: 'the same field again should flip direction, not reset it',
+      );
+    });
+
+    test('choosing a different field resets to ascending', () {
+      final controller = build();
+      controller.setRemoteSort(SortField.size);
+      controller.setRemoteSort(SortField.size); // now descending
+      controller.setRemoteSort(SortField.modified);
+      expect(controller.remoteSortAscending, isTrue);
+    });
+  });
+
+  group('multi-select transfers', () {
+    test('downloadSelected fires a job for every selected file', () async {
+      final controller = build();
+      await controller.refreshRemote();
+      controller.toggleRemoteSelectionMode();
+      controller.toggleRemoteSelected(fileA.path);
+
+      await controller.downloadSelected();
+
+      expect(sftp.downloadedRemotePaths, [fileA.path]);
+      expect(controller.transfers.single.done, isTrue);
+      // The batch leaves selection mode once it finishes.
+      expect(controller.remoteSelectionMode, isFalse);
+    });
+
+    test(
+      'a batch delete collects every failure instead of stopping at the first',
+      () async {
+        // The bug this guards against: a naive loop that lets the first
+        // exception escape would leave the rest of the batch untouched, with
+        // no way for the caller to learn what succeeded and what did not.
+        final other = RemoteEntry(
+          name: 'b.txt',
+          path: '/b.txt',
+          isDirectory: false,
+          size: 1,
+        );
+        sftp.directories['/'] = [fileA, other];
+        sftp.deleteFailPath = fileA.path;
+        final controller = build();
+        await controller.refreshRemote();
+        controller.toggleRemoteSelectionMode();
+        controller.toggleRemoteSelected(fileA.path);
+        controller.toggleRemoteSelected(other.path);
+
+        final failures = await controller.deleteSelectedRemote();
+
+        // The failing entry is reported, but the other one still went
+        // through — a naive loop that let the exception escape would have
+        // stopped before ever attempting `other`.
+        expect(failures, hasLength(1));
+        expect(sftp.deletedPaths, [other.path]);
+        expect(
+          controller.remoteEntries.value?.map((e) => e.path),
+          contains(fileA.path),
+          reason: 'the entry that failed to delete must still be listed',
+        );
+      },
+    );
+
+    test('selectAllRemote selects files but not directories', () async {
+      final controller = build();
+      await controller.refreshRemote();
+      controller.toggleRemoteSelectionMode();
+
+      controller.selectAllRemote();
+
+      expect(controller.remoteSelection, {fileA.path});
+    });
+  });
+
+  group('cancelling a transfer', () {
+    test('marks the job cancelled, not failed', () async {
+      // The distinction the UI depends on: a cancelled row must not read
+      // like something broke, so `error` stays null and `cancelled` alone
+      // tells the story.
+      sftp.downloadError = const SftpCancelledException();
+      final controller = build();
+
+      await controller.download(fileA);
+
+      final job = controller.transfers.single;
+      expect(job.done, isTrue);
+      expect(job.cancelled, isTrue);
+      expect(job.failed, isFalse);
+      expect(job.error, isNull);
+    });
+
+    test('cancelTransfer calls the job\'s own cancel token', () async {
+      final controller = build();
+      // A download that hangs until told to stop, so there is a live job to
+      // cancel when `cancelTransfer` runs.
+      final gate = Completer<void>();
+      sftp.downloadGate = gate.future;
+
+      final future = controller.download(fileA);
+      await Future<void>.delayed(Duration.zero);
+      final job = controller.transfers.single;
+      expect(job.canCancel, isTrue);
+
+      controller.cancelTransfer(job.id);
+      gate.complete();
+      await future;
+
+      expect(controller.transfers.single.cancelled, isTrue);
+    });
+  });
+
+  group('chmod', () {
+    test('chmodRemote applies the mode and refreshes the pane', () async {
+      final controller = build();
+      await controller.refreshRemote();
+
+      await controller.chmodRemote(fileA, 0x1ED); // 755
+
+      expect(sftp.chmodCalls[fileA.path], 0x1ED);
+      final updated = controller.remoteEntries.value!.firstWhere(
+        (e) => e.path == fileA.path,
+      );
+      expect(updated.permissions, 0x1ED);
+    });
   });
 }
