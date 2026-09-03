@@ -46,7 +46,7 @@ class EmptyView extends StatelessWidget {
     return Center(
       child: ContentWidth(
         maxWidth: Breakpoints.maxMessageWidth,
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -98,10 +98,15 @@ class ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Scrollable, not padded: the message is whatever the failure produced,
+    // and some of them are long — a Riverpod error carries its provider chain,
+    // a platform exception its own prose. An error view that overflows while
+    // reporting an error is the worst possible time to run out of room, and
+    // on a short phone screen it happens with very ordinary messages.
     return Center(
       child: ContentWidth(
         maxWidth: Breakpoints.maxMessageWidth,
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
