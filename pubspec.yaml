@@ -76,6 +76,9 @@ dependencies:
   # SHA-256 for OpenSSH key fingerprints during import. Already in the tree
   # under dartssh2; named here because this app calls it directly, and a
   # transitive dependency can vanish under a version bump without warning.
+  # Ed25519 key generation. dartssh2 already uses it for host keys, but an
+  # app that imports a package declares it.
+  pinenacl: ^0.6.0
   crypto: ^3.0.6
 
   # SSH, SFTP and port forwarding, pure Dart. 4.0.0 dropped SHA-1 key

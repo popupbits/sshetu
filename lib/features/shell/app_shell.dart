@@ -6,6 +6,7 @@ import '../../core/util/responsive.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../l10n/app_localizations.dart';
+import '../keys/widgets/generate_key_sheet.dart';
 import '../sessions/session_shortcuts.dart';
 import '../sessions/widgets/terminal_workspace.dart';
 
@@ -82,6 +83,14 @@ class AppShell extends StatelessWidget {
       ],
       // Keys
       2 => [
+        IconButton(
+          tooltip: l10n.keysGenerate,
+          icon: Icon(PiconsRegular.key, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
+          onPressed: () => showGenerateKeySheet(context),
+        ),
         IconButton(
           tooltip: l10n.keysImport,
           icon: Icon(PiconsRegular.downloadSimple, size: size),

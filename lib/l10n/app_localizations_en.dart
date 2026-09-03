@@ -460,6 +460,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keysImport => 'Import keys';
 
   @override
+  String get keysGenerate => 'Generate key';
+
+  @override
+  String get keysGenerateTitle => 'Generate a new key';
+
+  @override
+  String get keysGenerateBody =>
+      'An Ed25519 keypair, made on this device. The private half stays in this device\'s secure storage and never leaves it.';
+
+  @override
+  String get keysGenerateLabel => 'Name this key';
+
+  @override
+  String get keysGenerateDone =>
+      'Add this line to the server\'s ~/.ssh/authorized_keys:';
+
+  @override
   String get keysCopyPublic => 'Copy public key';
 
   @override

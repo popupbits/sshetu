@@ -11,6 +11,7 @@ import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import 'keys_controller.dart';
+import 'widgets/generate_key_sheet.dart';
 
 /// The Keys destination.
 class KeysScreen extends ConsumerWidget {
@@ -34,10 +35,23 @@ class KeysScreen extends ConsumerWidget {
             icon: PiconsRegular.key,
             title: l10n.keysEmptyTitle,
             message: l10n.keysEmptyBody,
-            action: FilledButton.icon(
-              onPressed: () => context.pushTo(Routes.importFocused('keys')),
-              icon: const Icon(PiconsRegular.downloadSimple),
-              label: Text(l10n.keysImport),
+            // Generate leads, import follows. On a phone there is no ~/.ssh
+            // to import from, so the button that always works goes first.
+            action: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => showGenerateKeySheet(context),
+                  icon: const Icon(PiconsRegular.key),
+                  label: Text(l10n.keysGenerate),
+                ),
+                const SizedBox(height: Spacing.sm),
+                TextButton.icon(
+                  onPressed: () => context.pushTo(Routes.importFocused('keys')),
+                  icon: const Icon(PiconsRegular.downloadSimple),
+                  label: Text(l10n.keysImport),
+                ),
+              ],
             ),
           );
         }

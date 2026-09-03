@@ -940,6 +940,36 @@ abstract class AppLocalizations {
   /// **'Import keys'**
   String get keysImport;
 
+  /// No description provided for @keysGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate key'**
+  String get keysGenerate;
+
+  /// No description provided for @keysGenerateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a new key'**
+  String get keysGenerateTitle;
+
+  /// No description provided for @keysGenerateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An Ed25519 keypair, made on this device. The private half stays in this device\'s secure storage and never leaves it.'**
+  String get keysGenerateBody;
+
+  /// No description provided for @keysGenerateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name this key'**
+  String get keysGenerateLabel;
+
+  /// No description provided for @keysGenerateDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Add this line to the server\'s ~/.ssh/authorized_keys:'**
+  String get keysGenerateDone;
+
   /// No description provided for @keysCopyPublic.
   ///
   /// In en, this message translates to:
