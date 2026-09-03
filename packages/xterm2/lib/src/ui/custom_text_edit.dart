@@ -205,6 +205,38 @@ class CustomTextEditState extends State<CustomTextEdit> with TextInputClient {
 
   late var _currentEditingState = _initEditingState.copyWith();
 
+  /// The last text the **platform** actually sent, and whether we have asked
+  /// it to go back to the baseline since.
+  ///
+  /// After every insertion this widget calls
+  /// `setEditingState(_initEditingState)` so the platform's buffer cannot
+  /// grow without bound. That request is asynchronous, and on iOS it **races
+  /// the next keystroke**. Logged on an iPhone 17 Pro simulator, typing
+  /// `abcde` arrives as:
+  ///
+  /// ```text
+  /// text="a"    prev=""      the reset landed
+  /// text="b"    prev="a"     the reset landed
+  /// text="bc"   prev="b"     it did not — the platform appended
+  /// text="bcd"  prev="bc"    appended again
+  /// text="e"    prev="bcd"   the reset landed
+  /// ```
+  ///
+  /// Treating every value as fresh — everything past the baseline length —
+  /// re-sends `bc` and `bcd` in full, so `abcde` reached the shell as
+  /// `abbcbcde`. Deciding by whether the new value *continues* the last one
+  /// tells the two cases apart: an append can only extend what the platform
+  /// already had.
+  late var _lastPlatformText = _initEditingState.text;
+
+  /// True from the moment a reset is requested until the platform's next
+  /// value arrives.
+  ///
+  /// Needed only for the ambiguous case: the platform sending exactly what it
+  /// sent before. That is a keystroke repeating a character — `ll` — and not
+  /// a no-op, precisely because a reset was asked for in between.
+  var _resetRequested = false;
+
   @override
   TextEditingValue? get currentTextEditingValue {
     return _currentEditingState;
@@ -229,20 +261,40 @@ class CustomTextEditState extends State<CustomTextEdit> with TextInputClient {
 
     widget.onComposing(null);
 
-    if (_currentEditingState.text.length < _initEditingState.text.length) {
+    final text = _currentEditingState.text;
+    final previous = _lastPlatformText;
+    final baseline = _initEditingState.text;
+
+    if (text.length < baseline.length) {
       widget.onDelete();
     } else {
-      final textDelta = _currentEditingState.text.substring(
-        _initEditingState.text.length,
-      );
+      final String textDelta;
+      if (text.length > previous.length && text.startsWith(previous)) {
+        // The platform kept its own buffer and appended to it: only the tail
+        // is new.
+        textDelta = text.substring(previous.length);
+      } else if (text == previous && !_resetRequested) {
+        // Nothing changed and nothing was asked to change — a selection
+        // update, not a keystroke.
+        textDelta = '';
+      } else {
+        // The reset landed, so this value stands on its own.
+        textDelta = text.substring(baseline.length);
+      }
 
-      widget.onInsert(textDelta);
+      if (textDelta.isNotEmpty) {
+        widget.onInsert(textDelta);
+      }
     }
+
+    _lastPlatformText = text;
+    _resetRequested = false;
 
     // Reset editing state if composing is done
     if (_currentEditingState.composing.isCollapsed &&
         _currentEditingState.text != _initEditingState.text) {
       _connection!.setEditingState(_initEditingState);
+      _resetRequested = true;
     }
   }
 

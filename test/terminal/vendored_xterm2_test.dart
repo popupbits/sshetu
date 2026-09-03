@@ -155,4 +155,79 @@ void main() {
       await gesture.up();
     });
   });
+
+  group('editing value races the reset (ui/custom_text_edit.dart)', () {
+    // After every insertion the widget asks the platform to go back to an
+    // empty baseline so its buffer cannot grow. That request is asynchronous
+    // and on iOS it races the next keystroke — sometimes it lands, sometimes
+    // the platform appends to what it already had. Upstream treats every
+    // value as fresh, so the appended ones are re-sent in full.
+    //
+    // The sequence below is not invented: it is what an iPhone 17 Pro
+    // simulator actually sent for `abcde`, logged from inside
+    // updateEditingValue.
+    Future<List<String>> typeSequence(
+      WidgetTester tester,
+      List<String> values,
+    ) async {
+      final terminal = Terminal();
+      final output = <String>[];
+      terminal.onOutput = output.add;
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(size: Size(800, 600)),
+            child: SizedBox(
+              width: 800,
+              height: 600,
+              child: TerminalView(terminal, autofocus: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final value in values) {
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: value,
+            selection: TextSelection.collapsed(offset: value.length),
+          ),
+        );
+        await tester.pump();
+      }
+      return output;
+    }
+
+    testWidgets('the real iOS sequence types each character once', (
+      tester,
+    ) async {
+      final output = await typeSequence(tester, [
+        'a', // reset landed
+        'b', // reset landed
+        'bc', // reset did not land — appended
+        'bcd', // appended again
+        'e', // reset landed
+      ]);
+
+      expect(output.join(), 'abcde');
+    });
+
+    testWidgets('a repeated character is not swallowed', (tester) async {
+      // The ambiguous case, and the one a common-prefix diff gets wrong: the
+      // platform sends a value that begins with what it sent before, but as a
+      // *new* keystroke rather than an append. Typing `ll` at a shell is not
+      // rare — it is how half the world lists a directory.
+      final output = await typeSequence(tester, ['l', 'l']);
+
+      expect(output.join(), 'll');
+    });
+
+    testWidgets('an append after a repeat still resolves', (tester) async {
+      final output = await typeSequence(tester, ['l', 'l', 'ls']);
+      expect(output.join(), 'lls');
+    });
+  });
 }
