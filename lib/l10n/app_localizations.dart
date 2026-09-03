@@ -1633,20 +1633,20 @@ abstract class AppLocalizations {
   /// No description provided for @tunnelPreviewLocal.
   ///
   /// In en, this message translates to:
-  /// **'Anything you open at {listen} on this device reaches {target}, as seen from the server.'**
-  String tunnelPreviewLocal(String listen, String target);
+  /// **'Open {listen} on this device and you reach {target} on {server}.'**
+  String tunnelPreviewLocal(String listen, String target, String server);
 
   /// No description provided for @tunnelPreviewRemote.
   ///
   /// In en, this message translates to:
-  /// **'Anything opened at {listen} on the server reaches {target} on this device.'**
-  String tunnelPreviewRemote(String listen, String target);
+  /// **'Open {listen} on {server} and it reaches {target} on this device.'**
+  String tunnelPreviewRemote(String listen, String server, String target);
 
   /// No description provided for @tunnelPreviewSocks.
   ///
   /// In en, this message translates to:
-  /// **'Point an app at {listen} as a SOCKS5 proxy and its traffic goes out from the server.'**
-  String tunnelPreviewSocks(String listen);
+  /// **'Point an app at {listen} as a SOCKS5 proxy and its traffic leaves from {server}.'**
+  String tunnelPreviewSocks(String listen, String server);
 
   /// No description provided for @tunnelAdvanced.
   ///
@@ -1677,6 +1677,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Listen address on the server'**
   String get tunnelBindThere;
+
+  /// No description provided for @tunnelPreviewServerFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'the server'**
+  String get tunnelPreviewServerFallback;
 }
 
 class _AppLocalizationsDelegate

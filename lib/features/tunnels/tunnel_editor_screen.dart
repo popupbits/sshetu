@@ -157,35 +157,27 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
           child: ListView(
             padding: const EdgeInsets.all(Spacing.lg),
             children: [
-              // The host is fixed by how this screen was reached — from that
-              // host's section on the list, or from the forward being
-              // edited — never chosen here. Re-parenting a saved forward to a
-              // different host would be indistinguishable from creating a new
-              // one, so there is nothing to make editable; this is a
-              // dropdown only as a defensive fallback for the case neither
-              // supplied one.
-              if (_selectedHostId != null)
-                _HostDisplay(
-                  label: hosts
-                      .where((h) => h.id == _selectedHostId)
-                      .firstOrNull
-                      ?.label,
-                )
-              else
-                DropdownButtonFormField<String?>(
-                  initialValue: _selectedHostId,
-                  decoration: InputDecoration(
-                    labelText: l10n.tunnelEditorHost,
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: [
-                    for (final host in hosts)
-                      DropdownMenuItem(value: host.id, child: Text(host.label)),
-                  ],
-                  onChanged: (value) => setState(() => _selectedHostId = value),
-                  validator: (value) =>
-                      value == null ? l10n.hostEditorRequired : null,
+              // Always editable. This was a read-only display once a host
+              // was set, on the reasoning that the screen is always reached
+              // from a host that already knows itself — but picking the wrong
+              // one then had no remedy except starting over, and a field that
+              // looks like a field and does nothing when tapped reads as
+              // broken rather than as deliberate.
+              DropdownButtonFormField<String?>(
+                initialValue: _selectedHostId,
+                decoration: InputDecoration(
+                  labelText: l10n.tunnelEditorHost,
+                  border: const OutlineInputBorder(),
                 ),
+                items: [
+                  for (final host in hosts)
+                    DropdownMenuItem(value: host.id, child: Text(host.label)),
+                ],
+                onChanged: (value) => setState(() => _selectedHostId = value),
+                validator: (value) =>
+                    value == null ? l10n.hostEditorRequired : null,
+              ),
+              const SizedBox(height: Spacing.lg),
 
               // What you want, in a sentence — not "local/remote/dynamic",
               // which are the flags `ssh` takes and mean nothing until you
@@ -282,6 +274,10 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
                 listenPort: _listenPort.text,
                 targetHost: _targetHost.text,
                 targetPort: _targetPort.text,
+                hostLabel: hosts
+                    .where((h) => h.id == _selectedHostId)
+                    .firstOrNull
+                    ?.label,
               ),
 
               // Everything below is either rarely changed or actively
@@ -374,28 +370,6 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
 
 /// The forward's host, shown but not editable — see the comment where this
 /// is used.
-class _HostDisplay extends StatelessWidget {
-  const _HostDisplay({required this.label});
-
-  final String? label;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: l10n.tunnelEditorHost,
-        border: const OutlineInputBorder(),
-      ),
-      child: Text(label ?? '—', style: theme.textTheme.bodyLarge),
-    );
-  }
-}
-
-/// A loopback warning, inline rather than a dialog: the moment the user is
-/// typing `0.0.0.0` is the moment they need to see the consequence, not after
-/// they have already tapped Save.
 class _WarningBanner extends StatelessWidget {
   const _WarningBanner({required this.text});
 
@@ -524,12 +498,21 @@ class _Preview extends StatelessWidget {
     required this.listenPort,
     required this.targetHost,
     required this.targetPort,
+    required this.hostLabel,
   });
 
   final TunnelKind kind;
   final String listenPort;
   final String targetHost;
   final String targetPort;
+
+  /// The server's name, so the sentence can say *which* machine each side is.
+  ///
+  /// Without it the preview read "…reaches 127.0.0.1:3000, as seen from the
+  /// server", where the address belongs to the server but the only machine
+  /// named in the sentence was this one. Naming both ends is the difference
+  /// between a sentence that clarifies and one that has to be decoded.
+  final String? hostLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -548,10 +531,11 @@ class _Preview extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final server = hostLabel ?? l10n.tunnelPreviewServerFallback;
     final text = switch (kind) {
-      TunnelKind.local => l10n.tunnelPreviewLocal(listen, target),
-      TunnelKind.remote => l10n.tunnelPreviewRemote(listen, target),
-      TunnelKind.socks => l10n.tunnelPreviewSocks(listen),
+      TunnelKind.local => l10n.tunnelPreviewLocal(listen, target, server),
+      TunnelKind.remote => l10n.tunnelPreviewRemote(listen, server, target),
+      TunnelKind.socks => l10n.tunnelPreviewSocks(listen, server),
     };
 
     return Container(

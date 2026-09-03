@@ -844,18 +844,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tunnelPortField => 'Port';
 
   @override
-  String tunnelPreviewLocal(String listen, String target) {
-    return 'Anything you open at $listen on this device reaches $target, as seen from the server.';
+  String tunnelPreviewLocal(String listen, String target, String server) {
+    return 'Open $listen on this device and you reach $target on $server.';
   }
 
   @override
-  String tunnelPreviewRemote(String listen, String target) {
-    return 'Anything opened at $listen on the server reaches $target on this device.';
+  String tunnelPreviewRemote(String listen, String server, String target) {
+    return 'Open $listen on $server and it reaches $target on this device.';
   }
 
   @override
-  String tunnelPreviewSocks(String listen) {
-    return 'Point an app at $listen as a SOCKS5 proxy and its traffic goes out from the server.';
+  String tunnelPreviewSocks(String listen, String server) {
+    return 'Point an app at $listen as a SOCKS5 proxy and its traffic leaves from $server.';
   }
 
   @override
@@ -872,4 +872,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tunnelBindThere => 'Listen address on the server';
+
+  @override
+  String get tunnelPreviewServerFallback => 'the server';
 }

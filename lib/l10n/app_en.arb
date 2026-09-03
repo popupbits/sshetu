@@ -345,9 +345,9 @@
   "tunnelServiceHere": "Which service on this device",
   "tunnelAddressField": "Address",
   "tunnelPortField": "Port",
-  "tunnelPreviewLocal": "Anything you open at {listen} on this device reaches {target}, as seen from the server.",
-  "tunnelPreviewRemote": "Anything opened at {listen} on the server reaches {target} on this device.",
-  "tunnelPreviewSocks": "Point an app at {listen} as a SOCKS5 proxy and its traffic goes out from the server.",
+  "tunnelPreviewLocal": "Open {listen} on this device and you reach {target} on {server}.",
+  "tunnelPreviewRemote": "Open {listen} on {server} and it reaches {target} on this device.",
+  "tunnelPreviewSocks": "Point an app at {listen} as a SOCKS5 proxy and its traffic leaves from {server}.",
   "tunnelAdvanced": "Advanced",
   "tunnelNameOptional": "Name (optional)",
   "tunnelNameHint": "Left blank, it is named after the ports",
@@ -360,12 +360,18 @@
       },
       "target": {
         "type": "String"
+      },
+      "server": {
+        "type": "String"
       }
     }
   },
   "@tunnelPreviewRemote": {
     "placeholders": {
       "listen": {
+        "type": "String"
+      },
+      "server": {
         "type": "String"
       },
       "target": {
@@ -377,7 +383,11 @@
     "placeholders": {
       "listen": {
         "type": "String"
+      },
+      "server": {
+        "type": "String"
       }
     }
-  }
+  },
+  "tunnelPreviewServerFallback": "the server"
 }
