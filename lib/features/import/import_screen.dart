@@ -111,7 +111,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       return;
     }
 
-    final label = file.name;
+    final label = OpenSshScanner.labelForPickedKey(file.name);
     final pub = await _publicKeyBeside(file.path);
     final now = DateTime.now().toUtc();
     final id = _newId();

@@ -257,4 +257,55 @@ MIIEowIBAAKCAQEA
       );
     });
   });
+
+  group('key type without a .pub', () {
+    // A real ed25519 key in the modern OpenSSH format, unencrypted. Its public
+    // half sits in the clear inside the blob, which is what makes the type
+    // readable at all.
+    const opensshEd25519 = '''
+***REMOVED: throwaway test key, replaced by generated fixtures***
+''';
+
+    test('is read from the openssh-key-v1 blob', () {
+      // Every key imported through a mobile file picker arrives alone — the
+      // picker hands over a cached copy with no sibling .pub — and all of them
+      // showed as "unknown" until this parsed the blob.
+      expect(OpenSshScanner.keyTypeOf(null, opensshEd25519), 'ssh-ed25519');
+    });
+
+    test('prefers the .pub when there is one', () {
+      expect(
+        OpenSshScanner.keyTypeOf('ssh-rsa AAAAB3Nz me@host', opensshEd25519),
+        'ssh-rsa',
+      );
+    });
+
+    test('a malformed blob is unknown, not an exception', () {
+      // This runs on a file the user chose. A bad one should import as
+      // unknown rather than failing the import.
+      expect(
+        OpenSshScanner.keyTypeOf(
+          null,
+          '-----BEGIN OPENSSH PRIVATE KEY-----\nzzzz\n-----END OPENSSH PRIVATE KEY-----',
+        ),
+        'unknown',
+      );
+    });
+  });
+
+  group('a key picked from a file picker', () {
+    test('loses the extension Android guessed for it', () {
+      // The document picker names its cached copy after the MIME type it
+      // guessed, so id_ed25519 arrives as id_ed25519.bin — and that name would
+      // otherwise be the key's label forever.
+      expect(OpenSshScanner.labelForPickedKey('id_ed25519.bin'), 'id_ed25519');
+      expect(OpenSshScanner.labelForPickedKey('work.txt'), 'work');
+    });
+
+    test('keeps a name that is already right', () {
+      expect(OpenSshScanner.labelForPickedKey('id_ed25519'), 'id_ed25519');
+      // A .pem is a real convention, not a picker's guess.
+      expect(OpenSshScanner.labelForPickedKey('work.pem'), 'work.pem');
+    });
+  });
 }

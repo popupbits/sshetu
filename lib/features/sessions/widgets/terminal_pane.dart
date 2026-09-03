@@ -7,6 +7,7 @@ import 'package:xterm2/xterm.dart';
 import '../../../core/terminal/terminal_session.dart';
 import '../../../core/theme/terminal_theme.dart';
 import '../../../core/ui/context_menu.dart';
+import '../../../core/ui/keyboard_accessory.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
@@ -126,8 +127,13 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
           ),
           // An accessory to the software keyboard: present only with one, and
           // never on a platform that has real modifier keys.
-          if (context.usesSoftwareKeyboard && context.isSoftwareKeyboardVisible)
-            TerminalKeyBar(onSend: session.send),
+          if (context.usesSoftwareKeyboard)
+            KeyboardAccessory(
+              child: TerminalKeyBar(
+                terminal: session.terminal,
+                modifiers: session.modifiers,
+              ),
+            ),
         ],
       ),
     );

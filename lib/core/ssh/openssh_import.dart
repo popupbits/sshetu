@@ -367,11 +367,97 @@ class OpenSshScanner {
         return first!;
       }
     }
-    // Without a .pub there is nothing reliable to read from an encrypted key,
-    // and guessing the algorithm wrong is worse than admitting we do not know.
+    // A modern OpenSSH key carries its type in the clear even when the private
+    // half is encrypted, so it can be read without a passphrase and without
+    // the `.pub` — which matters on mobile, where the file picker hands over a
+    // lone copy with no sibling. Every key imported that way used to show as
+    // "unknown".
+    final fromBlob = _opensshKeyType(privateKey);
+    if (fromBlob != null) return fromBlob;
+
     if (privateKey.contains('BEGIN RSA PRIVATE KEY')) return 'ssh-rsa';
     if (privateKey.contains('BEGIN EC PRIVATE KEY')) return 'ecdsa';
     return 'unknown';
+  }
+
+  /// The key type inside an `openssh-key-v1` blob.
+  ///
+  /// The format is: the magic `openssh-key-v1\0`, then length-prefixed
+  /// strings for the cipher, the KDF name and its options, then a count, then
+  /// the **public** key — whose own first field is the type. The public half
+  /// is never encrypted, which is the whole reason this is readable.
+  ///
+  /// Returns null rather than throwing on anything unexpected: this runs on a
+  /// file a user chose, and a malformed one should import as "unknown", not
+  /// fail the import.
+  static String? _opensshKeyType(String pem) {
+    if (!pem.contains('BEGIN OPENSSH PRIVATE KEY')) return null;
+    final body = _pemBody(pem);
+    if (body == null) return null;
+
+    try {
+      final bytes = base64.decode(body);
+      var offset = 0;
+
+      const magic = 'openssh-key-v1\u0000';
+      if (bytes.length < magic.length) return null;
+      offset += magic.length;
+
+      int readUint32() {
+        final value =
+            (bytes[offset] << 24) |
+            (bytes[offset + 1] << 16) |
+            (bytes[offset + 2] << 8) |
+            bytes[offset + 3];
+        offset += 4;
+        return value;
+      }
+
+      List<int> readString() {
+        final length = readUint32();
+        if (length < 0 || offset + length > bytes.length) {
+          throw const FormatException('length past end of blob');
+        }
+        final value = bytes.sublist(offset, offset + length);
+        offset += length;
+        return value;
+      }
+
+      readString(); // cipher name
+      readString(); // kdf name
+      readString(); // kdf options
+      if (readUint32() < 1) return null; // key count
+      final publicKey = readString();
+
+      // The public blob's own first field is the type.
+      var inner = 0;
+      final typeLength =
+          (publicKey[inner] << 24) |
+          (publicKey[inner + 1] << 16) |
+          (publicKey[inner + 2] << 8) |
+          publicKey[inner + 3];
+      inner += 4;
+      if (typeLength <= 0 || inner + typeLength > publicKey.length) return null;
+      return latin1.decode(publicKey.sublist(inner, inner + typeLength));
+    } on Object {
+      return null;
+    }
+  }
+
+  /// A label for a key picked through a file picker.
+  ///
+  /// Android's document picker hands the app a cached copy named after the
+  /// original with a MIME-guessed extension appended, so `id_ed25519` arrives
+  /// as `id_ed25519.bin`. A private key is never a `.bin`, and carrying the
+  /// picker's guess into the key list forever is worse than dropping it.
+  static String labelForPickedKey(String fileName) {
+    const guessed = ['.bin', '.txt', '.dat'];
+    for (final suffix in guessed) {
+      if (fileName.toLowerCase().endsWith(suffix)) {
+        return fileName.substring(0, fileName.length - suffix.length);
+      }
+    }
+    return fileName;
   }
 
   static String? _pemBody(String content) {

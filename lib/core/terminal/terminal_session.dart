@@ -10,6 +10,7 @@ import '../ssh/ssh_connection.dart';
 import '../ssh/ssh_connection_state.dart';
 import '../ssh/ssh_target.dart';
 import 'output_coalescer.dart';
+import 'terminal_modifiers.dart';
 
 /// How many lines of scrollback a live session keeps.
 ///
@@ -40,6 +41,11 @@ class TerminalSession extends ChangeNotifier {
     this.scrollbackLines = kScrollbackLines,
   }) {
     terminal = Terminal(maxLines: scrollbackLines);
+
+    // Ctrl and Alt from the mobile modifier bar reach the terminal here, so
+    // that a latched chord is translated by exactly the same chain as a
+    // hardware one. See [LatchedModifierInputHandler].
+    terminal.inputHandler = LatchedModifierInputHandler(modifiers);
 
     // Keystrokes and pasted text out to the remote shell.
     terminal.onOutput = (data) {
@@ -97,6 +103,13 @@ class TerminalSession extends ChangeNotifier {
   /// The terminal this session draws into. Owned here, so a tab that is
   /// scrolled off screen keeps its buffer.
   late final Terminal terminal;
+
+  /// Ctrl and Alt latched by the mobile modifier bar, if any is on screen.
+  ///
+  /// Lives on the session rather than in the bar because the terminal's own
+  /// input path has to see it — a key typed on the software keyboard never
+  /// passes through the bar. See [TerminalModifiers].
+  final modifiers = TerminalModifiers();
 
   late final OutputCoalescer _coalescer;
   StreamSubscription<SshConnectionState>? _stateSubscription;
@@ -250,6 +263,7 @@ class TerminalSession extends ChangeNotifier {
     _stderrSubscription?.cancel();
     _stateSubscription?.cancel();
     _coalescer.dispose();
+    modifiers.dispose();
     _session?.close();
     unawaited(connection.close());
     super.dispose();

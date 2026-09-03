@@ -47,11 +47,24 @@ extension ResponsiveContext on BuildContext {
 
   /// Whether a software keyboard is on screen right now.
   ///
-  /// `viewInsets.bottom` is what the keyboard occludes. Reading it means this
-  /// rebuilds through the keyboard animation, which is what makes anything
-  /// keyed on it track the keyboard rather than snap after it.
+  /// `viewInsets.bottom` is what the keyboard occludes — but the obvious
+  /// `MediaQuery.viewInsetsOf(this).bottom > 0` is a **trap** inside a
+  /// [Scaffold]. A Scaffold that resizes for the keyboard has already made
+  /// room for it, so it hands its body a MediaQuery with the bottom inset
+  /// removed: the value there is always zero. That is precisely where a
+  /// keyboard accessory is built, so the check silently never fired and the
+  /// modifier bar never appeared on a phone.
+  ///
+  /// The view underneath is not rewritten by anyone, so it is asked instead,
+  /// and the MediaQuery value is still consulted first for the cases — a
+  /// bare body, a sheet — where it is the honest answer.
+  ///
+  /// Reading the view does **not** subscribe to changes. Anything that has to
+  /// appear and disappear with the keyboard needs a metrics listener too; use
+  /// [KeyboardAccessory], which owns one.
   bool get isSoftwareKeyboardVisible =>
-      MediaQuery.viewInsetsOf(this).bottom > 0;
+      MediaQuery.viewInsetsOf(this).bottom > 0 ||
+      View.of(this).viewInsets.bottom > 0;
 
   /// A sensible column count for card grids, capped at [max].
   int gridColumns({int max = 4}) {
