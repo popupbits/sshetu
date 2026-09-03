@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../../core/secrets/secret_ref.dart';
 import '../../../core/secrets/secret_vault.dart';
+import '../../../core/sync/sync_signal.dart';
 import '../../../core/ssh/ssh_target.dart';
 import '../domain/ssh_host.dart';
 
@@ -13,10 +14,15 @@ import '../domain/ssh_host.dart';
 /// secrets that belong to a deleted host are destroyed for real, though; there
 /// is no reason to keep a password for a server the user removed.
 class HostRepository {
-  HostRepository({required this.database, required this.vault});
+  HostRepository({required this.database, required this.vault, this.signal});
 
   final Database database;
   final SecretVault vault;
+
+  /// Told after every committed write, so sync knows there is something to
+  /// push. Optional: a repository built without one — in a test, or by the
+  /// importer's dry run — simply reports nothing.
+  final SyncSignal? signal;
 
   static const _table = 'hosts';
 
@@ -50,6 +56,7 @@ class HostRepository {
       _toRow(host),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    signal?.localChange();
   }
 
   /// Saves several hosts in one transaction.
@@ -67,9 +74,9 @@ class HostRepository {
   /// So every row goes in with its jump link cleared, and the links are
   /// applied once all the rows exist. This needs no ordering and no
   /// topological sort, and it cannot be defeated by a cycle.
-  Future<void> saveAll(Iterable<SshHost> hosts) {
+  Future<void> saveAll(Iterable<SshHost> hosts) async {
     final records = hosts.toList();
-    return database.transaction((txn) async {
+    await database.transaction((txn) async {
       for (final host in records) {
         await txn.insert(
           _table,
@@ -87,6 +94,10 @@ class HostRepository {
         );
       }
     });
+    // One signal for the whole import, not one per host: the debounce would
+    // collapse them anyway, and an import of two hundred hosts should not
+    // queue two hundred timers to find that out.
+    signal?.localChange();
   }
 
   /// Tombstones [id] and destroys its secrets.
@@ -105,6 +116,7 @@ class HostRepository {
     // credential for a host the user removed would be the wrong half to
     // remember.
     await vault.deleteAll(SecretRef.forHost(id));
+    signal?.localChange();
   }
 
   /// Records that a host was just connected to, so it rises to the top.

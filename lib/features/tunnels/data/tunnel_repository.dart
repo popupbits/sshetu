@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../../../core/sync/sync_signal.dart';
 import '../domain/tunnel.dart';
 
 /// Reads and writes saved port forwards.
@@ -15,9 +16,14 @@ import '../domain/tunnel.dart';
 /// host that no longer exists cannot sync to anything meaningful; there is no
 /// tombstone worth keeping for it.
 class TunnelRepository {
-  TunnelRepository({required this.database});
+  TunnelRepository({required this.database, this.signal});
 
   final Database database;
+
+  /// Told after every committed write, so sync knows there is something to
+  /// push. Optional: a repository built without one — in a test, or by the
+  /// importer's dry run — simply reports nothing.
+  final SyncSignal? signal;
 
   static const _table = 'tunnels';
 
@@ -51,22 +57,28 @@ class TunnelRepository {
     return rows.isEmpty ? null : _fromRow(rows.single);
   }
 
-  Future<void> save(Tunnel tunnel) => database.insert(
-    _table,
-    _toRow(tunnel),
-    conflictAlgorithm: ConflictAlgorithm.replace,
-  );
+  Future<void> save(Tunnel tunnel) async {
+    await database.insert(
+      _table,
+      _toRow(tunnel),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    signal?.localChange();
+  }
 
-  Future<void> delete(String id, {required DateTime now}) => database.update(
-    _table,
-    {
-      'deleted_at': now.millisecondsSinceEpoch,
-      'updated_at': now.millisecondsSinceEpoch,
-      'dirty': 1,
-    },
-    where: 'id = ?',
-    whereArgs: [id],
-  );
+  Future<void> delete(String id, {required DateTime now}) async {
+    await database.update(
+      _table,
+      {
+        'deleted_at': now.millisecondsSinceEpoch,
+        'updated_at': now.millisecondsSinceEpoch,
+        'dirty': 1,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    signal?.localChange();
+  }
 
   static Map<String, Object?> _toRow(Tunnel tunnel) => {
     'id': tunnel.id,

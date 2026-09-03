@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'appwrite/client.dart';
 import 'db/database.dart';
+import 'sync/sync_signal.dart';
 import 'secrets/appwrite_secret_vault.dart';
 import 'secrets/keychain_secret_vault.dart';
 import 'secrets/layered_secret_vault.dart';
@@ -61,6 +62,7 @@ final hostRepositoryProvider = Provider<HostRepository>(
   (ref) => HostRepository(
     database: ref.watch(databaseProvider).raw,
     vault: ref.watch(secretVaultProvider),
+    signal: ref.watch(syncSignalProvider),
   ),
 );
 
@@ -68,9 +70,13 @@ final identityRepositoryProvider = Provider<IdentityRepository>(
   (ref) => IdentityRepository(
     database: ref.watch(databaseProvider).raw,
     vault: ref.watch(secretVaultProvider),
+    signal: ref.watch(syncSignalProvider),
   ),
 );
 
 final tunnelRepositoryProvider = Provider<TunnelRepository>(
-  (ref) => TunnelRepository(database: ref.watch(databaseProvider).raw),
+  (ref) => TunnelRepository(
+    database: ref.watch(databaseProvider).raw,
+    signal: ref.watch(syncSignalProvider),
+  ),
 );
