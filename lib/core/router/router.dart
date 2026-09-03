@@ -11,6 +11,7 @@ import '../../features/keys/keys_screen.dart';
 import '../../features/tunnels/tunnels_screen.dart';
 import '../../features/settings/about_screen.dart';
 import '../../features/settings/diagnostics_screen.dart';
+import '../../features/settings/known_hosts_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/auth/auth_controller.dart';
@@ -119,6 +120,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     // mid-read.
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (_, _) => const AboutScreen(),
+                  ),
+                  GoRoute(
+                    path: 'known-hosts',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (_, _) => const KnownHostsScreen(),
                   ),
                   GoRoute(
                     path: 'diagnostics',

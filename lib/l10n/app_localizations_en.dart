@@ -606,4 +606,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get secretNoKeys => 'You have no keys yet.';
+
+  @override
+  String get knownHostsTitle => 'Trusted host keys';
+
+  @override
+  String get knownHostsSubtitle => 'Server identities this device has accepted';
+
+  @override
+  String get knownHostsEmptyTitle => 'No trusted hosts yet';
+
+  @override
+  String get knownHostsEmptyBody =>
+      'A server\'s key is recorded here the first time you accept it.';
+
+  @override
+  String get knownHostsForget => 'Forget this key';
+
+  @override
+  String get knownHostsForgetConfirm => 'Forget this host key?';
+
+  @override
+  String get knownHostsForgetBody =>
+      'The next connection to this address will ask you to trust its key again. Do this only if you know the server was genuinely rebuilt — a key that changed on its own is how an interception looks.';
+
+  @override
+  String knownHostsTrustedOn(String date) {
+    return 'Trusted $date';
+  }
+
+  @override
+  String get knownHostsCopied => 'Fingerprint copied';
+
+  @override
+  String get settingsSecurity => 'Security';
 }

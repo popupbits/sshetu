@@ -66,6 +66,21 @@ class VaultCredentialSource implements SshCredentialSource {
 
   final SecretPrompt? prompt;
 
+  /// Key material already read, for the life of *this* source.
+  ///
+  /// One source is built per connection, so this is scoped to one session and
+  /// dies with it. It exists because every read is a real credential-store
+  /// lookup, and on macOS's login keychain each one can raise its own
+  /// authorisation prompt: offering two keys to a host meant four lookups per
+  /// attempt, and a reconnect meant four more. The material is in memory
+  /// throughout the connection regardless — this changes how often it is
+  /// fetched, not how long it is held.
+  ///
+  /// Passwords are deliberately NOT cached here. A key is a file the user
+  /// already stored; a password is something they typed, and it should not
+  /// outlive the attempt it was typed for.
+  final Map<String, SshPrivateKey> _keyCache = {};
+
   static Future<List<AvailableIdentity>> _noIdentities() async => const [];
 
   /// How OpenSSH orders the keys it offers when nothing says otherwise:
@@ -87,7 +102,14 @@ class VaultCredentialSource implements SshCredentialSource {
     // would send public keys the user did not choose to a server that has no
     // business learning which other machines they can reach.
     if (chosen != null) {
-      final key = await _load(target, chosen, mayPromptForPassphrase: true);
+      final known = (await catalog()).where((i) => i.id == chosen).firstOrNull;
+      final key = await _load(
+        target,
+        chosen,
+        label: known?.label,
+        hasPassphrase: known?.hasPassphrase,
+        mayPromptForPassphrase: true,
+      );
       return key == null ? const [] : [key];
     }
 
@@ -134,6 +156,9 @@ class VaultCredentialSource implements SshCredentialSource {
     String? label,
     bool? hasPassphrase,
   }) async {
+    final cached = _keyCache[identityId];
+    if (cached != null) return cached;
+
     // Never prompted for: a private key is a file, not something anyone types
     // into a dialog. Absent means the identity is broken, and the connection
     // should say so rather than ask an unanswerable question.
@@ -141,7 +166,11 @@ class VaultCredentialSource implements SshCredentialSource {
     if (pem == null) return null;
 
     final ref = SecretRef.identityPassphrase(identityId);
-    var passphrase = await vault.read(ref);
+    // Only look for a passphrase when the key is known to have one. The
+    // catalog already records that, and a lookup for a slot that cannot exist
+    // is a credential-store round trip — and on macOS potentially a prompt —
+    // bought for nothing.
+    var passphrase = (hasPassphrase ?? true) ? await vault.read(ref) : null;
 
     if (passphrase == null && mayPromptForPassphrase) {
       final known =
@@ -165,12 +194,14 @@ class VaultCredentialSource implements SshCredentialSource {
       }
     }
 
-    return SshPrivateKey(
+    final key = SshPrivateKey(
       identityId: identityId,
       label: label ?? identityId,
       pem: pem,
       passphrase: passphrase,
     );
+    _keyCache[identityId] = key;
+    return key;
   }
 
   @override

@@ -51,6 +51,18 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
         ),
       ],
     ),
+    SettingsSection(
+      title: l10n.settingsSecurity,
+      tiles: [
+        ListTile(
+          leading: const Icon(PiconsRegular.shieldCheck),
+          title: Text(l10n.knownHostsTitle),
+          subtitle: Text(l10n.knownHostsSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.pushTo(Routes.knownHosts),
+        ),
+      ],
+    ),
     // Signing in is offered, never required: everything in this app works on
     // this device without an account, and an SSH client that demands one
     // before it will open a shell is an SSH client people abandon. The only

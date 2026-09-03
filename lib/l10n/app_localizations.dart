@@ -1203,6 +1203,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You have no keys yet.'**
   String get secretNoKeys;
+
+  /// No description provided for @knownHostsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted host keys'**
+  String get knownHostsTitle;
+
+  /// No description provided for @knownHostsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Server identities this device has accepted'**
+  String get knownHostsSubtitle;
+
+  /// No description provided for @knownHostsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No trusted hosts yet'**
+  String get knownHostsEmptyTitle;
+
+  /// No description provided for @knownHostsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A server\'s key is recorded here the first time you accept it.'**
+  String get knownHostsEmptyBody;
+
+  /// No description provided for @knownHostsForget.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget this key'**
+  String get knownHostsForget;
+
+  /// No description provided for @knownHostsForgetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget this host key?'**
+  String get knownHostsForgetConfirm;
+
+  /// No description provided for @knownHostsForgetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The next connection to this address will ask you to trust its key again. Do this only if you know the server was genuinely rebuilt — a key that changed on its own is how an interception looks.'**
+  String get knownHostsForgetBody;
+
+  /// No description provided for @knownHostsTrustedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted {date}'**
+  String knownHostsTrustedOn(String date);
+
+  /// No description provided for @knownHostsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint copied'**
+  String get knownHostsCopied;
+
+  /// No description provided for @settingsSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get settingsSecurity;
 }
 
 class _AppLocalizationsDelegate

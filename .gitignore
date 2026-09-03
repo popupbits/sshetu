@@ -70,3 +70,6 @@ ios/fastlane/README.md
 
 # A path dependency resolves against the app lockfile; its own is noise.
 packages/*/pubspec.lock
+
+# Agent worktrees: separate checkouts, never part of this one.
+.claude/worktrees/

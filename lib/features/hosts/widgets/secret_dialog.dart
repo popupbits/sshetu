@@ -76,7 +76,11 @@ class _SecretDialogState extends ConsumerState<_SecretDialog> {
   ).pop(SecretSupplied(SecretResponse(_controller.text, remember: _remember)));
 
   Future<void> _pickKey() async {
-    final identities = ref.read(identitiesProvider).value ?? const [];
+    // `.future`, not `.value`. Nothing on this screen watches identities, so
+    // the provider has never been resolved and `.value` is null — which the
+    // picker faithfully rendered as "you have no keys" to a user who has two.
+    final identities = await ref.read(identitiesProvider.future);
+    if (!mounted) return;
     final choice = await showDialog<SecretUseIdentity>(
       context: context,
       builder: (context) => _KeyPicker(identities: identities),
@@ -143,7 +147,9 @@ class _SecretDialogState extends ConsumerState<_SecretDialog> {
             icon: const Icon(PiconsRegular.key, size: 16),
             label: Text(l10n.secretUseKeyInstead),
           ),
-        const Spacer(),
+        // No Spacer here, however much this row wants one: AlertDialog lays
+        // its actions out in an OverflowBar, which has no concept of flex and
+        // throws on an Expanded child. It threw on every password prompt.
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(l10n.actionCancel),

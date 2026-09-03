@@ -250,5 +250,22 @@
   "secretUseKeyInstead": "Use a key instead",
   "secretPickKey": "Choose a key",
   "secretPickKeyBody": "This key is saved on the host, so it is used from now on.",
-  "secretNoKeys": "You have no keys yet."
+  "secretNoKeys": "You have no keys yet.",
+  "knownHostsTitle": "Trusted host keys",
+  "knownHostsSubtitle": "Server identities this device has accepted",
+  "knownHostsEmptyTitle": "No trusted hosts yet",
+  "knownHostsEmptyBody": "A server's key is recorded here the first time you accept it.",
+  "knownHostsForget": "Forget this key",
+  "knownHostsForgetConfirm": "Forget this host key?",
+  "knownHostsForgetBody": "The next connection to this address will ask you to trust its key again. Do this only if you know the server was genuinely rebuilt — a key that changed on its own is how an interception looks.",
+  "knownHostsTrustedOn": "Trusted {date}",
+  "knownHostsCopied": "Fingerprint copied",
+  "@knownHostsTrustedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurity": "Security"
 }

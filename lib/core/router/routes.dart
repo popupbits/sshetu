@@ -10,6 +10,7 @@ abstract final class Routes {
   static const String tunnels = '/tunnels';
   static const String settings = '/settings';
   static const String about = '/settings/about';
+  static const String knownHosts = '/settings/known-hosts';
   static const String diagnostics = '/settings/diagnostics';
   static const String signIn = '/sign-in';
   static const String signUp = '/sign-up';
