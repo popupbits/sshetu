@@ -1,0 +1,24 @@
+# Static analysis for SSH Navigator.
+#
+# One canonical config: `flutter_lints` plus the two leak rules the base set
+# omits. Platform folders are excluded because generated Gradle/Xcode helper
+# Dart files are not ours to fix.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+    - lib/l10n/app_localizations*.dart
+
+linter:
+  rules:
+    # Both catch leaks the base ruleset misses. A forgotten StreamSubscription
+    # in a State is the single most common Flutter memory leak.
+    cancel_subscriptions: true
+    close_sinks: true

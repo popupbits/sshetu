@@ -1,0 +1,16 @@
+# Deliberately permissive: this is third-party code, and it should not have to
+# satisfy the app's lint profile for `flutter analyze` at the repo root to stay
+# clean. Our own divergences are covered by the app's tests, not by lints.
+analyzer:
+  errors:
+    todo: ignore
+    deprecated_member_use: ignore
+    deprecated_member_use_from_same_package: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**

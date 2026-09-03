@@ -1,0 +1,44 @@
+# Analyze and test on every push and pull request.
+#
+# This project ships tests that guard real invariants — no frozen Material
+# imports, the app starts and routes, the layout adapts, the migrations
+# apply — and a guard nobody runs is not a guard. This workflow is what makes
+# them binding.
+#
+# Releasing is deliberately separate and manual: android-release.yml.
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  analyze-and-test:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.1"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        # Zero errors and zero warnings is the bar PROJECT.md sets.
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test

@@ -1,0 +1,137 @@
+# Build a signed App Bundle and upload it to Google Play.
+#
+# Self-contained on purpose: this repo owns its release pipeline rather than
+# calling a shared reusable workflow, so it can be run by anyone who can read
+# the repo and cannot break because a workflow somewhere else changed.
+#
+# Manual only — there is no push trigger. Shipping is a decision.
+#
+# ---------------------------------------------------------------
+# Required repository secrets
+#   Settings -> Secrets and variables -> Actions
+#
+#   PLAY_STORE_JSON_KEY_DATA   base64 of the Play service-account JSON
+#   ANDROID_KEYSTORE_BASE64    base64 of the release keystore (.jks)
+#   ANDROID_KEYSTORE_PASSWORD  keystore password
+#   ANDROID_KEY_ALIAS          key alias inside the keystore
+#   ANDROID_KEY_PASSWORD       key password
+#   APP_IDENTIFIER             com.popupbits.ssh_navigator
+#
+# Optional, forwarded as --dart-define when set:
+#   APPWRITE_ENDPOINT, APPWRITE_PROJECT
+#
+# Organization secrets do NOT reach private repos on the free plan, so set
+# these per repository.
+#
+# Encode binaries with:  base64 -w0 file    (Linux)
+#                        base64 -i  file    (macOS)
+# ---------------------------------------------------------------
+
+name: Android Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Play track to publish to"
+        required: true
+        type: choice
+        default: internal
+        options:
+          - internal
+          - beta
+          - release
+      release_status:
+        description: "Release status ('draft' for a first-ever release on a draft app)"
+        required: false
+        type: choice
+        default: completed
+        options:
+          - completed
+          - draft
+          - halted
+          - inProgress
+      flutter_version:
+        description: "Flutter SDK version to build with"
+        required: false
+        type: string
+        default: "3.47.1"
+      run_tests:
+        description: "Run flutter test before building"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    name: Build and upload (${{ inputs.release_type }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      # Read by the Fastfile and Appfile.
+      APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
+      PLAY_STORE_JSON_KEY_DATA: ${{ secrets.PLAY_STORE_JSON_KEY_DATA }}
+      SUPPLY_RELEASE_STATUS: ${{ inputs.release_status }}
+      # Read by the Gradle signing config, via the key.properties written below.
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+      APPWRITE_PROJECT: ${{ secrets.APPWRITE_PROJECT }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ inputs.flutter_version }}
+          channel: stable
+          cache: true
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: android
+
+      - name: Decode the release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p android/keystore
+          KS="$PWD/android/keystore/upload-keystore.jks"
+          # `tr -d '\r\n'` defends against a CRLF or line-wrapped secret. GNU
+          # base64 folds stray bytes into its output silently, and the
+          # resulting "keystore" then trips the JDK's ASN.1 parser with
+          # "Tag number over 30 is not supported", deep inside Gradle.
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n' | base64 -d > "$KS"
+          if [ "$(stat -c%s "$KS")" -lt 1000 ]; then
+            echo "Decoded keystore is implausibly small — check ANDROID_KEYSTORE_BASE64." >&2
+            exit 1
+          fi
+          # An absolute storeFile, because Gradle resolves a relative one
+          # against the module directory and it is easy to disagree about
+          # which that is. Absolute paths pass through unchanged.
+          printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=%s\n" \
+            "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEY_PASSWORD" \
+            "$ANDROID_KEY_ALIAS" "$KS" > android/key.properties
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        if: ${{ inputs.run_tests }}
+        run: flutter test
+
+      - name: Fastlane ${{ inputs.release_type }}
+        working-directory: android
+        run: bundle exec fastlane ${{ inputs.release_type }}

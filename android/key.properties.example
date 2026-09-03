@@ -1,0 +1,12 @@
+# Copy to android/key.properties and fill in. That file is gitignored.
+#
+# Generate a keystore with:
+#   keytool -genkeypair -v -keystore keystore/ssh_navigator.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias ssh_navigator
+#
+# Then back the .jks up somewhere safe. Losing it means never being able to
+# update this app on Play under the same listing again.
+storeFile=keystore/ssh_navigator.jks
+storePassword=
+keyAlias=ssh_navigator
+keyPassword=

@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------
+# Fastfile — Android build and deployment lanes for SSH Navigator.
+# ---------------------------------------------------------------
+# All the logic lives in fastlane-plugin-play_publisher. This file
+# only names the lanes; see that plugin's README for the full env
+# reference and its draft-app behaviour.
+#
+# Required env: APP_IDENTIFIER, and one of
+#   PLAY_STORE_JSON_KEY_PATH / PLAY_STORE_JSON_KEY_DATA
+#
+# Locally:  source ../.env.android && bundle exec fastlane internal
+# ---------------------------------------------------------------
+
+default_platform(:android)
+
+platform :android do
+  desc "Build a release AAB, no upload"
+  lane :build do
+    play_build
+  end
+
+  desc "Build and upload to the internal testing track"
+  lane :internal do
+    play_publish(track: "internal")
+  end
+
+  desc "Build and upload to the open testing (beta) track"
+  lane :beta do
+    play_publish(track: "beta")
+  end
+
+  desc "Build and upload to production, with store metadata"
+  lane :release do
+    play_publish(track: "production", upload_metadata: true)
+  end
+
+  desc "Upload text metadata only (title, descriptions)"
+  lane :upload_metadata do
+    play_upload_listing(text: true, images: false)
+  end
+
+  desc "Upload images only (screenshots, feature graphic, icon)"
+  lane :upload_screenshots do
+    play_upload_listing(text: false, images: true)
+  end
+
+  desc "Upload text metadata and images"
+  lane :upload_listing do
+    play_upload_listing
+  end
+
+  desc "Download the current metadata from Play"
+  lane :download_metadata do
+    play_download_metadata
+  end
+
+end

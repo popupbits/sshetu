@@ -1,0 +1,77 @@
+# Renders raw captures into finished store images with moksha.
+#
+# moksha is a checkout, not a dependency: it is a separate tool maintained on
+# its own, and pinning a ref here means a change there cannot silently alter
+# this app's listing.
+#
+# It validates every asset against the store it targets and exits non-zero on a
+# violation, so the run fails here rather than at upload. The three that
+# produce a perfectly valid PNG a store still refuses: an alpha channel, a Play
+# aspect ratio over 2:1, and a dimension Apple does not recognise.
+
+name: Render store assets
+description: Frame captures with moksha and place them for upload
+
+inputs:
+  job:
+    description: Path to the moksha job JSON
+    required: true
+  captures:
+    description: Directory holding the raw captures
+    default: build/screenshots
+  destination:
+    description: Where the finished images should end up
+    required: true
+  moksha-ref:
+    description: Git ref of moksha to render with
+    default: main
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Check out moksha
+      shell: bash
+      run: |
+        rm -rf "$RUNNER_TEMP/moksha"
+        git clone --depth 1 --branch "${{ inputs.moksha-ref }}" \
+          https://github.com/lohanidamodar/moksha.git "$RUNNER_TEMP/moksha"
+        cd "$RUNNER_TEMP/moksha" && npm ci --silent
+
+    - name: Render
+      shell: bash
+      env:
+        JOB: ${{ inputs.job }}
+        CAPTURES: ${{ inputs.captures }}
+        DESTINATION: ${{ inputs.destination }}
+      run: |
+        set -euo pipefail
+
+        count=$(find "$CAPTURES" -name '*.png' 2>/dev/null | wc -l)
+        echo "captured $count screenshot(s)"
+        # A green run with an empty listing is indistinguishable from a working
+        # one. That is the failure this whole harness exists to prevent.
+        if [ "$count" -eq 0 ]; then
+          echo "::error::no screenshots were captured"
+          exit 1
+        fi
+
+        out="$RUNNER_TEMP/rendered"
+        rm -rf "$out"
+
+        cd "$RUNNER_TEMP/moksha"
+        npm run render -- \
+          --job "$GITHUB_WORKSPACE/$JOB" \
+          --images "$GITHUB_WORKSPACE/$CAPTURES" \
+          --out "$out"
+
+        cd "$GITHUB_WORKSPACE"
+        # Replaced wholesale rather than merged: a screenshot removed from the
+        # test should disappear from the listing too.
+        rm -rf "$DESTINATION"
+        mkdir -p "$DESTINATION"
+        cp "$out"/*.png "$DESTINATION/"
+        ls -la "$DESTINATION"

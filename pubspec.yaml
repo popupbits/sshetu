@@ -1,0 +1,134 @@
+name: ssh_navigator
+description: SSH client and server manager for every device.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Material, decoupled from the Flutter SDK. Every file under lib/ imports
+  # this instead of package:flutter/material.dart — the two define
+  # same-named, mutually incompatible types, and
+  # test/no_frozen_material_test.dart enforces the rule.
+  #
+  # This is also why flutter_localizations is not listed. It has NOT been
+  # decoupled — it is still an SDK-only package, and material_ui depends on
+  # it for GlobalWidgetsLocalizations. What moved out of the SDK is the
+  # Material and Cupertino localizations, which now live in material_ui and
+  # cupertino_ui. So the app neither declares nor imports
+  # flutter_localizations, and gets all three delegate sets from
+  # GlobalMaterialLocalizations.delegates.
+  material_ui: ^1.0.1
+
+  # Adaptive Material widgets emit IconData with the CupertinoIcons font
+  # family on iOS. Without this the tree-shaker warns and those glyphs
+  # render as missing-character boxes.
+  cupertino_icons: ^1.0.9
+  flutter_riverpod: ^3.4.2
+
+  # Use googleFontsTextTheme() from core/theme/, never
+  # GoogleFonts.xTextTheme() — the latter returns a frozen-Material
+  # TextTheme that material_ui ThemeData rejects.
+  google_fonts: ^8.2.1
+  intl: ^0.20.3
+
+  # Backs the persisted user settings (accent, theme, language, text size),
+  # loaded during bootstrap before the first frame.
+  shared_preferences: ^2.5.5
+
+  # Reads the installed version for the About screen, so what is shown can
+  # never drift from what shipped.
+  package_info_plus: ^10.2.1
+  share_plus: ^13.3.0
+  url_launcher: ^6.3.2
+  go_router: ^17.5.0
+
+  # Appwrite SDK. 1.8+ exposes the data API as TablesDB, so collection ids
+  # are passed as tableId and document ids as rowId.
+  appwrite: ^25.4.0
+  sqflite: ^2.4.3
+
+  # Desktop ships no bundled SQLite; this supplies one over FFI. Registered
+  # only on desktop platforms at runtime.
+  sqflite_common_ffi: ^2.4.2+1
+  path: ^1.9.1
+  path_provider: ^2.1.6
+
+  # Phosphor icons. 3.x models PiconData as an extension type over IconData,
+  # so it survived IconData becoming a final class and call sites stay
+  # const.
+  picons: ^3.0.1
+
+  # Play Core flexible update. Flexible rather than immediate: an immediate
+  # update blocks behind a full-screen Play dialog until it finishes.
+  # Android-only; every method no-ops elsewhere.
+  in_app_update: ^5.0.0
+
+  # Native review sheet. The store listing is still linked as a fallback:
+  # the platform silently ignores requestReview when it has shown one
+  # recently, so the explicit link is the only reliable path.
+  in_app_review: ^2.0.12
+
+  # SSH, SFTP and port forwarding, pure Dart. 4.0.0 dropped SHA-1 key
+  # exchange, ssh-rsa host keys and CBC ciphers from the defaults, so a
+  # server offering nothing else now fails to negotiate rather than
+  # connecting weakly. Hosts that genuinely need them re-enable them
+  # per host through SSHAlgorithms — never globally.
+  dartssh2: ^4.0.0
+
+  # Vendored fork of xterm2 — see packages/xterm2/VENDORED.md for what
+  # diverges from upstream and why.
+  xterm2:
+    path: packages/xterm2
+
+  # The device-local half of SecretVault: OS keychain / keystore / DPAPI /
+  # libsecret. Secrets never go in shared_preferences and never in sqflite.
+  flutter_secure_storage: ^11.0.0
+
+  # Gates the local vault behind fingerprint, face or device PIN. Never
+  # enabled by default, and always with a PIN fallback — a user in gloves
+  # must not be locked out of their own servers.
+  local_auth: ^3.0.2
+
+  # Importing a private key or an OpenSSH config from disk, and saving a
+  # public key back out.
+  file_selector: ^1.1.0
+
+  # A terminal session dies if the screen sleeps mid-command. Held only
+  # while a session is actually attached, released the moment it is not.
+  wakelock_plus: ^1.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Drives the store-screenshot capture. See PROJECT.md.
+  integration_test:
+    sdk: flutter
+
+# Overrides constraints declared by other packages. Each entry
+# explains why it is safe for the API surface actually used.
+dependency_overrides:
+  # Appwrite caps this below 10, which drags in the win32 ^5 cluster and
+  # conflicts with share_plus 13. Appwrite only calls the stable
+  # PackageInfo.fromPlatform(), so 10.x is safe.
+  package_info_plus: ^10.2.1
+
+  # Same win32 cluster. Appwrite only constructs DeviceInfoPlugin(),
+  # unchanged across these majors.
+  device_info_plus: ^13.2.0
+
+flutter:
+  uses-material-design: true
+
+  # Runs `gen-l10n` as part of `flutter build`/`run`, so the
+  # generated AppLocalizations never lags behind the .arb files.
+  generate: true
+
+  assets:
+    - lib/core/db/migrations/

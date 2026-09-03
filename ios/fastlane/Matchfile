@@ -1,0 +1,8 @@
+# `match` keeps signing certificates in a shared private git repo, so a new
+# machine needs `bundle exec fastlane certificates` rather than a manual
+# keychain export.
+git_url(ENV["MATCH_GIT_URL"])
+storage_mode("git")
+type("development")
+app_identifier([ENV["APP_IDENTIFIER"] || "com.popupbits.ssh_navigator"])
+username(ENV["APPLE_ID"])

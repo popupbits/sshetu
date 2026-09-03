@@ -1,0 +1,61 @@
+# ---------------------------------------------------------------
+# Fastfile — iOS build and deployment lanes for SSH Navigator.
+# ---------------------------------------------------------------
+# Signing goes through `match`, so certificates live in the shared
+# private certificates repo rather than on anyone's laptop.
+#
+# Required env: APP_IDENTIFIER, APPLE_ID, TEAM_ID, ITC_TEAM_ID,
+#   MATCH_GIT_URL, MATCH_PASSWORD, and an App Store Connect API key
+#   (APP_STORE_CONNECT_KEY_ID / _ISSUER_ID / _KEY_CONTENT).
+# ---------------------------------------------------------------
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    setup_ci if ENV["CI"]
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
+      is_key_content_base64: true,
+    )
+    match(type: "appstore", readonly: true, api_key: api_key)
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+    )
+    upload_to_testflight(api_key: api_key, skip_waiting_for_build_processing: true)
+  end
+
+  desc "Build and submit to the App Store"
+  lane :release do
+    setup_ci if ENV["CI"]
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
+      is_key_content_base64: true,
+    )
+    match(type: "appstore", readonly: true, api_key: api_key)
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+    )
+    upload_to_app_store(
+      api_key: api_key,
+      submit_for_review: false,
+      automatic_release: false,
+      precheck_include_in_app_purchases: false,
+    )
+  end
+
+  desc "Sync signing certificates (run once per machine)"
+  lane :certificates do
+    match(type: "development")
+    match(type: "appstore")
+  end
+end

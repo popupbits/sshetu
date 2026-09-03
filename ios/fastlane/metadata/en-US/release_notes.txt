@@ -1,0 +1,4 @@
+First release.
+
+Replace this before every submission — unlike the Play changelog there is no
+per-build fallback, so whatever is here is what reviewers and users read.

@@ -1,0 +1,12 @@
+# Config for `flutter gen-l10n`.
+#
+# Strings live in lib/l10n/*.arb; app_en.arb is the template every other
+# locale is checked against. The generated AppLocalizations is written into
+# the source tree (not the synthetic package) so the analyzer resolves it
+# without a build step and it is imported by a normal relative path.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n
+nullable-getter: false

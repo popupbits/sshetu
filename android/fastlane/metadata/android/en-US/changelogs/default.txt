@@ -1,0 +1,6 @@
+First release of SSH Navigator.
+
+Replace this before you ship. `supply` uploads the file whose name matches the
+build's versionCode — changelogs/<versionCode>.txt — and falls back to this one
+when there is no match, so an unedited default.txt becomes your public release
+notes on Google Play.

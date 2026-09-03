@@ -1,0 +1,72 @@
+{
+  "_comment": [
+    "Store screenshot copy and styling, in one place because every store reads",
+    "it. tool/screenshot_job.dart turns this into a moksha job; moksha renders",
+    "the finished images and checks them against each store's upload rules.",
+    "",
+    "Scene ids match the capture names the integration test writes. Add a",
+    "screen there and add it here.",
+    "",
+    "`background`, `layouts` and font names must be ones moksha knows. Run",
+    "`npm run render -- --schema` in a moksha checkout to list them.",
+    "",
+    "These are store copy, not UI strings: write the benefit, not the feature.",
+    "Most people never scroll past the first two."
+  ],
+
+  "background": { "type": "gradient", "id": "sunset-pink" },
+
+  "layouts": ["hero-center", "tilt-right", "float-up", "tilt-left"],
+
+  "fonts": {
+    "default": "Inter"
+  },
+
+  "scenes": [
+    {
+      "id": "hosts",
+      "headline": {
+        "en-US": "Hosts"
+      },
+      "subhead": {
+        "en-US": ""
+      }
+    },
+    {
+      "id": "sessions",
+      "headline": {
+        "en-US": "Sessions"
+      },
+      "subhead": {
+        "en-US": ""
+      }
+    },
+    {
+      "id": "keys",
+      "headline": {
+        "en-US": "Keys"
+      },
+      "subhead": {
+        "en-US": ""
+      }
+    },
+    {
+      "id": "tunnels",
+      "headline": {
+        "en-US": "Tunnels"
+      },
+      "subhead": {
+        "en-US": ""
+      }
+    },
+    {
+      "id": "settings",
+      "headline": {
+        "en-US": "Settings"
+      },
+      "subhead": {
+        "en-US": ""
+      }
+    }
+  ]
+}

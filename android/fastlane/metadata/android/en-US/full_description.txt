@@ -1,0 +1,7 @@
+SSH client and server manager for every device.
+
+TODO: Write the full Play listing here before the first release.
+
+Play allows up to 4000 characters. Lead with what the app does for the
+reader, not with a feature list — the first two lines are all most people
+see before tapping "read more".

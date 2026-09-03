@@ -1,0 +1,8 @@
+SSH client and server manager for every device.
+
+TODO: Write the full App Store description here before the first submission.
+
+Apple allows up to 4000 characters, but only the first three lines show
+before "more" — lead with what the app does for the reader. Unlike Play,
+this text is not indexed for search, so keywords belong in keywords.txt,
+not stuffed in here.

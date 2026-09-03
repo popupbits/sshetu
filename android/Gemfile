@@ -1,0 +1,9 @@
+source "https://rubygems.org"
+
+gem "fastlane"
+
+# The shared Play publishing lanes: build, sign and upload, including the
+# draft-app path Google requires for a first release. Public, but pulled from
+# git rather than RubyGems because it is not published as a gem.
+gem "fastlane-plugin-play_publisher",
+    git: "https://github.com/popupbits/fastlane-plugin-play_publisher"
