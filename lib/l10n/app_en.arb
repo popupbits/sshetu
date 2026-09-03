@@ -195,7 +195,7 @@
   "importNothingTitle": "Nothing found",
   "importNothingBody": "No ~/.ssh directory with hosts or keys was found on this device.",
   "importUnavailableTitle": "Not available here",
-  "importUnavailableBody": "This device has no ~/.ssh to read. Import a key file instead.",
+  "importUnavailableBody": "This device has no ~/.ssh to scan. Choose a private key file instead — AirDrop or copy one across, then pick it here.",
   "importHostsSection": "Hosts",
   "importKeysSection": "Keys",
   "importSelectAll": "Select all",
@@ -491,5 +491,16 @@
         "example": "3"
       }
     }
-  }
+  },
+  "importPickKeyFile": "Choose a key file",
+  "importKeyAdded": "Added {label}",
+  "@importKeyAdded": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "importNotAKey": "That file is not a private key.",
+  "importNoteBodyMobile": "Add a private key from a file on this device."
 }

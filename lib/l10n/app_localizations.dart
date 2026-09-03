@@ -1015,7 +1015,7 @@ abstract class AppLocalizations {
   /// No description provided for @importUnavailableBody.
   ///
   /// In en, this message translates to:
-  /// **'This device has no ~/.ssh to read. Import a key file instead.'**
+  /// **'This device has no ~/.ssh to scan. Choose a private key file instead — AirDrop or copy one across, then pick it here.'**
   String get importUnavailableBody;
 
   /// No description provided for @importHostsSection.
@@ -1971,6 +1971,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} items are deleted permanently. This cannot be undone.'**
   String filesDeleteSelectedBody(int count);
+
+  /// No description provided for @importPickKeyFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a key file'**
+  String get importPickKeyFile;
+
+  /// No description provided for @importKeyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {label}'**
+  String importKeyAdded(String label);
+
+  /// No description provided for @importNotAKey.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a private key.'**
+  String get importNotAKey;
+
+  /// No description provided for @importNoteBodyMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a private key from a file on this device.'**
+  String get importNoteBodyMobile;
 }
 
 class _AppLocalizationsDelegate

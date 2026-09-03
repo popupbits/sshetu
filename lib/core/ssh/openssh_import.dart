@@ -284,7 +284,7 @@ class OpenSshScanner {
         continue; // Unreadable, or not text at all.
       }
 
-      if (!_looksLikePrivateKey(content)) continue;
+      if (!looksLikePrivateKey(content)) continue;
 
       final pub = File('${entry.path}.pub');
       String? publicKey;
@@ -300,7 +300,7 @@ class OpenSshScanner {
         DiscoveredKey(
           path: entry.path,
           label: name,
-          keyType: _keyTypeOf(publicKey, content),
+          keyType: keyTypeOf(publicKey, content),
           isEncrypted: isEncryptedPem(content),
           publicKey: publicKey,
           fingerprint: publicKey == null ? null : fingerprintOf(publicKey),
@@ -313,7 +313,7 @@ class OpenSshScanner {
   }
 
   /// Whether [content] opens with a PEM private-key header.
-  static bool _looksLikePrivateKey(String content) {
+  static bool looksLikePrivateKey(String content) {
     final head = content.trimLeft();
     return head.startsWith('-----BEGIN ') && head.contains('PRIVATE KEY');
   }
@@ -359,7 +359,7 @@ class OpenSshScanner {
     }
   }
 
-  static String _keyTypeOf(String? publicKey, String privateKey) {
+  static String keyTypeOf(String? publicKey, String privateKey) {
     if (publicKey != null) {
       final first = publicKey.trim().split(RegExp(r'\s+')).firstOrNull;
       if (first != null && first.startsWith('ssh-') ||

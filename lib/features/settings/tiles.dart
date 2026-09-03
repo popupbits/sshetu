@@ -5,6 +5,7 @@ import 'package:picons/picons.dart';
 import '../../core/error/error_logger.dart';
 import '../../core/error/error_record.dart';
 import '../../core/router/navigation.dart';
+import '../../core/ssh/openssh_import.dart';
 import '../../core/router/routes.dart';
 import '../../core/ui/feedback.dart';
 import '../../core/util/launcher.dart';
@@ -46,7 +47,14 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
         ListTile(
           leading: const Icon(PiconsRegular.downloadSimple),
           title: Text(l10n.hostsImport),
-          subtitle: Text(l10n.importNoteBody),
+          // "Your ~/.ssh files are read" is a promise a phone cannot keep —
+          // it has no such directory, and the screen behind this row offers a
+          // file picker instead.
+          subtitle: Text(
+            OpenSshScanner.canAutoDetect
+                ? l10n.importNoteBody
+                : l10n.importNoteBodyMobile,
+          ),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushTo(Routes.importOpenSsh),
         ),

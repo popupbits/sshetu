@@ -20,7 +20,19 @@ if (hasReleaseKeystore) {
 
 android {
     namespace = "com.popupbits.ssh_navigator"
-    compileSdk = flutter.compileSdkVersion
+    // Pinned above `flutter.compileSdkVersion` (36 on this Flutter release).
+    // flutter_secure_storage's AAR declares a minimum compileSdk of 37, and
+    // the build fails outright rather than degrading:
+    //
+    //   Dependency ':flutter_secure_storage' requires libraries and
+    //   applications that depend on it to compile against version 37 or later
+    //   of the Android APIs. :app is currently compiled against android-36.
+    //
+    // Compiling against a newer SDK does not change what the app runs on —
+    // minSdk and targetSdk below still decide that — so this raises the
+    // compile-time API surface only. Drop the override once Flutter's own
+    // default reaches 37.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

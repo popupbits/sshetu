@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -10,6 +13,8 @@ import '../../core/ui/feedback.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
+import '../keys/domain/ssh_identity.dart';
+import '../keys/keys_controller.dart';
 import 'import_controller.dart';
 
 /// What an import screen was opened to bring in.
@@ -80,6 +85,82 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     ref.read(pickedSshDirectoryProvider.notifier).set(path);
   }
 
+  /// Imports one private key from a file the user picks.
+  ///
+  /// The mobile route in. `getDirectoryPath` is unreliable on Android and
+  /// meaningless on iOS, but picking a *file* works on both — and one key is
+  /// what someone actually wants on a phone, not a whole config.
+  Future<void> _pickKeyFile() async {
+    final l10n = AppLocalizations.of(context);
+    final file = await openFile();
+    if (file == null || !mounted) return;
+
+    final String material;
+    try {
+      material = await file.readAsString();
+    } on Object {
+      if (mounted) context.toast(l10n.importNotAKey);
+      return;
+    }
+
+    // Checked by content, not by extension: a key is a key whether it is
+    // called id_ed25519, work.pem or key.txt, and refusing on the filename
+    // would reject most of what people actually have.
+    if (!OpenSshScanner.looksLikePrivateKey(material)) {
+      if (mounted) context.toast(l10n.importNotAKey);
+      return;
+    }
+
+    final label = file.name;
+    final pub = await _publicKeyBeside(file.path);
+    final now = DateTime.now().toUtc();
+    final id = _newId();
+
+    await ref
+        .read(identitiesControllerProvider)
+        .save(
+          SshIdentity(
+            id: id,
+            label: label,
+            keyType: OpenSshScanner.keyTypeOf(pub, material),
+            publicKey: pub,
+            fingerprint: pub == null ? null : OpenSshScanner.fingerprintOf(pub),
+            hasPassphrase: OpenSshScanner.isEncryptedPem(material),
+            origin: IdentityOrigin.imported,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          privateKey: material,
+        );
+
+    if (mounted) {
+      context.toast(l10n.importKeyAdded(label));
+      Navigator.of(context).maybePop();
+    }
+  }
+
+  /// The matching `.pub`, when the picker happened to give us a real path and
+  /// one sits beside it. Best-effort: on a sandboxed platform it will not, and
+  /// a key without its public half still imports.
+  Future<String?> _publicKeyBeside(String path) async {
+    try {
+      final pub = File('$path.pub');
+      return pub.existsSync() ? await pub.readAsString() : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  static final _random = Random.secure();
+
+  static String _newId() {
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    return List.generate(
+      20,
+      (_) => alphabet[_random.nextInt(alphabet.length)],
+    ).join();
+  }
+
   Future<void> _import(OpenSshScanResult scan) async {
     setState(() => _busy = true);
     final l10n = AppLocalizations.of(context);
@@ -113,21 +194,26 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           widget.focus == ImportFocus.keys ? l10n.keysImport : l10n.importTitle,
         ),
         actions: [
-          IconButton(
-            tooltip: l10n.importChooseFolder,
-            icon: const Icon(PiconsRegular.folderOpen),
-            onPressed: _pickDirectory,
-          ),
-          IconButton(
-            tooltip: l10n.importRescan,
-            icon: const Icon(PiconsRegular.arrowClockwise),
-            onPressed: () {
-              _seeded = false;
-              _hosts.clear();
-              _keys.clear();
-              ref.invalidate(openSshScanProvider);
-            },
-          ),
+          // Both of these act on a directory scan, which mobile has none of:
+          // there is no ~/.ssh to find and no directory picker worth using.
+          // Leaving them visible offered two buttons that could only fail.
+          if (OpenSshScanner.canAutoDetect) ...[
+            IconButton(
+              tooltip: l10n.importChooseFolder,
+              icon: const Icon(PiconsRegular.folderOpen),
+              onPressed: _pickDirectory,
+            ),
+            IconButton(
+              tooltip: l10n.importRescan,
+              icon: const Icon(PiconsRegular.arrowClockwise),
+              onPressed: () {
+                _seeded = false;
+                _hosts.clear();
+                _keys.clear();
+                ref.invalidate(openSshScanProvider);
+              },
+            ),
+          ],
         ],
       ),
       body: scan.when(
@@ -139,10 +225,19 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         ),
         data: (result) {
           if (!OpenSshScanner.canAutoDetect) {
+            // A phone has no ~/.ssh to scan, but it can still be handed a key.
+            // Without this the screen was a dead end: it explained why nothing
+            // could be found and offered no way to proceed, which is a worse
+            // answer than not offering the feature at all.
             return EmptyView(
               icon: PiconsRegular.deviceMobile,
               title: l10n.importUnavailableTitle,
               message: l10n.importUnavailableBody,
+              action: FilledButton.icon(
+                onPressed: _pickKeyFile,
+                icon: const Icon(PiconsRegular.key),
+                label: Text(l10n.importPickKeyFile),
+              ),
             );
           }
           final nothingToShow = widget.focus.showsHosts

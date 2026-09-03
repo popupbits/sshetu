@@ -501,7 +501,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importUnavailableBody =>
-      'This device has no ~/.ssh to read. Import a key file instead.';
+      'This device has no ~/.ssh to scan. Choose a private key file instead — AirDrop or copy one across, then pick it here.';
 
   @override
   String get importHostsSection => 'Hosts';
@@ -1044,4 +1044,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String filesDeleteSelectedBody(int count) {
     return '$count items are deleted permanently. This cannot be undone.';
   }
+
+  @override
+  String get importPickKeyFile => 'Choose a key file';
+
+  @override
+  String importKeyAdded(String label) {
+    return 'Added $label';
+  }
+
+  @override
+  String get importNotAKey => 'That file is not a private key.';
+
+  @override
+  String get importNoteBodyMobile =>
+      'Add a private key from a file on this device.';
 }
