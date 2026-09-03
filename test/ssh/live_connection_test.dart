@@ -10,6 +10,7 @@ import 'package:ssh_navigator/core/secrets/secret_vault.dart';
 import 'package:ssh_navigator/core/ssh/host_key.dart';
 import 'package:ssh_navigator/core/ssh/host_key_verifier.dart';
 import 'package:ssh_navigator/core/ssh/known_hosts_store.dart';
+import 'package:ssh_navigator/core/ssh/sftp_service.dart';
 import 'package:ssh_navigator/core/ssh/ssh_connection.dart';
 import 'package:ssh_navigator/core/ssh/ssh_credentials.dart';
 import 'package:ssh_navigator/core/ssh/ssh_target.dart';
@@ -90,6 +91,12 @@ UsePAM no
 PasswordAuthentication no
 PubkeyAuthentication yes
 StrictModes no
+# Without this there is no SFTP subsystem for the client to talk to, and an
+# `openSession`/subsystem request simply never gets an answer — the SFTP
+# tests hang rather than fail, which is a long way to travel to learn that a
+# config file was incomplete. `-f` replaces the system config entirely, so
+# nothing is inherited.
+Subsystem sftp /usr/libexec/sftp-server
 ''');
 
     sshd = await Process.start(sshdPath, [
@@ -154,6 +161,7 @@ StrictModes no
     final session = TerminalSession(
       id: 's1',
       title: 'live',
+      hostId: 'live-host',
       connection: connection,
     );
     addTearDown(session.dispose);
@@ -359,6 +367,154 @@ StrictModes no
     },
     skip: skipReason,
   );
+
+  group('SFTP over the same connection', () {
+    // The agent that built the file browser could not reach a server, so this
+    // is the first time any of it has touched real SFTP. It runs on the shell
+    // connection deliberately: reusing the channel is the whole design, and a
+    // test that dialled separately would prove the wrong thing.
+    late Directory work;
+
+    setUp(() async {
+      if (!available) return;
+      work = await Directory.systemTemp.createTemp('ssh_navigator_sftp');
+    });
+
+    tearDown(() {
+      if (available && work.existsSync()) work.deleteSync(recursive: true);
+    });
+
+    Future<SshSftpService> openSftp(SshConnection connection) async {
+      // Force the connection up first, so a failure here is an SFTP failure
+      // rather than a connection one.
+      await connection.client();
+      return SshSftpService(connection);
+    }
+
+    test('lists a real directory, directories first', () async {
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: await vaultWithKey(),
+      );
+      addTearDown(connection.close);
+
+      await Directory('${work.path}/zeta_dir').create();
+      await File('${work.path}/alpha.txt').writeAsString('a');
+      await File('${work.path}/beta.txt').writeAsString('b');
+
+      final sftp = await openSftp(connection);
+      addTearDown(sftp.close);
+
+      final entries = await sftp.list(work.path);
+      final names = entries.map((e) => e.name).toList();
+
+      expect(names, ['zeta_dir', 'alpha.txt', 'beta.txt']);
+      expect(entries.first.isDirectory, isTrue);
+      expect(entries[1].size, 1);
+    });
+
+    test('downloads a file byte-for-byte, reporting progress', () async {
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: await vaultWithKey(),
+      );
+      addTearDown(connection.close);
+
+      // Big enough to arrive in several chunks, so progress is really
+      // progress and not one callback at the end.
+      final content = List.generate(200000, (i) => i % 251).join(',');
+      await File('${work.path}/source.txt').writeAsString(content);
+
+      final sftp = await openSftp(connection);
+      addTearDown(sftp.close);
+
+      final seen = <int>[];
+      await sftp.download(
+        remotePath: '${work.path}/source.txt',
+        localPath: '${work.path}/copy.txt',
+        onProgress: (done, total) => seen.add(done),
+      );
+
+      expect(await File('${work.path}/copy.txt').readAsString(), content);
+      expect(seen, isNotEmpty, reason: 'progress was never reported');
+      expect(seen.last, content.length);
+    });
+
+    test('uploads a file byte-for-byte', () async {
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: await vaultWithKey(),
+      );
+      addTearDown(connection.close);
+
+      const content = 'upload me, exactly as I am\nsecond line\n';
+      await File('${work.path}/local.txt').writeAsString(content);
+
+      final sftp = await openSftp(connection);
+      addTearDown(sftp.close);
+
+      await sftp.upload(
+        localPath: '${work.path}/local.txt',
+        remotePath: '${work.path}/remote.txt',
+      );
+
+      expect(await File('${work.path}/remote.txt').readAsString(), content);
+    });
+
+    test('renames and deletes', () async {
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: await vaultWithKey(),
+      );
+      addTearDown(connection.close);
+
+      await File('${work.path}/before.txt').writeAsString('x');
+
+      final sftp = await openSftp(connection);
+      addTearDown(sftp.close);
+
+      await sftp.rename('${work.path}/before.txt', '${work.path}/after.txt');
+      expect(File('${work.path}/after.txt').existsSync(), isTrue);
+
+      final entry = (await sftp.list(work.path)).single;
+      await sftp.delete(entry);
+      expect(await sftp.list(work.path), isEmpty);
+    });
+
+    test('a missing file fails with a message safe to show', () async {
+      // The contract that keeps raw wire errors and file handles off screen.
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: await vaultWithKey(),
+      );
+      addTearDown(connection.close);
+
+      final sftp = await openSftp(connection);
+      addTearDown(sftp.close);
+
+      await expectLater(
+        sftp.list('${work.path}/does-not-exist'),
+        throwsA(isA<SftpException>()),
+      );
+    });
+
+    test('closing SFTP leaves the shell connection alive', () async {
+      // The reuse guarantee: the file browser closing must not take the
+      // terminal down with it.
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: await vaultWithKey(),
+      );
+      addTearDown(connection.close);
+
+      final sftp = await openSftp(connection);
+      await sftp.list(work.path);
+      await sftp.close();
+
+      final client = await connection.client();
+      expect(client.isClosed, isFalse);
+    });
+  }, skip: skipReason);
 
   test('a missing key fails with a message naming the problem', () async {
     final connection = buildConnection(

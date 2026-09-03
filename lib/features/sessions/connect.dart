@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/error/error_logger.dart';
+import '../../core/providers.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../core/ssh/host_key.dart';
@@ -13,6 +16,7 @@ import '../hosts/domain/ssh_host.dart';
 import '../hosts/hosts_controller.dart';
 import '../hosts/widgets/host_key_dialog.dart';
 import '../hosts/widgets/secret_dialog.dart';
+import '../tunnels/tunnel_connect.dart';
 import 'session_manager.dart';
 
 /// Opens a session to [host] and shows its terminal.
@@ -102,6 +106,12 @@ Future<void> connectToHost(
 
   if (session.status == TerminalSessionStatus.failed) {
     context.toast(session.error ?? 'Could not connect');
+  } else {
+    // Fire-and-forget: this reuses the connection that just succeeded, so it
+    // raises no dialog of its own (the host key is already trusted, the
+    // credential already worked) and must not hold up navigating to the
+    // terminal on a slow bind.
+    unawaited(_autoStartTunnels(context, ref, host));
   }
 
   if (!context.mounted) return;
@@ -112,5 +122,24 @@ Future<void> connectToHost(
   // them. A phone has no room for both, so there the terminal is a page.
   if (!context.useRail) {
     context.pushTo(Routes.terminalFor(session.id));
+  }
+}
+
+/// Starts every saved forward for [host] marked to start automatically.
+///
+/// This is the only place `Tunnel.autoStart` is honoured — a forward is
+/// otherwise inert until someone taps it. Reusing [startTunnel] rather than
+/// dialing the connection directly means a forward that somehow does need a
+/// prompt (the reused connection was not actually live) gets the exact same
+/// dialogs a manual start would.
+Future<void> _autoStartTunnels(
+  BuildContext context,
+  WidgetRef ref,
+  SshHost host,
+) async {
+  final tunnels = await ref.read(tunnelRepositoryProvider).forHost(host.id);
+  for (final tunnel in tunnels.where((t) => t.autoStart)) {
+    if (!context.mounted) return;
+    await startTunnel(context, ref, tunnel);
   }
 }

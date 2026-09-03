@@ -32,6 +32,19 @@ abstract final class Routes {
 
   static String terminalFor(String sessionId) => '$terminal/$sessionId';
 
+  /// Add a port forward.
+  static const String tunnelNew = '/tunnels/new';
+
+  /// Edit the port forward with this id.
+  static const String tunnelEdit = '/tunnels/edit';
+
+  static String tunnelEditFor(String id) => '$tunnelEdit/$id';
+
+  /// Add a forward already scoped to one host — the ordinary way in, since
+  /// the screen groups forwards by host and "add" always starts from a
+  /// section that already knows which one.
+  static String tunnelNewFor(String hostId) => '$tunnelNew?host=$hostId';
+
   /// The SFTP browser for one session's connection.
   static const String files = '/files';
 

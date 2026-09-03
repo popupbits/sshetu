@@ -81,11 +81,87 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     required HostKeyTrustDecision onUnknownHostKey,
     required SecretPrompt prompt,
   }) async {
+    final connection = await _buildConnection(
+      host,
+      onUnknownHostKey: onUnknownHostKey,
+      prompt: prompt,
+    );
+
+    final session = TerminalSession(
+      // Must be safe in a URL path: the session id goes into
+      // `/terminal/<id>`, and a '#' would be read as a fragment delimiter —
+      // go_router would then match `/terminal/<hostId>` and look up an id that
+      // does not exist, so the screen would open on "no open sessions" and
+      // tapping a host would appear to do nothing at all.
+      id: '${host.id}-${_counter++}',
+      title: host.label,
+      hostId: host.id,
+      connection: connection,
+      startupCommand: host.startupCommand,
+    );
+
+    _activeId = session.id;
+    _sessions.add(session);
+    _publish();
+    await ref
+        .read(hostRepositoryProvider)
+        .touch(host.id, now: DateTime.now().toUtc());
+    // Started after the tab exists, so the UI can show "connecting" and the
+    // host key prompt has a screen to appear over.
+    await session.start();
+    return session;
+  }
+
+  /// An open tab's connection to [hostId], if one is live.
+  ///
+  /// Port forwarding calls this before dialing its own: a tunnel to a host
+  /// already open in a terminal should ride that transport rather than pay
+  /// for a second handshake to the same server.
+  SshConnection? connectionForHost(String hostId) {
+    for (final session in _sessions) {
+      if (session.hostId == hostId && session.connection.isConnected) {
+        return session.connection;
+      }
+    }
+    return null;
+  }
+
+  /// Opens a connection to [host] outside of any terminal tab.
+  ///
+  /// For port forwarding, which needs the transport but never a shell and
+  /// must not appear as an open session. The caller owns what comes back —
+  /// closing it is their job, because this manager only tracks connections
+  /// that back a tab and would otherwise leak this one forever.
+  Future<SshConnection> openBareConnection(
+    SshHost host, {
+    required HostKeyTrustDecision onUnknownHostKey,
+    required SecretPrompt prompt,
+  }) async {
+    final connection = await _buildConnection(
+      host,
+      onUnknownHostKey: onUnknownHostKey,
+      prompt: prompt,
+    );
+    // Establishes the session now rather than lazily on first use, so a bad
+    // host key or a rejected credential surfaces to the caller immediately
+    // instead of on whichever tunnel happens to accept the first connection.
+    await connection.client();
+    await ref
+        .read(hostRepositoryProvider)
+        .touch(host.id, now: DateTime.now().toUtc());
+    return connection;
+  }
+
+  Future<SshConnection> _buildConnection(
+    SshHost host, {
+    required HostKeyTrustDecision onUnknownHostKey,
+    required SecretPrompt prompt,
+  }) async {
     final knownHosts = await ref.read(knownHostsProvider.future);
     final hosts = ref.read(hostRepositoryProvider);
     final target = await hosts.targetFor(host);
 
-    final connection = SshConnection(
+    return SshConnection(
       target: target,
       // Per hop, not per connection: a chain presents a host key at every
       // stage, and only checking the last one would let a compromised bastion
@@ -113,27 +189,6 @@ class SessionManager extends Notifier<List<TerminalSession>> {
         prompt: prompt,
       ),
     );
-
-    final session = TerminalSession(
-      // Must be safe in a URL path: the session id goes into
-      // `/terminal/<id>`, and a '#' would be read as a fragment delimiter —
-      // go_router would then match `/terminal/<hostId>` and look up an id that
-      // does not exist, so the screen would open on "no open sessions" and
-      // tapping a host would appear to do nothing at all.
-      id: '${host.id}-${_counter++}',
-      title: host.label,
-      connection: connection,
-      startupCommand: host.startupCommand,
-    );
-
-    _activeId = session.id;
-    _sessions.add(session);
-    _publish();
-    await hosts.touch(host.id, now: DateTime.now().toUtc());
-    // Started after the tab exists, so the UI can show "connecting" and the
-    // host key prompt has a screen to appear over.
-    await session.start();
-    return session;
   }
 
   /// Closes one tab and, with it, the SSH session behind it.

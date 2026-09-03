@@ -287,5 +287,49 @@
       }
     }
   },
-  "filesTransferFailed": "Failed"
+  "filesTransferFailed": "Failed",
+  "tunnelsAdd": "Add tunnel",
+  "tunnelsHostMissing": "That host no longer exists",
+  "tunnelsStartFailed": "Could not start the tunnel",
+  "tunnelsDeleteConfirm": "Delete this tunnel?",
+  "tunnelsDeleteBody": "Stops it if it is running.",
+  "tunnelsStart": "Start",
+  "tunnelsStop": "Stop",
+  "tunnelsEdit": "Edit",
+  "tunnelsDelete": "Delete",
+  "tunnelStatusStopped": "Stopped",
+  "tunnelStatusStarting": "Starting…",
+  "tunnelStatusRunning": "Running",
+  "tunnelStatusFailed": "Failed",
+  "tunnelActiveConnections": "{count, plural, =1{1 active} other{{count} active}}",
+  "@tunnelActiveConnections": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "tunnelNotLoopbackShort": "Exposed to the network",
+  "tunnelEditorNew": "New tunnel",
+  "tunnelEditorEdit": "Edit tunnel",
+  "tunnelEditorHost": "Host",
+  "tunnelEditorLabel": "Name",
+  "tunnelEditorLabelHint": "What you call it — \"prod database\"",
+  "tunnelEditorKind": "Type",
+  "tunnelKindLocal": "Local",
+  "tunnelKindRemote": "Remote",
+  "tunnelKindSocks": "Dynamic",
+  "tunnelKindLocalHint": "Forwards a port on this device to the target, through the SSH connection — the same as ssh -L.",
+  "tunnelKindRemoteHint": "Asks the server to forward one of its ports back to a target reachable from here — the same as ssh -R.",
+  "tunnelKindSocksHint": "A local SOCKS5 proxy with no fixed target — the same as ssh -D. Point an app's proxy setting at it.",
+  "tunnelEditorListen": "Listen",
+  "tunnelEditorListenHost": "Address",
+  "tunnelEditorPort": "Port",
+  "tunnelEditorNotLoopback": "Binding anything other than 127.0.0.1 exposes this forward to the whole network.",
+  "tunnelEditorTarget": "Target",
+  "tunnelEditorTargetHost": "Host",
+  "tunnelEditorTargetHostHint": "example.com or 10.0.0.4",
+  "tunnelEditorAutoStart": "Start automatically",
+  "tunnelEditorAutoStartHint": "Starts when you open a terminal to this host."
 }

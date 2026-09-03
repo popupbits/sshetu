@@ -6,6 +6,7 @@ import 'secrets/secret_vault.dart';
 import 'ssh/known_hosts_store.dart';
 import '../features/hosts/data/host_repository.dart';
 import '../features/keys/data/identity_repository.dart';
+import '../features/tunnels/data/tunnel_repository.dart';
 
 /// The device-local vault.
 ///
@@ -40,4 +41,8 @@ final identityRepositoryProvider = Provider<IdentityRepository>(
     database: ref.watch(databaseProvider).raw,
     vault: ref.watch(secretVaultProvider),
   ),
+);
+
+final tunnelRepositoryProvider = Provider<TunnelRepository>(
+  (ref) => TunnelRepository(database: ref.watch(databaseProvider).raw),
 );

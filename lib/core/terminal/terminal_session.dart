@@ -34,6 +34,7 @@ class TerminalSession extends ChangeNotifier {
   TerminalSession({
     required this.id,
     required this.title,
+    required this.hostId,
     required this.connection,
     this.startupCommand,
     this.scrollbackLines = kScrollbackLines,
@@ -77,6 +78,13 @@ class TerminalSession extends ChangeNotifier {
 
   /// What the tab says — the host's label.
   final String title;
+
+  /// The saved host this session is talking to.
+  ///
+  /// Kept alongside [connection] rather than parsed back out of [id] — port
+  /// forwarding needs to find "is there already a live session to this
+  /// host?" without depending on the id's format staying `hostId-counter`.
+  final String hostId;
 
   final SshConnection connection;
 

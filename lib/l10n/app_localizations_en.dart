@@ -679,4 +679,125 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filesTransferFailed => 'Failed';
+
+  @override
+  String get tunnelsAdd => 'Add tunnel';
+
+  @override
+  String get tunnelsHostMissing => 'That host no longer exists';
+
+  @override
+  String get tunnelsStartFailed => 'Could not start the tunnel';
+
+  @override
+  String get tunnelsDeleteConfirm => 'Delete this tunnel?';
+
+  @override
+  String get tunnelsDeleteBody => 'Stops it if it is running.';
+
+  @override
+  String get tunnelsStart => 'Start';
+
+  @override
+  String get tunnelsStop => 'Stop';
+
+  @override
+  String get tunnelsEdit => 'Edit';
+
+  @override
+  String get tunnelsDelete => 'Delete';
+
+  @override
+  String get tunnelStatusStopped => 'Stopped';
+
+  @override
+  String get tunnelStatusStarting => 'Starting…';
+
+  @override
+  String get tunnelStatusRunning => 'Running';
+
+  @override
+  String get tunnelStatusFailed => 'Failed';
+
+  @override
+  String tunnelActiveConnections(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active',
+      one: '1 active',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tunnelNotLoopbackShort => 'Exposed to the network';
+
+  @override
+  String get tunnelEditorNew => 'New tunnel';
+
+  @override
+  String get tunnelEditorEdit => 'Edit tunnel';
+
+  @override
+  String get tunnelEditorHost => 'Host';
+
+  @override
+  String get tunnelEditorLabel => 'Name';
+
+  @override
+  String get tunnelEditorLabelHint => 'What you call it — \"prod database\"';
+
+  @override
+  String get tunnelEditorKind => 'Type';
+
+  @override
+  String get tunnelKindLocal => 'Local';
+
+  @override
+  String get tunnelKindRemote => 'Remote';
+
+  @override
+  String get tunnelKindSocks => 'Dynamic';
+
+  @override
+  String get tunnelKindLocalHint =>
+      'Forwards a port on this device to the target, through the SSH connection — the same as ssh -L.';
+
+  @override
+  String get tunnelKindRemoteHint =>
+      'Asks the server to forward one of its ports back to a target reachable from here — the same as ssh -R.';
+
+  @override
+  String get tunnelKindSocksHint =>
+      'A local SOCKS5 proxy with no fixed target — the same as ssh -D. Point an app\'s proxy setting at it.';
+
+  @override
+  String get tunnelEditorListen => 'Listen';
+
+  @override
+  String get tunnelEditorListenHost => 'Address';
+
+  @override
+  String get tunnelEditorPort => 'Port';
+
+  @override
+  String get tunnelEditorNotLoopback =>
+      'Binding anything other than 127.0.0.1 exposes this forward to the whole network.';
+
+  @override
+  String get tunnelEditorTarget => 'Target';
+
+  @override
+  String get tunnelEditorTargetHost => 'Host';
+
+  @override
+  String get tunnelEditorTargetHostHint => 'example.com or 10.0.0.4';
+
+  @override
+  String get tunnelEditorAutoStart => 'Start automatically';
+
+  @override
+  String get tunnelEditorAutoStartHint =>
+      'Starts when you open a terminal to this host.';
 }

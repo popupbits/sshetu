@@ -1335,6 +1335,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed'**
   String get filesTransferFailed;
+
+  /// No description provided for @tunnelsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tunnel'**
+  String get tunnelsAdd;
+
+  /// No description provided for @tunnelsHostMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'That host no longer exists'**
+  String get tunnelsHostMissing;
+
+  /// No description provided for @tunnelsStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start the tunnel'**
+  String get tunnelsStartFailed;
+
+  /// No description provided for @tunnelsDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this tunnel?'**
+  String get tunnelsDeleteConfirm;
+
+  /// No description provided for @tunnelsDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops it if it is running.'**
+  String get tunnelsDeleteBody;
+
+  /// No description provided for @tunnelsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get tunnelsStart;
+
+  /// No description provided for @tunnelsStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get tunnelsStop;
+
+  /// No description provided for @tunnelsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get tunnelsEdit;
+
+  /// No description provided for @tunnelsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get tunnelsDelete;
+
+  /// No description provided for @tunnelStatusStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get tunnelStatusStopped;
+
+  /// No description provided for @tunnelStatusStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting…'**
+  String get tunnelStatusStarting;
+
+  /// No description provided for @tunnelStatusRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get tunnelStatusRunning;
+
+  /// No description provided for @tunnelStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get tunnelStatusFailed;
+
+  /// No description provided for @tunnelActiveConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 active} other{{count} active}}'**
+  String tunnelActiveConnections(int count);
+
+  /// No description provided for @tunnelNotLoopbackShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Exposed to the network'**
+  String get tunnelNotLoopbackShort;
+
+  /// No description provided for @tunnelEditorNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New tunnel'**
+  String get tunnelEditorNew;
+
+  /// No description provided for @tunnelEditorEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tunnel'**
+  String get tunnelEditorEdit;
+
+  /// No description provided for @tunnelEditorHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get tunnelEditorHost;
+
+  /// No description provided for @tunnelEditorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get tunnelEditorLabel;
+
+  /// No description provided for @tunnelEditorLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What you call it — \"prod database\"'**
+  String get tunnelEditorLabelHint;
+
+  /// No description provided for @tunnelEditorKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get tunnelEditorKind;
+
+  /// No description provided for @tunnelKindLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get tunnelKindLocal;
+
+  /// No description provided for @tunnelKindRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote'**
+  String get tunnelKindRemote;
+
+  /// No description provided for @tunnelKindSocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic'**
+  String get tunnelKindSocks;
+
+  /// No description provided for @tunnelKindLocalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Forwards a port on this device to the target, through the SSH connection — the same as ssh -L.'**
+  String get tunnelKindLocalHint;
+
+  /// No description provided for @tunnelKindRemoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Asks the server to forward one of its ports back to a target reachable from here — the same as ssh -R.'**
+  String get tunnelKindRemoteHint;
+
+  /// No description provided for @tunnelKindSocksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A local SOCKS5 proxy with no fixed target — the same as ssh -D. Point an app\'s proxy setting at it.'**
+  String get tunnelKindSocksHint;
+
+  /// No description provided for @tunnelEditorListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get tunnelEditorListen;
+
+  /// No description provided for @tunnelEditorListenHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get tunnelEditorListenHost;
+
+  /// No description provided for @tunnelEditorPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get tunnelEditorPort;
+
+  /// No description provided for @tunnelEditorNotLoopback.
+  ///
+  /// In en, this message translates to:
+  /// **'Binding anything other than 127.0.0.1 exposes this forward to the whole network.'**
+  String get tunnelEditorNotLoopback;
+
+  /// No description provided for @tunnelEditorTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get tunnelEditorTarget;
+
+  /// No description provided for @tunnelEditorTargetHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get tunnelEditorTargetHost;
+
+  /// No description provided for @tunnelEditorTargetHostHint.
+  ///
+  /// In en, this message translates to:
+  /// **'example.com or 10.0.0.4'**
+  String get tunnelEditorTargetHostHint;
+
+  /// No description provided for @tunnelEditorAutoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start automatically'**
+  String get tunnelEditorAutoStart;
+
+  /// No description provided for @tunnelEditorAutoStartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts when you open a terminal to this host.'**
+  String get tunnelEditorAutoStartHint;
 }
 
 class _AppLocalizationsDelegate

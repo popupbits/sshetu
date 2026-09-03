@@ -9,6 +9,7 @@ import '../../features/import/import_screen.dart';
 import '../../features/sessions/terminal_screen.dart';
 import '../../features/sessions/sessions_screen.dart';
 import '../../features/keys/keys_screen.dart';
+import '../../features/tunnels/tunnel_editor_screen.dart';
 import '../../features/tunnels/tunnels_screen.dart';
 import '../../features/settings/about_screen.dart';
 import '../../features/settings/diagnostics_screen.dart';
@@ -74,6 +75,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (_, state) =>
             FileBrowserScreen(sessionId: state.pathParameters['sessionId']!),
+      ),
+      GoRoute(
+        path: Routes.tunnelNew,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (_, state) =>
+            TunnelEditorScreen(hostId: state.uri.queryParameters['host']),
+      ),
+      GoRoute(
+        path: '${Routes.tunnelEdit}/:id',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (_, state) =>
+            TunnelEditorScreen(tunnelId: state.pathParameters['id']),
       ),
       GoRoute(
         path: Routes.importOpenSsh,

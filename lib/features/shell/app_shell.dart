@@ -92,6 +92,17 @@ class AppShell extends StatelessWidget {
           onPressed: () => context.pushTo(Routes.importFocused('keys')),
         ),
       ],
+      // Tunnels
+      3 => [
+        IconButton(
+          tooltip: l10n.tunnelsAdd,
+          icon: Icon(PiconsRegular.plus, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
+          onPressed: () => context.pushTo(Routes.tunnelNew),
+        ),
+      ],
       _ => const [],
     };
   }
