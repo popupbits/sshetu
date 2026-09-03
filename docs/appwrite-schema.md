@@ -195,6 +195,25 @@ knows secrets can be remote at all.
 Permissions: none at the collection level. Row-level only, identical in shape
 to the synced tables above.
 
+## Creating it with the script
+
+```sh
+cd sshetu_appwrite_setup
+cp .env.example .env        # fill in APPWRITE_API_KEY
+dart pub get
+dart run bin/setup_appwrite.dart --check    # what is missing; writes nothing
+dart run bin/setup_appwrite.dart            # create or finish the job
+```
+
+Idempotent and non-destructive: every step either creates what is missing or
+sees a 409 and moves on. It is a separate package so the app never depends on
+the server SDK, and so a key with write access to the database is never
+reachable from anything that ships to a device.
+
+The table and column definitions in `bin/setup_appwrite.dart` mirror this
+document. If you change one, change the other — the script is the executable
+copy, this is the explained one.
+
 ## Creating this by hand
 
 Console: **Database → your database → Create table**, name matching the
