@@ -7,6 +7,8 @@ import 'package:ssh_navigator/core/util/responsive.dart';
 import 'package:ssh_navigator/core/settings/settings_controller.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:ssh_navigator/features/auth/auth_controller.dart';
+import 'package:ssh_navigator/features/hosts/hosts_controller.dart';
+import 'package:ssh_navigator/features/keys/keys_controller.dart';
 
 /// The app adapts to width, not to operating system.
 ///
@@ -33,6 +35,13 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(preferences),
+          // The data providers are stubbed rather than backed by a real
+          // database: sqflite does real I/O, and real I/O cannot complete
+          // under testWidgets' fake async — the screen would sit on its
+          // spinner until pumpAndSettle gave up. These tests are about
+          // startup and layout, not data.
+          hostsProvider.overrideWith((ref) => []),
+          identitiesProvider.overrideWith((ref) => []),
           authControllerProvider.overrideWith(_SignedInAuthController.new),
         ],
         child: const SshNavigatorApp(),

@@ -615,6 +615,516 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{seen once} other{seen {count} times}}'**
   String diagnosticsSeenTimes(int count);
+
+  /// No description provided for @hostsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hosts'**
+  String get hostsTitle;
+
+  /// No description provided for @hostsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No servers yet'**
+  String get hostsEmptyTitle;
+
+  /// No description provided for @hostsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a server, or import the ones already on this machine.'**
+  String get hostsEmptyBody;
+
+  /// No description provided for @hostsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add host'**
+  String get hostsAdd;
+
+  /// No description provided for @hostsImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from OpenSSH'**
+  String get hostsImport;
+
+  /// No description provided for @hostsSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search hosts'**
+  String get hostsSearch;
+
+  /// No description provided for @hostsConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get hostsConnect;
+
+  /// No description provided for @hostsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get hostsEdit;
+
+  /// No description provided for @hostsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get hostsDelete;
+
+  /// No description provided for @hostsDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this host?'**
+  String get hostsDeleteConfirm;
+
+  /// No description provided for @hostsDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its saved password is destroyed. Keys and known-host entries are left alone.'**
+  String get hostsDeleteBody;
+
+  /// No description provided for @hostsNeverConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Never connected'**
+  String get hostsNeverConnected;
+
+  /// No description provided for @hostEditorNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New host'**
+  String get hostEditorNew;
+
+  /// No description provided for @hostEditorEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit host'**
+  String get hostEditorEdit;
+
+  /// No description provided for @hostEditorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get hostEditorLabel;
+
+  /// No description provided for @hostEditorLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What you call it — \"build box\"'**
+  String get hostEditorLabelHint;
+
+  /// No description provided for @hostEditorHostname.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get hostEditorHostname;
+
+  /// No description provided for @hostEditorHostnameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'example.com or 10.0.0.4'**
+  String get hostEditorHostnameHint;
+
+  /// No description provided for @hostEditorPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get hostEditorPort;
+
+  /// No description provided for @hostEditorUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get hostEditorUsername;
+
+  /// No description provided for @hostEditorAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication'**
+  String get hostEditorAuth;
+
+  /// No description provided for @hostEditorAuthKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Private key'**
+  String get hostEditorAuthKey;
+
+  /// No description provided for @hostEditorAuthPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get hostEditorAuthPassword;
+
+  /// No description provided for @hostEditorIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get hostEditorIdentity;
+
+  /// No description provided for @hostEditorIdentityNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No key selected'**
+  String get hostEditorIdentityNone;
+
+  /// No description provided for @hostEditorJump.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect through'**
+  String get hostEditorJump;
+
+  /// No description provided for @hostEditorJumpNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get hostEditorJumpNone;
+
+  /// No description provided for @hostEditorAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get hostEditorAdvanced;
+
+  /// No description provided for @hostEditorStartup.
+  ///
+  /// In en, this message translates to:
+  /// **'Startup command'**
+  String get hostEditorStartup;
+
+  /// No description provided for @hostEditorStartupHint.
+  ///
+  /// In en, this message translates to:
+  /// **'tmux new -A -s main'**
+  String get hostEditorStartupHint;
+
+  /// No description provided for @hostEditorLegacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow legacy algorithms'**
+  String get hostEditorLegacy;
+
+  /// No description provided for @hostEditorSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get hostEditorSave;
+
+  /// No description provided for @hostEditorRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get hostEditorRequired;
+
+  /// No description provided for @hostEditorPortInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'1–65535'**
+  String get hostEditorPortInvalid;
+
+  /// No description provided for @terminalConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get terminalConnecting;
+
+  /// No description provided for @terminalDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get terminalDisconnect;
+
+  /// No description provided for @terminalReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get terminalReconnect;
+
+  /// No description provided for @terminalCloseTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Close tab'**
+  String get terminalCloseTab;
+
+  /// No description provided for @terminalPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get terminalPaste;
+
+  /// No description provided for @terminalCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get terminalCopy;
+
+  /// No description provided for @sessionsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No open sessions'**
+  String get sessionsEmptyTitle;
+
+  /// No description provided for @sessionsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to a host and it appears here.'**
+  String get sessionsEmptyBody;
+
+  /// No description provided for @hostKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown host'**
+  String get hostKeyTitle;
+
+  /// No description provided for @hostKeyTrust.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust and connect'**
+  String get hostKeyTrust;
+
+  /// No description provided for @hostKeyChangedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Host identity changed'**
+  String get hostKeyChangedTitle;
+
+  /// No description provided for @hostKeyFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint'**
+  String get hostKeyFingerprint;
+
+  /// No description provided for @secretPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get secretPasswordTitle;
+
+  /// No description provided for @secretPassphraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Key passphrase'**
+  String get secretPassphraseTitle;
+
+  /// No description provided for @secretRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember on this device'**
+  String get secretRemember;
+
+  /// No description provided for @secretUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get secretUnlock;
+
+  /// No description provided for @keysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys'**
+  String get keysTitle;
+
+  /// No description provided for @keysEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No keys yet'**
+  String get keysEmptyTitle;
+
+  /// No description provided for @keysEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import the keys already in your ~/.ssh, or paste one in.'**
+  String get keysEmptyBody;
+
+  /// No description provided for @keysImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import keys'**
+  String get keysImport;
+
+  /// No description provided for @keysCopyPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy public key'**
+  String get keysCopyPublic;
+
+  /// No description provided for @keysCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Public key copied'**
+  String get keysCopied;
+
+  /// No description provided for @keysEncrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase-protected'**
+  String get keysEncrypted;
+
+  /// No description provided for @keysDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete key'**
+  String get keysDelete;
+
+  /// No description provided for @keysDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this key?'**
+  String get keysDeleteConfirm;
+
+  /// No description provided for @keysDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The private key is destroyed on this device and cannot be recovered.'**
+  String get keysDeleteBody;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from OpenSSH'**
+  String get importTitle;
+
+  /// No description provided for @importScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for an existing setup…'**
+  String get importScanning;
+
+  /// No description provided for @importFoundIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Found in {path}'**
+  String importFoundIn(String path);
+
+  /// No description provided for @importNothingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found'**
+  String get importNothingTitle;
+
+  /// No description provided for @importNothingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No ~/.ssh directory with hosts or keys was found on this device.'**
+  String get importNothingBody;
+
+  /// No description provided for @importUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available here'**
+  String get importUnavailableTitle;
+
+  /// No description provided for @importUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has no ~/.ssh to read. Import a key file instead.'**
+  String get importUnavailableBody;
+
+  /// No description provided for @importHostsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Hosts'**
+  String get importHostsSection;
+
+  /// No description provided for @importKeysSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys'**
+  String get importKeysSection;
+
+  /// No description provided for @importSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get importSelectAll;
+
+  /// No description provided for @importSelectNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Select none'**
+  String get importSelectNone;
+
+  /// No description provided for @importAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import {count} items'**
+  String importAction(int count);
+
+  /// No description provided for @importDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {hosts} hosts and {keys} keys'**
+  String importDone(int hosts, int keys);
+
+  /// No description provided for @importUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Not imported: {options}'**
+  String importUnsupported(String options);
+
+  /// No description provided for @importRescan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan again'**
+  String get importRescan;
+
+  /// No description provided for @importNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only'**
+  String get importNoteTitle;
+
+  /// No description provided for @importNoteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ~/.ssh files are read, never changed.'**
+  String get importNoteBody;
+
+  /// No description provided for @tunnelsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No port forwards'**
+  String get tunnelsEmptyTitle;
+
+  /// No description provided for @tunnelsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Port forwarding is not wired up yet.'**
+  String get tunnelsEmptyBody;
+
+  /// No description provided for @settingsSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get settingsSync;
+
+  /// No description provided for @settingsSyncSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to sync'**
+  String get settingsSyncSignIn;
+
+  /// No description provided for @settingsSyncBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Everything works on this device without an account.'**
+  String get settingsSyncBody;
+
+  /// No description provided for @importChooseFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folder'**
+  String get importChooseFolder;
+
+  /// No description provided for @importChooseFolderConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Read this folder'**
+  String get importChooseFolderConfirm;
+
+  /// No description provided for @importChooseFolderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your .ssh folder so it can be read. Nothing in it is changed.'**
+  String get importChooseFolderBody;
 }
 
 class _AppLocalizationsDelegate

@@ -4,6 +4,8 @@ import 'package:picons/picons.dart';
 
 import '../../core/theme/tokens.dart';
 import '../../core/util/responsive.dart';
+import '../../core/router/navigation.dart';
+import '../../core/router/routes.dart';
 import '../../l10n/app_localizations.dart';
 
 /// One navigation destination.
@@ -32,12 +34,44 @@ class AppShell extends StatelessWidget {
   static List<ShellDestination> destinationsOf(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return [
-      ShellDestination(label: l10n.navHosts, icon: PiconsRegular.circle),
-      ShellDestination(label: l10n.navSessions, icon: PiconsRegular.circle),
-      ShellDestination(label: l10n.navKeys, icon: PiconsRegular.circle),
-      ShellDestination(label: l10n.navTunnels, icon: PiconsRegular.circle),
+      ShellDestination(label: l10n.navHosts, icon: PiconsRegular.hardDrives),
+      ShellDestination(
+        label: l10n.navSessions,
+        icon: PiconsRegular.terminalWindow,
+      ),
+      ShellDestination(label: l10n.navKeys, icon: PiconsRegular.key),
+      ShellDestination(label: l10n.navTunnels, icon: PiconsRegular.arrowsLeftRight),
       ShellDestination(label: l10n.navSettings, icon: PiconsRegular.gear),
     ];
+  }
+
+  /// The AppBar actions for the destination at [index].
+  List<Widget> _actionsFor(BuildContext context, int index) {
+    final l10n = AppLocalizations.of(context);
+    return switch (index) {
+      // Hosts
+      0 => [
+        IconButton(
+          tooltip: l10n.hostsImport,
+          icon: const Icon(PiconsRegular.downloadSimple),
+          onPressed: () => context.pushTo(Routes.importOpenSsh),
+        ),
+        IconButton(
+          tooltip: l10n.hostsAdd,
+          icon: const Icon(PiconsRegular.plus),
+          onPressed: () => context.pushTo(Routes.hostNew),
+        ),
+      ],
+      // Keys
+      2 => [
+        IconButton(
+          tooltip: l10n.keysImport,
+          icon: const Icon(PiconsRegular.downloadSimple),
+          onPressed: () => context.pushTo(Routes.importFocused('keys')),
+        ),
+      ],
+      _ => const [],
+    };
   }
 
   void _go(int index) {
@@ -56,7 +90,13 @@ class AppShell extends StatelessWidget {
     final useRail = context.useRail;
 
     return Scaffold(
-      appBar: AppBar(title: Text(destinations[index].label)),
+      appBar: AppBar(
+        title: Text(destinations[index].label),
+        // Per-destination actions rather than a floating button: the same
+        // widget then works on a phone and on a desktop window, where a FAB
+        // floating over a list reads as out of place.
+        actions: _actionsFor(context, index),
+      ),
       // Modal on a phone; the wide layout below shows it inline instead.
       drawer: useRail
           ? null

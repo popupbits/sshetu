@@ -2,9 +2,36 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- THE SANDBOX IS OFF IN DEBUG, AND ONLY IN DEBUG.
+	
+	     Not a shortcut — the alternative does not build. A sandboxed macOS app
+	     cannot reach the Keychain unless it is signed into a keychain access
+	     group, and `keychain-access-groups` requires a development certificate
+	     and a DEVELOPMENT_TEAM. With the ad-hoc signing a fresh checkout uses,
+	     Xcode refuses outright: "has entitlements that require signing with a
+	     development certificate". Without that entitlement every vault write
+	     fails with errSecMissingEntitlement, which is what saving an imported
+	     private key does.
+	
+	     So debug runs unsandboxed: the Keychain works, and ~/.ssh can be read
+	     directly, so import auto-detects instead of needing the folder picker.
+	
+	     WHAT THIS COSTS, and it is not small: the sandbox is exactly what the
+	     release build turns back on, so two things work here that will not work
+	     there unless they are tested there.
+	
+	       * Keychain access needs `keychain-access-groups` in Release.
+	         entitlements — already declared, and it needs a signing team.
+	       * ~/.ssh is NOT readable under the sandbox. The folder picker is the
+	         real path, and it must be exercised on a release build before
+	         shipping, because nothing in a debug run will reveal it is broken.
+	
+	     See docs/macos-sandbox.md. -->
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
+	<false/>
 	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>

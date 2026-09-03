@@ -40,28 +40,51 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
     ),
     SettingsSection(title: l10n.settingsGeneral, tiles: const [LanguageTile()]),
     SettingsSection(
-      title: l10n.authAccount,
+      title: l10n.hostsTitle,
       tiles: [
         ListTile(
-          leading: const Icon(PiconsRegular.user),
-          title: Text(
-            ref.watch(currentUserProvider)?.email ?? l10n.authAccount,
+          leading: const Icon(PiconsRegular.downloadSimple),
+          title: Text(l10n.hostsImport),
+          subtitle: Text(l10n.importNoteBody),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.pushTo(Routes.importOpenSsh),
+        ),
+      ],
+    ),
+    // Signing in is offered, never required: everything in this app works on
+    // this device without an account, and an SSH client that demands one
+    // before it will open a shell is an SSH client people abandon. The only
+    // thing it buys is syncing this configuration to another device.
+    SettingsSection(
+      title: l10n.settingsSync,
+      tiles: [
+        if (ref.watch(currentUserProvider) case final user?) ...[
+          ListTile(
+            leading: const Icon(PiconsRegular.user),
+            title: Text(user.email),
           ),
-        ),
-        ListTile(
-          leading: const Icon(PiconsRegular.signOut),
-          title: Text(l10n.authSignOut),
-          onTap: () async {
-            final confirmed = await context.confirm(
-              title: l10n.authSignOutConfirm,
-              confirmLabel: l10n.authSignOut,
-              isDestructive: true,
-            );
-            if (confirmed) {
-              await ref.read(authControllerProvider.notifier).signOut();
-            }
-          },
-        ),
+          ListTile(
+            leading: const Icon(PiconsRegular.signOut),
+            title: Text(l10n.authSignOut),
+            onTap: () async {
+              final confirmed = await context.confirm(
+                title: l10n.authSignOutConfirm,
+                confirmLabel: l10n.authSignOut,
+                isDestructive: true,
+              );
+              if (confirmed) {
+                await ref.read(authControllerProvider.notifier).signOut();
+              }
+            },
+          ),
+        ] else
+          ListTile(
+            leading: const Icon(PiconsRegular.cloudArrowUp),
+            title: Text(l10n.settingsSyncSignIn),
+            subtitle: Text(l10n.settingsSyncBody),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.pushTo(Routes.signIn),
+          ),
       ],
     ),
     SettingsSection(

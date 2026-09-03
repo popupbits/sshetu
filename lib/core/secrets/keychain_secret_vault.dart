@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'secret_ref.dart';
@@ -54,7 +55,12 @@ class KeychainSecretVault implements SecretVault {
     try {
       return await _storage.read(key: ref.storageKey);
     } on Object catch (e) {
-      throw SecretVaultException('Could not read secret', ref: ref, cause: e);
+      throw SecretVaultException(
+        'Could not read secret',
+        ref: ref,
+        cause: e,
+        code: _codeOf(e),
+      );
     }
   }
 
@@ -63,7 +69,12 @@ class KeychainSecretVault implements SecretVault {
     try {
       await _storage.write(key: ref.storageKey, value: value);
     } on Object catch (e) {
-      throw SecretVaultException('Could not save secret', ref: ref, cause: e);
+      throw SecretVaultException(
+        'Could not save secret',
+        ref: ref,
+        cause: e,
+        code: _codeOf(e),
+      );
     }
   }
 
@@ -72,7 +83,12 @@ class KeychainSecretVault implements SecretVault {
     try {
       await _storage.delete(key: ref.storageKey);
     } on Object catch (e) {
-      throw SecretVaultException('Could not remove secret', ref: ref, cause: e);
+      throw SecretVaultException(
+        'Could not remove secret',
+        ref: ref,
+        cause: e,
+        code: _codeOf(e),
+      );
     }
   }
 
@@ -81,9 +97,18 @@ class KeychainSecretVault implements SecretVault {
     try {
       return await _storage.containsKey(key: ref.storageKey);
     } on Object catch (e) {
-      throw SecretVaultException('Could not read secret', ref: ref, cause: e);
+      throw SecretVaultException(
+        'Could not read secret',
+        ref: ref,
+        cause: e,
+        code: _codeOf(e),
+      );
     }
   }
+
+  /// The platform's error code, when there is one. Never its message.
+  static String? _codeOf(Object error) =>
+      error is PlatformException ? error.code : null;
 
   @override
   Future<void> deleteAll(Iterable<SecretRef> refs) async {

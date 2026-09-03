@@ -293,4 +293,275 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get hostsTitle => 'Hosts';
+
+  @override
+  String get hostsEmptyTitle => 'No servers yet';
+
+  @override
+  String get hostsEmptyBody =>
+      'Add a server, or import the ones already on this machine.';
+
+  @override
+  String get hostsAdd => 'Add host';
+
+  @override
+  String get hostsImport => 'Import from OpenSSH';
+
+  @override
+  String get hostsSearch => 'Search hosts';
+
+  @override
+  String get hostsConnect => 'Connect';
+
+  @override
+  String get hostsEdit => 'Edit';
+
+  @override
+  String get hostsDelete => 'Delete';
+
+  @override
+  String get hostsDeleteConfirm => 'Delete this host?';
+
+  @override
+  String get hostsDeleteBody =>
+      'Its saved password is destroyed. Keys and known-host entries are left alone.';
+
+  @override
+  String get hostsNeverConnected => 'Never connected';
+
+  @override
+  String get hostEditorNew => 'New host';
+
+  @override
+  String get hostEditorEdit => 'Edit host';
+
+  @override
+  String get hostEditorLabel => 'Name';
+
+  @override
+  String get hostEditorLabelHint => 'What you call it — \"build box\"';
+
+  @override
+  String get hostEditorHostname => 'Host';
+
+  @override
+  String get hostEditorHostnameHint => 'example.com or 10.0.0.4';
+
+  @override
+  String get hostEditorPort => 'Port';
+
+  @override
+  String get hostEditorUsername => 'Username';
+
+  @override
+  String get hostEditorAuth => 'Authentication';
+
+  @override
+  String get hostEditorAuthKey => 'Private key';
+
+  @override
+  String get hostEditorAuthPassword => 'Password';
+
+  @override
+  String get hostEditorIdentity => 'Key';
+
+  @override
+  String get hostEditorIdentityNone => 'No key selected';
+
+  @override
+  String get hostEditorJump => 'Connect through';
+
+  @override
+  String get hostEditorJumpNone => 'Direct';
+
+  @override
+  String get hostEditorAdvanced => 'Advanced';
+
+  @override
+  String get hostEditorStartup => 'Startup command';
+
+  @override
+  String get hostEditorStartupHint => 'tmux new -A -s main';
+
+  @override
+  String get hostEditorLegacy => 'Allow legacy algorithms';
+
+  @override
+  String get hostEditorSave => 'Save';
+
+  @override
+  String get hostEditorRequired => 'Required';
+
+  @override
+  String get hostEditorPortInvalid => '1–65535';
+
+  @override
+  String get terminalConnecting => 'Connecting…';
+
+  @override
+  String get terminalDisconnect => 'Disconnect';
+
+  @override
+  String get terminalReconnect => 'Reconnect';
+
+  @override
+  String get terminalCloseTab => 'Close tab';
+
+  @override
+  String get terminalPaste => 'Paste';
+
+  @override
+  String get terminalCopy => 'Copy';
+
+  @override
+  String get sessionsEmptyTitle => 'No open sessions';
+
+  @override
+  String get sessionsEmptyBody => 'Connect to a host and it appears here.';
+
+  @override
+  String get hostKeyTitle => 'Unknown host';
+
+  @override
+  String get hostKeyTrust => 'Trust and connect';
+
+  @override
+  String get hostKeyChangedTitle => 'Host identity changed';
+
+  @override
+  String get hostKeyFingerprint => 'Fingerprint';
+
+  @override
+  String get secretPasswordTitle => 'Password';
+
+  @override
+  String get secretPassphraseTitle => 'Key passphrase';
+
+  @override
+  String get secretRemember => 'Remember on this device';
+
+  @override
+  String get secretUnlock => 'Unlock';
+
+  @override
+  String get keysTitle => 'Keys';
+
+  @override
+  String get keysEmptyTitle => 'No keys yet';
+
+  @override
+  String get keysEmptyBody =>
+      'Import the keys already in your ~/.ssh, or paste one in.';
+
+  @override
+  String get keysImport => 'Import keys';
+
+  @override
+  String get keysCopyPublic => 'Copy public key';
+
+  @override
+  String get keysCopied => 'Public key copied';
+
+  @override
+  String get keysEncrypted => 'Passphrase-protected';
+
+  @override
+  String get keysDelete => 'Delete key';
+
+  @override
+  String get keysDeleteConfirm => 'Delete this key?';
+
+  @override
+  String get keysDeleteBody =>
+      'The private key is destroyed on this device and cannot be recovered.';
+
+  @override
+  String get importTitle => 'Import from OpenSSH';
+
+  @override
+  String get importScanning => 'Looking for an existing setup…';
+
+  @override
+  String importFoundIn(String path) {
+    return 'Found in $path';
+  }
+
+  @override
+  String get importNothingTitle => 'Nothing found';
+
+  @override
+  String get importNothingBody =>
+      'No ~/.ssh directory with hosts or keys was found on this device.';
+
+  @override
+  String get importUnavailableTitle => 'Not available here';
+
+  @override
+  String get importUnavailableBody =>
+      'This device has no ~/.ssh to read. Import a key file instead.';
+
+  @override
+  String get importHostsSection => 'Hosts';
+
+  @override
+  String get importKeysSection => 'Keys';
+
+  @override
+  String get importSelectAll => 'Select all';
+
+  @override
+  String get importSelectNone => 'Select none';
+
+  @override
+  String importAction(int count) {
+    return 'Import $count items';
+  }
+
+  @override
+  String importDone(int hosts, int keys) {
+    return 'Imported $hosts hosts and $keys keys';
+  }
+
+  @override
+  String importUnsupported(String options) {
+    return 'Not imported: $options';
+  }
+
+  @override
+  String get importRescan => 'Scan again';
+
+  @override
+  String get importNoteTitle => 'Read-only';
+
+  @override
+  String get importNoteBody => 'Your ~/.ssh files are read, never changed.';
+
+  @override
+  String get tunnelsEmptyTitle => 'No port forwards';
+
+  @override
+  String get tunnelsEmptyBody => 'Port forwarding is not wired up yet.';
+
+  @override
+  String get settingsSync => 'Sync';
+
+  @override
+  String get settingsSyncSignIn => 'Sign in to sync';
+
+  @override
+  String get settingsSyncBody =>
+      'Optional. Everything works on this device without an account.';
+
+  @override
+  String get importChooseFolder => 'Choose folder';
+
+  @override
+  String get importChooseFolderConfirm => 'Read this folder';
+
+  @override
+  String get importChooseFolderBody =>
+      'Choose your .ssh folder so it can be read. Nothing in it is changed.';
 }

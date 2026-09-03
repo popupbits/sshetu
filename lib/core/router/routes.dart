@@ -15,6 +15,29 @@ abstract final class Routes {
   static const String signUp = '/sign-up';
   static const String splash = '/splash';
 
+  /// Add a host.
+  static const String hostNew = '/hosts/new';
+
+  /// Edit the host with this id.
+  static const String hostEdit = '/hosts/edit';
+
+  /// One session's terminal.
+  static const String terminal = '/terminal';
+
+  /// Read an existing OpenSSH setup off this machine.
+  static const String importOpenSsh = '/import';
+
+  static String hostEditFor(String id) => '$hostEdit/$id';
+
+  static String terminalFor(String sessionId) => '$terminal/$sessionId';
+
+  /// The import screen, limited to one kind of thing.
+  ///
+  /// Opening "import keys" and being shown a list of servers — every one of
+  /// them ticked — is not what the user asked for, and ticking them by default
+  /// means a stray tap imports things they never wanted.
+  static String importFocused(String focus) => '$importOpenSsh?focus=$focus';
+
   /// Where the app opens.
   static const String initial = hosts;
 }

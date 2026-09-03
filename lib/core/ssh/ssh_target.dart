@@ -29,6 +29,7 @@ class SshTarget {
     this.port = 22,
     this.authMethod = SshAuthMethod.publicKey,
     this.identityId,
+    this.credentialId,
     this.jumpTarget,
     this.allowLegacyAlgorithms = false,
     this.keepaliveInterval = const Duration(seconds: 30),
@@ -42,6 +43,15 @@ class SshTarget {
   /// The identity whose private key authenticates this connection. The key
   /// itself lives in the vault under this id, never here.
   final String? identityId;
+
+  /// An opaque id used to address **this target's own** saved secrets — in
+  /// practice the host row's id.
+  ///
+  /// Deliberately not the host record, and deliberately nullable: a one-off
+  /// "quick connect" has no saved secrets, so it carries no id and is always
+  /// prompted. Nothing reads this except the credential source; it is an
+  /// address, not data.
+  final String? credentialId;
 
   /// The bastion to reach this host through (`ProxyJump`).
   ///
@@ -83,6 +93,7 @@ class SshTarget {
     SshAuthMethod? authMethod,
     String? identityId,
     bool clearIdentityId = false,
+    String? credentialId,
     SshTarget? jumpTarget,
     bool clearJumpTarget = false,
     bool? allowLegacyAlgorithms,
@@ -93,6 +104,7 @@ class SshTarget {
     username: username ?? this.username,
     authMethod: authMethod ?? this.authMethod,
     identityId: clearIdentityId ? null : (identityId ?? this.identityId),
+    credentialId: credentialId ?? this.credentialId,
     jumpTarget: clearJumpTarget ? null : (jumpTarget ?? this.jumpTarget),
     allowLegacyAlgorithms:
         allowLegacyAlgorithms ?? this.allowLegacyAlgorithms,
@@ -107,6 +119,7 @@ class SshTarget {
       other.username == username &&
       other.authMethod == authMethod &&
       other.identityId == identityId &&
+      other.credentialId == credentialId &&
       other.jumpTarget == jumpTarget &&
       other.allowLegacyAlgorithms == allowLegacyAlgorithms &&
       other.keepaliveInterval == keepaliveInterval;
@@ -118,6 +131,7 @@ class SshTarget {
     username,
     authMethod,
     identityId,
+    credentialId,
     jumpTarget,
     allowLegacyAlgorithms,
     keepaliveInterval,

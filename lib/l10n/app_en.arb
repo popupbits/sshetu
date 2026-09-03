@@ -1,48 +1,39 @@
 {
   "@@locale": "en",
-
   "appTitle": "SSH Navigator",
   "@appTitle": {
     "description": "The app name, shown in the title bar and the About screen"
   },
-
   "navHosts": "Hosts",
   "navSessions": "Sessions",
   "navKeys": "Keys",
   "navTunnels": "Tunnels",
   "navSettings": "Settings",
-
   "actionRetry": "Retry",
   "actionCancel": "Cancel",
   "actionConfirm": "Confirm",
   "actionOk": "OK",
   "actionClose": "Close",
-
   "comingSoon": "Nothing here yet",
   "comingSoonBody": "This screen is a placeholder. Replace it with the real thing.",
-
   "settingsTitle": "Settings",
   "settingsAppearance": "Appearance",
   "settingsGeneral": "General",
   "settingsAbout": "About",
-
   "settingsAccent": "Accent colour",
   "settingsThemeMode": "Theme",
   "themeSystem": "Match device",
   "themeLight": "Light",
   "themeDark": "Dark",
-
   "settingsLanguage": "Language",
   "languageSystem": "Match device",
   "languageEnglish": "English",
   "languageNepali": "Nepali",
-
   "settingsTextSize": "Text size",
   "textSizeSmall": "Small",
   "textSizeDefault": "Default",
   "textSizeLarge": "Large",
   "textSizeLarger": "Larger",
-
   "accentIndigo": "Indigo",
   "accentTeal": "Teal",
   "accentForest": "Forest",
@@ -51,46 +42,43 @@
   "accentRose": "Rose",
   "accentMauve": "Mauve",
   "accentSlate": "Slate",
-
   "aboutTitle": "About",
   "aboutVersion": "Version {version}",
   "@aboutVersion": {
     "placeholders": {
-      "version": { "type": "String", "example": "1.0.0+1" }
+      "version": {
+        "type": "String",
+        "example": "1.0.0+1"
+      }
     }
   },
-
   "aboutPrivacyPolicy": "Privacy policy",
   "aboutPrivacyPolicySubtitle": "What we collect, and what we don't",
   "aboutLicenses": "Open-source licences",
   "aboutLicensesSubtitle": "Third-party packages this app uses",
-
   "aboutShare": "Share SSH Navigator",
   "aboutShareSubtitle": "Tell someone who'd find it useful",
   "aboutShareMessage": "I've been using SSH Navigator — you might like it too.",
-
   "aboutRate": "Rate SSH Navigator",
   "aboutRateSubtitle": "A rating genuinely helps",
-
   "aboutMoreApps": "More apps",
   "aboutMoreAppsSubtitle": "Other apps we make",
-
   "aboutSupport": "Contact support",
   "aboutSupportSubtitle": "",
   "aboutSupportSubject": "SSH Navigator support",
-
   "errorCouldNotOpen": "Couldn't open {target}",
   "@errorCouldNotOpen": {
     "placeholders": {
-      "target": { "type": "String", "example": "https://example.com" }
+      "target": {
+        "type": "String",
+        "example": "https://example.com"
+      }
     }
   },
-
   "updateReadyTitle": "Update downloaded",
   "updateRestart": "Restart",
   "updateStuck": "An update is waiting to finish",
   "updateOpenStore": "Open Play Store",
-
   "authSignIn": "Sign in",
   "authSignUp": "Create account",
   "authEmail": "Email",
@@ -108,16 +96,17 @@
   "authPasswordTooShort": "Passwords must be at least 8 characters",
   "authNameRequired": "Enter your name",
   "authRecoverySent": "Check your email for a reset link",
-
   "settingsDiagnostics": "Diagnostics",
   "settingsDiagnosticsBody": "{count, plural, =1{1 recent error} other{{count} recent errors}}",
   "@settingsDiagnosticsBody": {
     "placeholders": {
-      "count": { "type": "int", "example": "1" }
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
     }
   },
   "settingsDiagnosticsNone": "Nothing to report",
-
   "diagnosticsEmpty": "No errors recorded",
   "diagnosticsEmptyBody": "When something goes wrong, it is collected here so you can send us the details.",
   "diagnosticsShare": "Share report",
@@ -127,7 +116,126 @@
   "diagnosticsSeenTimes": "{count, plural, =1{seen once} other{seen {count} times}}",
   "@diagnosticsSeenTimes": {
     "placeholders": {
-      "count": { "type": "int", "example": "3" }
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
     }
-  }
+  },
+  "hostsTitle": "Hosts",
+  "hostsEmptyTitle": "No servers yet",
+  "hostsEmptyBody": "Add a server, or import the ones already on this machine.",
+  "hostsAdd": "Add host",
+  "hostsImport": "Import from OpenSSH",
+  "hostsSearch": "Search hosts",
+  "hostsConnect": "Connect",
+  "hostsEdit": "Edit",
+  "hostsDelete": "Delete",
+  "hostsDeleteConfirm": "Delete this host?",
+  "hostsDeleteBody": "Its saved password is destroyed. Keys and known-host entries are left alone.",
+  "hostsNeverConnected": "Never connected",
+  "hostEditorNew": "New host",
+  "hostEditorEdit": "Edit host",
+  "hostEditorLabel": "Name",
+  "hostEditorLabelHint": "What you call it — \"build box\"",
+  "hostEditorHostname": "Host",
+  "hostEditorHostnameHint": "example.com or 10.0.0.4",
+  "hostEditorPort": "Port",
+  "hostEditorUsername": "Username",
+  "hostEditorAuth": "Authentication",
+  "hostEditorAuthKey": "Private key",
+  "hostEditorAuthPassword": "Password",
+  "hostEditorIdentity": "Key",
+  "hostEditorIdentityNone": "No key selected",
+  "hostEditorJump": "Connect through",
+  "hostEditorJumpNone": "Direct",
+  "hostEditorAdvanced": "Advanced",
+  "hostEditorStartup": "Startup command",
+  "hostEditorStartupHint": "tmux new -A -s main",
+  "hostEditorLegacy": "Allow legacy algorithms",
+  "hostEditorSave": "Save",
+  "hostEditorRequired": "Required",
+  "hostEditorPortInvalid": "1–65535",
+  "terminalConnecting": "Connecting…",
+  "terminalDisconnect": "Disconnect",
+  "terminalReconnect": "Reconnect",
+  "terminalCloseTab": "Close tab",
+  "terminalPaste": "Paste",
+  "terminalCopy": "Copy",
+  "sessionsEmptyTitle": "No open sessions",
+  "sessionsEmptyBody": "Connect to a host and it appears here.",
+  "hostKeyTitle": "Unknown host",
+  "hostKeyTrust": "Trust and connect",
+  "hostKeyChangedTitle": "Host identity changed",
+  "hostKeyFingerprint": "Fingerprint",
+  "secretPasswordTitle": "Password",
+  "secretPassphraseTitle": "Key passphrase",
+  "secretRemember": "Remember on this device",
+  "secretUnlock": "Unlock",
+  "keysTitle": "Keys",
+  "keysEmptyTitle": "No keys yet",
+  "keysEmptyBody": "Import the keys already in your ~/.ssh, or paste one in.",
+  "keysImport": "Import keys",
+  "keysCopyPublic": "Copy public key",
+  "keysCopied": "Public key copied",
+  "keysEncrypted": "Passphrase-protected",
+  "keysDelete": "Delete key",
+  "keysDeleteConfirm": "Delete this key?",
+  "keysDeleteBody": "The private key is destroyed on this device and cannot be recovered.",
+  "importTitle": "Import from OpenSSH",
+  "importScanning": "Looking for an existing setup…",
+  "importFoundIn": "Found in {path}",
+  "@importFoundIn": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "importNothingTitle": "Nothing found",
+  "importNothingBody": "No ~/.ssh directory with hosts or keys was found on this device.",
+  "importUnavailableTitle": "Not available here",
+  "importUnavailableBody": "This device has no ~/.ssh to read. Import a key file instead.",
+  "importHostsSection": "Hosts",
+  "importKeysSection": "Keys",
+  "importSelectAll": "Select all",
+  "importSelectNone": "Select none",
+  "importAction": "Import {count} items",
+  "@importAction": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDone": "Imported {hosts} hosts and {keys} keys",
+  "@importDone": {
+    "placeholders": {
+      "hosts": {
+        "type": "int"
+      },
+      "keys": {
+        "type": "int"
+      }
+    }
+  },
+  "importUnsupported": "Not imported: {options}",
+  "@importUnsupported": {
+    "placeholders": {
+      "options": {
+        "type": "String"
+      }
+    }
+  },
+  "importRescan": "Scan again",
+  "importNoteTitle": "Read-only",
+  "importNoteBody": "Your ~/.ssh files are read, never changed.",
+  "tunnelsEmptyTitle": "No port forwards",
+  "tunnelsEmptyBody": "Port forwarding is not wired up yet.",
+  "settingsSync": "Sync",
+  "settingsSyncSignIn": "Sign in to sync",
+  "settingsSyncBody": "Optional. Everything works on this device without an account.",
+  "importChooseFolder": "Choose folder",
+  "importChooseFolderConfirm": "Read this folder",
+  "importChooseFolderBody": "Choose your .ssh folder so it can be read. Nothing in it is changed."
 }

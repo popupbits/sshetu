@@ -6,7 +6,7 @@ import 'secret_ref.dart';
 /// keystore errors have been known to quote the value they choked on, and that
 /// value is a private key. Callers get the [ref] and the [cause]'s *type*.
 class SecretVaultException implements Exception {
-  SecretVaultException(this.message, {this.ref, Object? cause})
+  SecretVaultException(this.message, {this.ref, Object? cause, this.code})
     : causeType = cause?.runtimeType;
 
   final String message;
@@ -15,11 +15,22 @@ class SecretVaultException implements Exception {
   /// The runtime type of what went wrong, never the error itself.
   final Type? causeType;
 
+  /// A platform error *code*, when the store gave one — `-34018`, `Unexpected
+  /// security result code`, and so on.
+  ///
+  /// Codes are carried but messages are not, and the distinction is
+  /// deliberate: a keystore's message can quote the value it choked on, and
+  /// that value is a private key. A code cannot, and without it a failure like
+  /// a missing Keychain entitlement is indistinguishable from a corrupt store
+  /// — which is a long afternoon.
+  final String? code;
+
   @override
   String toString() =>
       'SecretVaultException: $message'
       '${ref == null ? '' : ' (${ref!.storageKey})'}'
-      '${causeType == null ? '' : ' [$causeType]'}';
+      '${code == null ? '' : ' [$code]'}'
+      '${code == null && causeType != null ? ' [$causeType]' : ''}';
 }
 
 /// The single way any secret is read, written or destroyed.

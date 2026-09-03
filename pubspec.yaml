@@ -73,6 +73,11 @@ dependencies:
   # recently, so the explicit link is the only reliable path.
   in_app_review: ^2.0.12
 
+  # SHA-256 for OpenSSH key fingerprints during import. Already in the tree
+  # under dartssh2; named here because this app calls it directly, and a
+  # transitive dependency can vanish under a version bump without warning.
+  crypto: ^3.0.6
+
   # SSH, SFTP and port forwarding, pure Dart. 4.0.0 dropped SHA-1 key
   # exchange, ssh-rsa host keys and CBC ciphers from the defaults, so a
   # server offering nothing else now fails to negotiate rather than
