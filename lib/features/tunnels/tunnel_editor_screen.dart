@@ -75,6 +75,24 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
     _selectedHostId = tunnel.hostId;
   }
 
+  /// A name for a forward the user did not name.
+  ///
+  /// The column is NOT NULL and a list of rows all called "" is unusable, but
+  /// making the user invent a label for `5432 → db:5432` is asking them to
+  /// name something that already describes itself.
+  String _labelOrDefault() {
+    final typed = _label.text.trim();
+    return typed.isEmpty ? _defaultLabel() : typed;
+  }
+
+  String _defaultLabel() {
+    final port = _listenPort.text.trim();
+    return switch (_kind) {
+      TunnelKind.socks => 'SOCKS $port',
+      _ => '$port → ${_targetHost.text.trim()}:${_targetPort.text.trim()}',
+    };
+  }
+
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final hostId = _selectedHostId;
@@ -88,7 +106,7 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
         ? Tunnel(
             id: _newId(),
             hostId: hostId,
-            label: _label.text.trim(),
+            label: _labelOrDefault(),
             kind: _kind,
             listenHost: _listenHost.text.trim(),
             listenPort: int.parse(_listenPort.text.trim()),
@@ -99,7 +117,7 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
             updatedAt: now,
           )
         : existing.copyWith(
-            label: _label.text.trim(),
+            label: _labelOrDefault(),
             kind: _kind,
             listenHost: _listenHost.text.trim(),
             listenPort: int.parse(_listenPort.text.trim()),
@@ -118,7 +136,6 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final tunnelsAsync = ref.watch(tunnelsProvider);
     final hosts = ref.watch(hostsProvider).value ?? const [];
 
@@ -169,90 +186,62 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
                   validator: (value) =>
                       value == null ? l10n.hostEditorRequired : null,
                 ),
+
+              // What you want, in a sentence — not "local/remote/dynamic",
+              // which are the flags `ssh` takes and mean nothing until you
+              // already know the answer. The direction is the only genuinely
+              // hard part of port forwarding, so it is asked first, in words,
+              // and everything after it adapts.
+              SectionLabel(l10n.tunnelWhat),
+              _KindChoice(
+                kind: TunnelKind.local,
+                selected: _kind,
+                icon: PiconsRegular.arrowLeft,
+                title: l10n.tunnelLocalPlain,
+                body: l10n.tunnelLocalPlainBody,
+                onSelected: _selectKind,
+              ),
+              _KindChoice(
+                kind: TunnelKind.remote,
+                selected: _kind,
+                icon: PiconsRegular.arrowRight,
+                title: l10n.tunnelRemotePlain,
+                body: l10n.tunnelRemotePlainBody,
+                onSelected: _selectKind,
+              ),
+              _KindChoice(
+                kind: TunnelKind.socks,
+                selected: _kind,
+                icon: PiconsRegular.globeSimple,
+                title: l10n.tunnelSocksPlain,
+                body: l10n.tunnelSocksPlainBody,
+                onSelected: _selectKind,
+              ),
+
               const SizedBox(height: Spacing.lg),
               TextFormField(
-                controller: _label,
+                controller: _listenPort,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: l10n.tunnelEditorLabel,
-                  hintText: l10n.tunnelEditorLabelHint,
+                  // Which side the port is on depends on the direction, and
+                  // saying "listen port" instead leaves the user to work that
+                  // out from the word "listen".
+                  labelText: _kind == TunnelKind.remote
+                      ? l10n.tunnelPortThere
+                      : l10n.tunnelPortHere,
                   border: const OutlineInputBorder(),
                 ),
-                validator: _required(l10n),
+                onChanged: (_) => setState(() {}),
+                validator: _portValidator(l10n),
               ),
-
-              SectionLabel(l10n.tunnelEditorKind),
-              SegmentedButton<TunnelKind>(
-                segments: [
-                  ButtonSegment(
-                    value: TunnelKind.local,
-                    label: Text(l10n.tunnelKindLocal),
-                    icon: const Icon(PiconsRegular.arrowRight),
-                  ),
-                  ButtonSegment(
-                    value: TunnelKind.remote,
-                    label: Text(l10n.tunnelKindRemote),
-                    icon: const Icon(PiconsRegular.arrowLeft),
-                  ),
-                  ButtonSegment(
-                    value: TunnelKind.socks,
-                    label: Text(l10n.tunnelKindSocks),
-                    icon: const Icon(PiconsRegular.globeSimple),
-                  ),
-                ],
-                selected: {_kind},
-                onSelectionChanged: (value) =>
-                    setState(() => _kind = value.first),
-              ),
-              const SizedBox(height: Spacing.xs),
-              Text(
-                switch (_kind) {
-                  TunnelKind.local => l10n.tunnelKindLocalHint,
-                  TunnelKind.remote => l10n.tunnelKindRemoteHint,
-                  TunnelKind.socks => l10n.tunnelKindSocksHint,
-                },
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-
-              SectionLabel(l10n.tunnelEditorListen),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: TextFormField(
-                      controller: _listenHost,
-                      autocorrect: false,
-                      decoration: InputDecoration(
-                        labelText: l10n.tunnelEditorListenHost,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (_) => setState(() {}),
-                      validator: _required(l10n),
-                    ),
-                  ),
-                  const SizedBox(width: Spacing.md),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _listenPort,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: l10n.tunnelEditorPort,
-                        border: const OutlineInputBorder(),
-                      ),
-                      validator: _portValidator(l10n),
-                    ),
-                  ),
-                ],
-              ),
-              if (!isLoopback) ...[
-                const SizedBox(height: Spacing.sm),
-                _WarningBanner(text: l10n.tunnelEditorNotLoopback),
-              ],
 
               if (needsTarget) ...[
-                SectionLabel(l10n.tunnelEditorTarget),
+                const SizedBox(height: Spacing.lg),
+                SectionLabel(
+                  _kind == TunnelKind.local
+                      ? l10n.tunnelServiceThere
+                      : l10n.tunnelServiceHere,
+                ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -262,10 +251,11 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
                         controller: _targetHost,
                         autocorrect: false,
                         decoration: InputDecoration(
-                          labelText: l10n.tunnelEditorTargetHost,
+                          labelText: l10n.tunnelAddressField,
                           hintText: l10n.tunnelEditorTargetHostHint,
                           border: const OutlineInputBorder(),
                         ),
+                        onChanged: (_) => setState(() {}),
                         validator: _required(l10n),
                       ),
                     ),
@@ -275,9 +265,10 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
                         controller: _targetPort,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: l10n.tunnelEditorPort,
+                          labelText: l10n.tunnelPortField,
                           border: const OutlineInputBorder(),
                         ),
+                        onChanged: (_) => setState(() {}),
                         validator: _portValidator(l10n),
                       ),
                     ),
@@ -285,19 +276,79 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
                 ),
               ],
 
+              const SizedBox(height: Spacing.lg),
+              _Preview(
+                kind: _kind,
+                listenPort: _listenPort.text,
+                targetHost: _targetHost.text,
+                targetPort: _targetPort.text,
+              ),
+
+              // Everything below is either rarely changed or actively
+              // dangerous, and putting it beside the two fields that matter is
+              // what made this screen read as a network appliance rather than
+              // a thing you use.
               const SizedBox(height: Spacing.sm),
-              SwitchListTile(
-                value: _autoStart,
-                onChanged: (value) => setState(() => _autoStart = value),
-                title: Text(l10n.tunnelEditorAutoStart),
-                subtitle: Text(l10n.tunnelEditorAutoStartHint),
-                contentPadding: EdgeInsets.zero,
+              ExpansionTile(
+                title: Text(l10n.tunnelAdvanced),
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: Spacing.md),
+                children: [
+                  TextFormField(
+                    controller: _label,
+                    decoration: InputDecoration(
+                      labelText: l10n.tunnelNameOptional,
+                      hintText: l10n.tunnelNameHint,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.lg),
+                  TextFormField(
+                    controller: _listenHost,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      labelText: _kind == TunnelKind.remote
+                          ? l10n.tunnelBindThere
+                          : l10n.tunnelBindHere,
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    validator: _required(l10n),
+                  ),
+                  if (!isLoopback) ...[
+                    const SizedBox(height: Spacing.sm),
+                    _WarningBanner(text: l10n.tunnelEditorNotLoopback),
+                  ],
+                  SwitchListTile(
+                    value: _autoStart,
+                    onChanged: (value) => setState(() => _autoStart = value),
+                    title: Text(l10n.tunnelEditorAutoStart),
+                    subtitle: Text(l10n.tunnelEditorAutoStartHint),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// Switching direction rewrites the defaults that go with it.
+  ///
+  /// The port a remote forward listens on is on the *server*, so a loopback
+  /// bind address that was right for a local forward is now describing a
+  /// different machine. Leaving the old value in place is how someone ends up
+  /// binding the wrong side without ever seeing the field that did it.
+  void _selectKind(TunnelKind kind) {
+    setState(() {
+      _kind = kind;
+      if (_listenHost.text.trim().isEmpty ||
+          Tunnel.isLoopbackHost(_listenHost.text.trim())) {
+        _listenHost.text = '127.0.0.1';
+      }
+    });
   }
 
   String? Function(String?) _required(AppLocalizations l10n) =>
@@ -371,6 +422,150 @@ class _WarningBanner extends StatelessWidget {
                   ?.copyWith(color: scheme.onErrorContainer),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One direction, stated as a sentence.
+///
+/// A card rather than a segment of a SegmentedButton: the choice needs a line
+/// of explanation under it, and "local / remote / dynamic" squeezed into three
+/// segments is exactly the labelling that makes port forwarding feel like
+/// something only sysadmins do.
+class _KindChoice extends StatelessWidget {
+  const _KindChoice({
+    required this.kind,
+    required this.selected,
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.onSelected,
+  });
+
+  final TunnelKind kind;
+  final TunnelKind selected;
+  final IconData icon;
+  final String title;
+  final String body;
+  final void Function(TunnelKind) onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isSelected = kind == selected;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
+      child: Material(
+        color: isSelected
+            ? scheme.primaryContainer
+            : scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(Radii.sm),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Radii.sm),
+          onTap: () => onSelected(kind),
+          child: Padding(
+            padding: const EdgeInsets.all(Spacing.md),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isSelected
+                      ? scheme.onPrimaryContainer
+                      : scheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: Spacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: isSelected
+                              ? scheme.onPrimaryContainer
+                              : scheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: Spacing.xxs),
+                      Text(
+                        body,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isSelected
+                              ? scheme.onPrimaryContainer
+                              : scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// What the forward will actually do, in a sentence, as it is being typed.
+///
+/// Port forwarding is the one feature where people reliably get the direction
+/// backwards and only find out when nothing connects. Saying it back in plain
+/// words, live, is cheaper than any amount of field labelling.
+class _Preview extends StatelessWidget {
+  const _Preview({
+    required this.kind,
+    required this.listenPort,
+    required this.targetHost,
+    required this.targetPort,
+  });
+
+  final TunnelKind kind;
+  final String listenPort;
+  final String targetHost;
+  final String targetPort;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    final port = listenPort.trim();
+    if (port.isEmpty) return const SizedBox.shrink();
+
+    final listen = 'localhost:$port';
+    final target = '${targetHost.trim()}:${targetPort.trim()}';
+    final needsTarget = kind.requiresTarget;
+    if (needsTarget &&
+        (targetHost.trim().isEmpty || targetPort.trim().isEmpty)) {
+      return const SizedBox.shrink();
+    }
+
+    final text = switch (kind) {
+      TunnelKind.local => l10n.tunnelPreviewLocal(listen, target),
+      TunnelKind.remote => l10n.tunnelPreviewRemote(listen, target),
+      TunnelKind.socks => l10n.tunnelPreviewSocks(listen),
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(Radii.xs),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(PiconsRegular.info, size: 16, color: scheme.onSurfaceVariant),
+          const SizedBox(width: Spacing.sm),
+          Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
         ],
       ),
     );

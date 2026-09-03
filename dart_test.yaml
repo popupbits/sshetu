@@ -6,3 +6,8 @@
 # refusing to start sshd should not read as this app being broken.
 tags:
   live:
+
+  # Timing assertions, with budgets several times the measured cost so they
+  # catch a regression rather than a slow runner. They are cheap, so they run
+  # by default; exclude with --exclude-tags perf if a machine is pathological.
+  perf:

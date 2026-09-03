@@ -14,7 +14,26 @@ import '../session_manager.dart';
 /// open — the screen's own title bar is already that session's header, and a
 /// second row saying the same thing would be pure cost.
 class SessionTabStrip extends ConsumerWidget {
-  const SessionTabStrip({super.key});
+  const SessionTabStrip({
+    this.actions = const [],
+    this.alwaysShow = false,
+    super.key,
+  });
+
+  /// Actions for the *selected* session, drawn at the end of the row.
+  ///
+  /// The desktop workspace has no AppBar — the panel header and this strip are
+  /// its only chrome — so without somewhere here to put them, a session's
+  /// actions have nowhere to live at all. That is how the file browser
+  /// shipped reachable only on a phone.
+  final List<Widget> actions;
+
+  /// Draw the row even with a single session open.
+  ///
+  /// True on desktop, where this row *is* the pane's header and its actions;
+  /// false on a phone, where the AppBar already names the session and a second
+  /// row saying the same thing is pure cost.
+  final bool alwaysShow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,23 +42,31 @@ class SessionTabStrip extends ConsumerWidget {
     final activeId = manager.activeId;
     final scheme = Theme.of(context).colorScheme;
 
-    if (sessions.length < 2) return const SizedBox.shrink();
+    if (sessions.isEmpty) return const SizedBox.shrink();
+    if (sessions.length < 2 && !alwaysShow) return const SizedBox.shrink();
 
     return Container(
       height: Chrome.tabStrip,
       color: scheme.surfaceContainerLow,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: sessions.length,
-        itemBuilder: (context, index) {
-          final session = sessions[index];
-          return _SessionTab(
-            session: session,
-            selected: session.id == activeId,
-            onTap: () => manager.select(session.id),
-            onClose: () => manager.close(session.id),
-          );
-        },
+      child: Row(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: sessions.length,
+              itemBuilder: (context, index) {
+                final session = sessions[index];
+                return _SessionTab(
+                  session: session,
+                  selected: session.id == activeId,
+                  onTap: () => manager.select(session.id),
+                  onClose: () => manager.close(session.id),
+                );
+              },
+            ),
+          ),
+          ...actions,
+        ],
       ),
     );
   }

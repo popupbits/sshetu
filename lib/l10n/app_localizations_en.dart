@@ -800,4 +800,76 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tunnelEditorAutoStartHint =>
       'Starts when you open a terminal to this host.';
+
+  @override
+  String get tunnelWhat => 'What do you want to do?';
+
+  @override
+  String get tunnelLocalPlain => 'Reach something on the server';
+
+  @override
+  String get tunnelLocalPlainBody =>
+      'A database or web app running on the server becomes available on this device.';
+
+  @override
+  String get tunnelRemotePlain => 'Let the server reach this device';
+
+  @override
+  String get tunnelRemotePlainBody =>
+      'Something running on this device becomes available on the server.';
+
+  @override
+  String get tunnelSocksPlain => 'Send traffic through the server';
+
+  @override
+  String get tunnelSocksPlainBody =>
+      'A SOCKS proxy on this device, so apps pointed at it browse as if from the server.';
+
+  @override
+  String get tunnelPortHere => 'Port on this device';
+
+  @override
+  String get tunnelPortThere => 'Port on the server';
+
+  @override
+  String get tunnelServiceThere => 'Which service on the server';
+
+  @override
+  String get tunnelServiceHere => 'Which service on this device';
+
+  @override
+  String get tunnelAddressField => 'Address';
+
+  @override
+  String get tunnelPortField => 'Port';
+
+  @override
+  String tunnelPreviewLocal(String listen, String target) {
+    return 'Anything you open at $listen on this device reaches $target, as seen from the server.';
+  }
+
+  @override
+  String tunnelPreviewRemote(String listen, String target) {
+    return 'Anything opened at $listen on the server reaches $target on this device.';
+  }
+
+  @override
+  String tunnelPreviewSocks(String listen) {
+    return 'Point an app at $listen as a SOCKS5 proxy and its traffic goes out from the server.';
+  }
+
+  @override
+  String get tunnelAdvanced => 'Advanced';
+
+  @override
+  String get tunnelNameOptional => 'Name (optional)';
+
+  @override
+  String get tunnelNameHint => 'Left blank, it is named after the ports';
+
+  @override
+  String get tunnelBindHere => 'Listen address on this device';
+
+  @override
+  String get tunnelBindThere => 'Listen address on the server';
 }

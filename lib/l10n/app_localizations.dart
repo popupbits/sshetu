@@ -1551,6 +1551,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Starts when you open a terminal to this host.'**
   String get tunnelEditorAutoStartHint;
+
+  /// No description provided for @tunnelWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to do?'**
+  String get tunnelWhat;
+
+  /// No description provided for @tunnelLocalPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach something on the server'**
+  String get tunnelLocalPlain;
+
+  /// No description provided for @tunnelLocalPlainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A database or web app running on the server becomes available on this device.'**
+  String get tunnelLocalPlainBody;
+
+  /// No description provided for @tunnelRemotePlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the server reach this device'**
+  String get tunnelRemotePlain;
+
+  /// No description provided for @tunnelRemotePlainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Something running on this device becomes available on the server.'**
+  String get tunnelRemotePlainBody;
+
+  /// No description provided for @tunnelSocksPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Send traffic through the server'**
+  String get tunnelSocksPlain;
+
+  /// No description provided for @tunnelSocksPlainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A SOCKS proxy on this device, so apps pointed at it browse as if from the server.'**
+  String get tunnelSocksPlainBody;
+
+  /// No description provided for @tunnelPortHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Port on this device'**
+  String get tunnelPortHere;
+
+  /// No description provided for @tunnelPortThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Port on the server'**
+  String get tunnelPortThere;
+
+  /// No description provided for @tunnelServiceThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Which service on the server'**
+  String get tunnelServiceThere;
+
+  /// No description provided for @tunnelServiceHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Which service on this device'**
+  String get tunnelServiceHere;
+
+  /// No description provided for @tunnelAddressField.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get tunnelAddressField;
+
+  /// No description provided for @tunnelPortField.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get tunnelPortField;
+
+  /// No description provided for @tunnelPreviewLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything you open at {listen} on this device reaches {target}, as seen from the server.'**
+  String tunnelPreviewLocal(String listen, String target);
+
+  /// No description provided for @tunnelPreviewRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything opened at {listen} on the server reaches {target} on this device.'**
+  String tunnelPreviewRemote(String listen, String target);
+
+  /// No description provided for @tunnelPreviewSocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Point an app at {listen} as a SOCKS5 proxy and its traffic goes out from the server.'**
+  String tunnelPreviewSocks(String listen);
+
+  /// No description provided for @tunnelAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get tunnelAdvanced;
+
+  /// No description provided for @tunnelNameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get tunnelNameOptional;
+
+  /// No description provided for @tunnelNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Left blank, it is named after the ports'**
+  String get tunnelNameHint;
+
+  /// No description provided for @tunnelBindHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen address on this device'**
+  String get tunnelBindHere;
+
+  /// No description provided for @tunnelBindThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen address on the server'**
+  String get tunnelBindThere;
 }
 
 class _AppLocalizationsDelegate

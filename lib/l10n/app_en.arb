@@ -331,5 +331,53 @@
   "tunnelEditorTargetHost": "Host",
   "tunnelEditorTargetHostHint": "example.com or 10.0.0.4",
   "tunnelEditorAutoStart": "Start automatically",
-  "tunnelEditorAutoStartHint": "Starts when you open a terminal to this host."
+  "tunnelEditorAutoStartHint": "Starts when you open a terminal to this host.",
+  "tunnelWhat": "What do you want to do?",
+  "tunnelLocalPlain": "Reach something on the server",
+  "tunnelLocalPlainBody": "A database or web app running on the server becomes available on this device.",
+  "tunnelRemotePlain": "Let the server reach this device",
+  "tunnelRemotePlainBody": "Something running on this device becomes available on the server.",
+  "tunnelSocksPlain": "Send traffic through the server",
+  "tunnelSocksPlainBody": "A SOCKS proxy on this device, so apps pointed at it browse as if from the server.",
+  "tunnelPortHere": "Port on this device",
+  "tunnelPortThere": "Port on the server",
+  "tunnelServiceThere": "Which service on the server",
+  "tunnelServiceHere": "Which service on this device",
+  "tunnelAddressField": "Address",
+  "tunnelPortField": "Port",
+  "tunnelPreviewLocal": "Anything you open at {listen} on this device reaches {target}, as seen from the server.",
+  "tunnelPreviewRemote": "Anything opened at {listen} on the server reaches {target} on this device.",
+  "tunnelPreviewSocks": "Point an app at {listen} as a SOCKS5 proxy and its traffic goes out from the server.",
+  "tunnelAdvanced": "Advanced",
+  "tunnelNameOptional": "Name (optional)",
+  "tunnelNameHint": "Left blank, it is named after the ports",
+  "tunnelBindHere": "Listen address on this device",
+  "tunnelBindThere": "Listen address on the server",
+  "@tunnelPreviewLocal": {
+    "placeholders": {
+      "listen": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "@tunnelPreviewRemote": {
+    "placeholders": {
+      "listen": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "@tunnelPreviewSocks": {
+    "placeholders": {
+      "listen": {
+        "type": "String"
+      }
+    }
+  }
 }
