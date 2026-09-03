@@ -543,7 +543,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tunnelsEmptyTitle => 'No port forwards';
 
   @override
-  String get tunnelsEmptyBody => 'Port forwarding is not wired up yet.';
+  String get tunnelsEmptyBody =>
+      'Add a forward to reach a port on a host through its SSH connection.';
 
   @override
   String get settingsSync => 'Sync';

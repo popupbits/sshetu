@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../core/theme/tokens.dart';
 import '../../core/util/responsive.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
@@ -215,14 +214,10 @@ class AppShell extends StatelessWidget {
         title: Text(destinations[index].label),
         actions: _actionsFor(context, index),
       ),
-      drawer: _AppDrawer(
-        destinations: destinations,
-        selectedIndex: index,
-        onSelected: (i) {
-          Navigator.of(context).pop();
-          _go(i);
-        },
-      ),
+      // No drawer. It listed exactly the destinations the bottom bar already
+      // shows, so it was a second way to reach the same five screens — and it
+      // cost a hamburger button in the corner of every screen, which on a
+      // phone is the most valuable 48 points on the bar.
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
@@ -235,46 +230,6 @@ class AppShell extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
-}
-
-class _AppDrawer extends StatelessWidget {
-  const _AppDrawer({
-    required this.destinations,
-    required this.selectedIndex,
-    required this.onSelected,
-  });
-
-  final List<ShellDestination> destinations;
-  final int selectedIndex;
-  final ValueChanged<int> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return NavigationDrawer(
-      selectedIndex: selectedIndex,
-      onDestinationSelected: onSelected,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Spacing.xl,
-            Spacing.xl,
-            Spacing.lg,
-            Spacing.lg,
-          ),
-          child: Text(
-            AppLocalizations.of(context).appTitle,
-            style: theme.textTheme.titleLarge,
-          ),
-        ),
-        for (final destination in destinations)
-          NavigationDrawerDestination(
-            icon: Icon(destination.icon),
-            label: Text(destination.label),
-          ),
-      ],
     );
   }
 }

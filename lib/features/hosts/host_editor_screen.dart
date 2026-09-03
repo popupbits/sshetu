@@ -215,6 +215,20 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                 onSelectionChanged: (value) =>
                     setState(() => _auth = value.first),
               ),
+              const SizedBox(height: Spacing.sm),
+              // Says what each choice actually does. The pair of buttons on
+              // its own implies that naming a key and using a password are the
+              // only options, which leaves the commonest case of all — "use
+              // whichever of my keys this server accepts" — with no name, and
+              // is what sent nine of ten imported hosts to a password prompt.
+              Text(
+                _auth == SshAuthMethod.publicKey
+                    ? l10n.hostEditorAuthKeyHint
+                    : l10n.hostEditorAuthPasswordHint,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
               if (_auth == SshAuthMethod.publicKey) ...[
                 const SizedBox(height: Spacing.lg),
                 DropdownButtonFormField<String?>(
@@ -224,7 +238,9 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                     border: const OutlineInputBorder(),
                   ),
                   items: [
-                    DropdownMenuItem(child: Text(l10n.hostEditorIdentityNone)),
+                    // Null means "any", not "none" — it is what an imported
+                    // host arrives with, and it works.
+                    DropdownMenuItem(child: Text(l10n.hostEditorIdentityAny)),
                     for (final identity in identities)
                       DropdownMenuItem(
                         value: identity.id,

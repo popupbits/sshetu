@@ -231,7 +231,7 @@
   "importNoteTitle": "Read-only",
   "importNoteBody": "Your ~/.ssh files are read, never changed.",
   "tunnelsEmptyTitle": "No port forwards",
-  "tunnelsEmptyBody": "Port forwarding is not wired up yet.",
+  "tunnelsEmptyBody": "Add a forward to reach a port on a host through its SSH connection.",
   "settingsSync": "Sync",
   "settingsSyncSignIn": "Sign in to sync",
   "settingsSyncBody": "Optional. Everything works on this device without an account.",

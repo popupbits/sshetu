@@ -1087,7 +1087,7 @@ abstract class AppLocalizations {
   /// No description provided for @tunnelsEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'Port forwarding is not wired up yet.'**
+  /// **'Add a forward to reach a port on a host through its SSH connection.'**
   String get tunnelsEmptyBody;
 
   /// No description provided for @settingsSync.
