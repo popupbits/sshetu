@@ -5,6 +5,11 @@
 # apply — and a guard nobody runs is not a guard. This workflow is what makes
 # them binding.
 #
+# It also compiles every desktop target. Linux and Windows cannot be built on
+# a Mac, which is where this app is developed, so without CI they were the two
+# platforms nobody had ever compiled — "cross-platform" on trust. A hosted
+# runner each is the whole fix.
+#
 # Releasing is deliberately separate and manual: android-release.yml.
 
 name: CI
@@ -45,3 +50,75 @@ jobs:
         # one exists and are excluded here, because a hosted runner refusing to
         # start sshd should not read as this app being broken.
         run: flutter test --exclude-tags live
+
+  desktop:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      # One platform failing to compile is worth knowing about on its own, so
+      # the others still run.
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux
+          - os: windows-latest
+            target: windows
+          - os: macos-latest
+            target: macos
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.1"
+          channel: stable
+          cache: true
+
+      # Every one of these is a plugin's link-time dependency, and each was
+      # read out of that plugin's own linux/CMakeLists.txt rather than
+      # guessed:
+      #
+      #   gtk-3, ninja        the runner itself
+      #   libsecret-1         flutter_secure_storage_linux — where this app's
+      #                       credentials live on Linux
+      #   webkit2gtk-4.1,     desktop_webview_window, pulled in transitively
+      #   libsoup-3.0         by Appwrite's OAuth flow
+      #   libsqlite3          sqflite_common_ffi
+      #   libjsoncpp          flutter_secure_storage_linux
+      #
+      # A missing one fails at link time with an error that names a symbol
+      # rather than a package, which is a bad afternoon.
+      - name: Linux build dependencies
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev libsecret-1-dev \
+            libjsoncpp-dev libsqlite3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable ${{ matrix.target }}
+        run: flutter config --enable-${{ matrix.target }}-desktop
+
+      - name: Build
+        # Release, not debug: a debug desktop build can succeed while the
+        # release one fails on tree-shaking or a missing plugin registration.
+        run: flutter build ${{ matrix.target }} --release
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: sshetu-${{ matrix.target }}
+          # Each toolchain puts its bundle somewhere different; whichever path
+          # exists is the one that gets uploaded.
+          path: |
+            build/linux/*/release/bundle
+            build/windows/*/runner/Release
+            build/macos/Build/Products/Release/*.app
+          if-no-files-found: error
+          retention-days: 14

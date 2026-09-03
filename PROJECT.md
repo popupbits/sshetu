@@ -46,7 +46,24 @@ passing unless you ran it and saw it pass.
 | Backend | Appwrite |
 | Local storage | `sqflite` with numbered SQL migrations |
 | Theme | tokens owned by this project |
-| Platforms | Android iOS desktop |
+| Platforms | Android iOS macOS Windows Linux |
+
+**Where each platform actually stands.** Not the same question as which ones
+the code targets, and worth writing down because a platform nobody has ever
+compiled is a platform on trust:
+
+| Platform | State |
+|---|---|
+| macOS | built and driven by hand; the development machine |
+| Android | built, installed and connected to a live server on an emulator |
+| iOS | built, installed and connected on a simulator, with a key generated on the device |
+| Linux | compiled on every push by CI (`ci.yml`), never run by a person |
+| Windows | compiled on every push by CI (`ci.yml`), never run by a person |
+
+Linux and Windows cannot be built on a Mac, which is where this app is
+developed, so CI is not a formality for them — it is the only thing that
+compiles them at all. If you have one of those machines, run the app on it and
+update this table; "compiles" and "works" are different claims.
 
 **Dependencies.** Prefer what is already here. Add with
 `flutter pub add <package>` rather than hand-editing constraints. Do not add a
