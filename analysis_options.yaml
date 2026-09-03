@@ -15,6 +15,11 @@ analyzer:
     - macos/**
     - linux/**
     - lib/l10n/app_localizations*.dart
+    # Its own package, with its own pubspec and its own analysis_options.
+    # Analyzing it from here resolves none of its dependencies — CI has no
+    # reason to have fetched them — so every import reads as missing. It is
+    # analyzed on its own in ci.yml instead.
+    - sshetu_appwrite_setup/**
 
 linter:
   rules:

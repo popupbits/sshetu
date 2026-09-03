@@ -51,6 +51,16 @@ jobs:
         # start sshd should not read as this app being broken.
         run: flutter test --exclude-tags live
 
+      # Its own package, so its own resolve and its own analyze. The app's
+      # analyze excludes it — from there its imports cannot resolve at all —
+      # and a tool nobody analyzes is a tool that rots.
+      - name: Analyze the Appwrite setup tool
+        working-directory: sshetu_appwrite_setup
+        run: |
+          dart pub get
+          dart analyze
+          dart format --output=none --set-exit-if-changed bin
+
   desktop:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}

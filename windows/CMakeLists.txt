@@ -10,6 +10,19 @@ set(BINARY_NAME "sshetu")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# MSVC 14.51 (Visual Studio 18) turned the deprecation of
+# <experimental/coroutine> into a hard error (STL1011), and
+# local_auth_windows — the Windows half of the biometric unlock this app
+# offers — still includes it. Its own vcxproj is generated, so the define has
+# to be set here, before the plugins are added, where it reaches every
+# subproject.
+#
+# Set on the whole build rather than one target for the same reason: the
+# offending file belongs to a plugin whose CMake we do not own. Remove this
+# when local_auth_windows moves to C++20 <coroutine>; the Windows build
+# failing at that point is the signal.
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
