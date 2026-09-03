@@ -6,76 +6,23 @@ import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../core/terminal/terminal_session.dart';
 import '../../core/ui/views.dart';
-import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import 'session_manager.dart';
-import 'widgets/host_sidebar.dart';
-import 'widgets/session_tab_strip.dart';
-import 'widgets/terminal_pane.dart';
 
 /// The Sessions destination.
 ///
-/// Two shapes, because the two form factors want genuinely different things:
+/// The phone's list of open sessions.
 ///
-///  * **Desktop** — a workspace. Hosts down the left, open sessions as tabs
-///    across the top, the live terminal filling the rest. Starting a second
-///    connection never costs you sight of the first, which is the entire
-///    reason anyone keeps an SSH client open all day.
-///  * **Phone** — a list. There is not room for a sidebar, a tab strip and a
-///    terminal at once, and a terminal squeezed into what is left of a phone
-///    screen is not a terminal. Tapping a row opens it full-screen instead.
+/// Desktop never reaches here: there the terminal is always on screen beside
+/// the panel (see `TerminalWorkspace`), so a page listing sessions would be a
+/// page describing what is already visible. A phone has no room for a panel
+/// and a terminal at once, so its sessions are a list and its terminal is a
+/// screen of its own.
 class SessionsScreen extends ConsumerWidget {
   const SessionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return context.useRail ? const _Workspace() : const _SessionList();
-  }
-}
-
-class _Workspace extends ConsumerWidget {
-  const _Workspace();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final sessions = ref.watch(sessionManagerProvider);
-    final active = ref.read(sessionManagerProvider.notifier).active;
-    final scheme = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        const HostSidebar(),
-        VerticalDivider(width: 1, color: scheme.outlineVariant),
-        Expanded(
-          child: sessions.isEmpty
-              ? EmptyView(
-                  icon: PiconsRegular.terminalWindow,
-                  title: l10n.sessionsEmptyTitle,
-                  message: l10n.sessionsEmptyPickHost,
-                )
-              : Column(
-                  children: [
-                    const SessionTabStrip(),
-                    Expanded(
-                      child: active == null
-                          ? const SizedBox.shrink()
-                          // Keyed by session, so switching tabs builds a new
-                          // pane rather than re-pointing the old one at a
-                          // different terminal — which would carry one
-                          // session's scroll position and selection onto
-                          // another's buffer.
-                          : TerminalPane(
-                              key: ValueKey(active.id),
-                              session: active,
-                            ),
-                    ),
-                  ],
-                ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => const _SessionList();
 }
 
 class _SessionList extends ConsumerWidget {

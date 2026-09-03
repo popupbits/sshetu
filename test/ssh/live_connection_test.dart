@@ -11,6 +11,7 @@ import 'package:ssh_navigator/core/ssh/host_key.dart';
 import 'package:ssh_navigator/core/ssh/host_key_verifier.dart';
 import 'package:ssh_navigator/core/ssh/known_hosts_store.dart';
 import 'package:ssh_navigator/core/ssh/ssh_connection.dart';
+import 'package:ssh_navigator/core/ssh/ssh_credentials.dart';
 import 'package:ssh_navigator/core/ssh/ssh_target.dart';
 import 'package:ssh_navigator/core/ssh/vault_credential_source.dart';
 import 'package:ssh_navigator/core/terminal/terminal_session.dart';
@@ -67,6 +68,8 @@ void main() {
 
     await keygen('host_key');
     await keygen('client_key');
+    // A valid key the server does not authorise, to prove several are tried.
+    await keygen('decoy');
 
     privateKey = await File('${dir.path}/client_key').readAsString();
     await File('${dir.path}/authorized_keys')
@@ -109,12 +112,14 @@ StrictModes no
     required KnownHostsStore knownHosts,
     required SecretVault vault,
     bool trustUnknown = true,
+    String? identityId = 'test-identity',
+    IdentityCatalog? catalog,
   }) => SshConnection(
     target: SshTarget(
       hostname: '127.0.0.1',
       port: port,
       username: Platform.environment['USER'] ?? 'runner',
-      identityId: 'test-identity',
+      identityId: identityId,
       credentialId: 'test-host',
     ),
     verifierFactory: (hostname, hostPort) => SshHostKeyVerifier(
@@ -123,7 +128,10 @@ StrictModes no
       port: hostPort,
       onUnknownHostKey: (_) => trustUnknown,
     ),
-    credentials: VaultCredentialSource(vault: vault),
+    credentials: VaultCredentialSource(
+      vault: vault,
+      catalog: catalog ?? () async => const [],
+    ),
   );
 
   Future<SecretVault> vaultWithKey() async {
@@ -240,6 +248,114 @@ StrictModes no
         second.client(),
         throwsA(isA<SshConnectionException>()),
       );
+    },
+    skip: skipReason,
+  );
+
+  test(
+    'a host naming no key authenticates with one of the user\'s keys',
+    () async {
+      // The gap that made nine of ten imported hosts prompt for a password:
+      // `~/.ssh/config` entries rarely carry an IdentityFile, and `ssh` handles
+      // that by offering the default keys. Proven against a real handshake:
+      // the target names no identity, and the server still lets it in.
+      final vault = InMemorySecretVault();
+      await vault.write(
+        const SecretRef.identityPrivateKey('id_ed25519'),
+        privateKey,
+      );
+
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: vault,
+        identityId: null,
+        catalog: () async => const [
+          AvailableIdentity(
+            id: 'id_ed25519',
+            label: 'id_ed25519',
+            keyType: 'ssh-ed25519',
+            hasPassphrase: false,
+          ),
+        ],
+      );
+      addTearDown(connection.close);
+
+      final client = await connection.client();
+      expect(client.isClosed, isFalse);
+    },
+    skip: skipReason,
+  );
+
+  test('the right key is found among several offered', () async {
+    // The server accepts exactly one of these. A client that offered only its
+    // first guess would fail; SSH offers them in turn, and so must this.
+    final vault = InMemorySecretVault();
+    await vault.write(
+      const SecretRef.identityPrivateKey('wrong'),
+      await File('${dir.path}/decoy').readAsString(),
+    );
+    await vault.write(const SecretRef.identityPrivateKey('right'), privateKey);
+
+    final connection = buildConnection(
+      knownHosts: InMemoryKnownHostsStore(),
+      vault: vault,
+      identityId: null,
+      catalog: () async => const [
+        AvailableIdentity(
+          id: 'wrong',
+          label: 'decoy',
+          keyType: 'ssh-ed25519',
+          hasPassphrase: false,
+        ),
+        AvailableIdentity(
+          id: 'right',
+          label: 'real',
+          keyType: 'ssh-ed25519',
+          hasPassphrase: false,
+        ),
+      ],
+    );
+    addTearDown(connection.close);
+
+    final client = await connection.client();
+    expect(client.isClosed, isFalse);
+  }, skip: skipReason);
+
+  test(
+    'an undecodable key does not sink a connection that has others',
+    () async {
+      // One corrupt key among several must not stop the others being tried.
+      final vault = InMemorySecretVault();
+      await vault.write(
+        const SecretRef.identityPrivateKey('broken'),
+        '-----BEGIN OPENSSH PRIVATE KEY-----\nnot base64\n'
+        '-----END OPENSSH PRIVATE KEY-----\n',
+      );
+      await vault.write(const SecretRef.identityPrivateKey('good'), privateKey);
+
+      final connection = buildConnection(
+        knownHosts: InMemoryKnownHostsStore(),
+        vault: vault,
+        identityId: null,
+        catalog: () async => const [
+          AvailableIdentity(
+            id: 'broken',
+            label: 'broken',
+            keyType: 'ssh-ed25519',
+            hasPassphrase: false,
+          ),
+          AvailableIdentity(
+            id: 'good',
+            label: 'good',
+            keyType: 'ssh-ed25519',
+            hasPassphrase: false,
+          ),
+        ],
+      );
+      addTearDown(connection.close);
+
+      final client = await connection.client();
+      expect(client.isClosed, isFalse);
     },
     skip: skipReason,
   );

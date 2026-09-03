@@ -580,4 +580,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeNow => 'now';
+
+  @override
+  String get hostEditorIdentityAny => 'Any of my keys';
+
+  @override
+  String get hostEditorAuthKeyHint =>
+      'Offers your keys, and falls back to a password if the server refuses them — the same as ssh.';
+
+  @override
+  String get hostEditorAuthPasswordHint => 'Never offers a key to this host.';
+
+  @override
+  String get hostEditorAuthPasswordOnly => 'Password only';
+
+  @override
+  String get secretUseKeyInstead => 'Use a key instead';
+
+  @override
+  String get secretPickKey => 'Choose a key';
+
+  @override
+  String get secretPickKeyBody =>
+      'This key is saved on the host, so it is used from now on.';
+
+  @override
+  String get secretNoKeys => 'You have no keys yet.';
 }

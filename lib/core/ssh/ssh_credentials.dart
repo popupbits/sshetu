@@ -1,48 +1,87 @@
 import 'ssh_target.dart';
 
+/// One private key, ready to be offered to a server.
+class SshPrivateKey {
+  const SshPrivateKey({
+    required this.identityId,
+    required this.label,
+    required this.pem,
+    this.passphrase,
+  });
+
+  final String identityId;
+
+  /// What the user calls this key. Used in messages, never the material.
+  final String label;
+
+  /// PEM or OpenSSH private key material.
+  final String pem;
+
+  /// Its passphrase, when it needed one and the user supplied it.
+  final String? passphrase;
+
+  /// Prints the label only — never the material, never the passphrase.
+  @override
+  String toString() => 'SshPrivateKey($label)';
+}
+
+/// A key the app knows about, without its material.
+///
+/// Enough to decide *which* keys to offer and in what order, without unlocking
+/// any of them: choosing an identity should never require reading one.
+class AvailableIdentity {
+  const AvailableIdentity({
+    required this.id,
+    required this.label,
+    required this.keyType,
+    required this.hasPassphrase,
+  });
+
+  final String id;
+  final String label;
+  final String keyType;
+  final bool hasPassphrase;
+}
+
+/// Lists the identities the user has. Injected so the connection layer never
+/// reaches into a repository.
+typedef IdentityCatalog = Future<List<AvailableIdentity>> Function();
+
 /// Supplies the secrets a connection needs, one target at a time.
 ///
-/// An interface rather than three callbacks so that a chain — a host behind a
+/// An interface rather than loose callbacks so that a chain — a host behind a
 /// bastion — resolves each hop's credentials through the same object, and so
 /// tests can drive the connection layer without a vault, a keystore or a UI.
 ///
-/// Implementations decide *how* a secret is obtained: read from the
-/// [SecretVault], asked for in a dialog, or refused. Returning `null` means
-/// "not available", and the connection fails with a message saying which
-/// secret was missing rather than a bare authentication error.
-///
 /// **Nothing here is cached by the connection.** A password returned for one
-/// attempt is used for that attempt and dropped; if a reconnect needs it
-/// again, it is asked for again. Holding credentials for the life of a
-/// connection object would mean a long-lived session keeps a password in
-/// memory for hours after the user typed it.
+/// attempt is used for that attempt and dropped; if a reconnect needs it again
+/// it is asked for again. Holding credentials for the life of a connection
+/// object would keep a password in memory for hours after the user typed it.
 abstract interface class SshCredentialSource {
-  /// PEM or OpenSSH private key material for [target]'s identity.
+  /// The keys to offer [target], in the order they should be tried.
   ///
-  /// Null when the target has no identity, or the user declined to unlock it.
-  Future<String?> privateKey(SshTarget target);
+  /// A **list**, because that is what SSH actually does. OpenSSH with no
+  /// `IdentityFile` offers every default key it can find and lets the server
+  /// pick; a client that insists on being told exactly one key cannot connect
+  /// to any of the hosts in a typical `~/.ssh/config`, which name none. Empty
+  /// is a valid answer — the connection then falls back to a password.
+  Future<List<SshPrivateKey>> privateKeys(SshTarget target);
 
-  /// The passphrase for [target]'s private key.
-  ///
-  /// Only called when the key is actually encrypted — checked before use, so
-  /// an unencrypted key never prompts.
-  Future<String?> passphrase(SshTarget target);
-
-  /// The login password for [target].
+  /// The login password for [target], asked for only if key authentication
+  /// was not offered or was refused.
   Future<String?> password(SshTarget target);
 }
 
-/// A source that has nothing. Useful in tests, and as the explicit "this
-/// connection may not prompt" case: an unattended reconnect that would need a
-/// password fails instead of blocking forever on a dialog nobody will see.
+/// A source that has nothing.
+///
+/// For tests, and as the explicit "this connection may not prompt" case: an
+/// unattended reconnect that would need a password fails instead of blocking
+/// forever on a dialog nobody will see.
 class NoCredentials implements SshCredentialSource {
   const NoCredentials();
 
   @override
-  Future<String?> privateKey(SshTarget target) async => null;
-
-  @override
-  Future<String?> passphrase(SshTarget target) async => null;
+  Future<List<SshPrivateKey>> privateKeys(SshTarget target) async => const [];
 
   @override
   Future<String?> password(SshTarget target) async => null;

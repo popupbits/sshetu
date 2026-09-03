@@ -53,7 +53,12 @@ class TerminalSession extends ChangeNotifier {
       _session?.resizeTerminal(width, height, pixelWidth, pixelHeight);
     };
 
-    _coalescer = OutputCoalescer(onData: terminal.write);
+    _coalescer = OutputCoalescer(
+      onData: (data) {
+        _receivedOutput = true;
+        terminal.write(data);
+      },
+    );
 
     _stateSubscription = connection.states.listen((state) {
       if (_disposed) return;
@@ -96,6 +101,14 @@ class TerminalSession extends ChangeNotifier {
   /// notifying a disposed ChangeNotifier throws. Nothing is listening by then
   /// anyway.
   bool _disposed = false;
+
+  /// Whether the remote side has ever sent anything.
+  ///
+  /// Decides where a notice belongs. With a scrollback full of output, a line
+  /// marking where it stopped is genuinely useful — it says *when* the link
+  /// died relative to what you were doing. With an empty buffer it is the same
+  /// sentence the status bar is already showing, in red, twice.
+  bool _receivedOutput = false;
 
   TerminalSessionStatus _status = TerminalSessionStatus.connecting;
   TerminalSessionStatus get status => _status;
@@ -213,7 +226,14 @@ class TerminalSession extends ChangeNotifier {
 
   /// Writes app text into the terminal, bypassing the coalescer so a notice
   /// cannot be dropped by the pending-byte cap.
-  void _writeNotice(String text) => terminal.write(text);
+  ///
+  /// Skipped entirely when nothing has ever arrived: the pane's status bar is
+  /// already saying it, and a failure printed into an otherwise blank terminal
+  /// is the same sentence twice.
+  void _writeNotice(String text) {
+    if (!_receivedOutput) return;
+    terminal.write(text);
+  }
 
   @override
   void dispose() {

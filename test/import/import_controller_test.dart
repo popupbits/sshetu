@@ -158,10 +158,19 @@ Host web
 
     expect(outcome.keys, 0);
     expect(await container.read(identityRepositoryProvider).all(), isEmpty);
-    // A host whose key was not imported must not claim key auth it cannot do.
+
     final host = (await container.read(hostRepositoryProvider).all()).single;
-    expect(host.identityId, isNull);
-    expect(host.authMethod, SshAuthMethod.password);
+    expect(host.identityId, isNull, reason: 'no key was imported to link');
+    expect(
+      host.authMethod,
+      SshAuthMethod.publicKey,
+      reason:
+          'a host that names no IdentityFile is a key host that has not '
+          'named a key, not a password host — `ssh` offers the default keys '
+          'and only falls back to a password if the server refuses them. '
+          'Importing these as password hosts is what made nine of ten '
+          'imported hosts prompt for a password they did not need.',
+    );
   });
 
   test('a deselected host is not imported', () async {

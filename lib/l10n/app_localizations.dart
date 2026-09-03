@@ -1155,6 +1155,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'now'**
   String get timeNow;
+
+  /// No description provided for @hostEditorIdentityAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any of my keys'**
+  String get hostEditorIdentityAny;
+
+  /// No description provided for @hostEditorAuthKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers your keys, and falls back to a password if the server refuses them — the same as ssh.'**
+  String get hostEditorAuthKeyHint;
+
+  /// No description provided for @hostEditorAuthPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Never offers a key to this host.'**
+  String get hostEditorAuthPasswordHint;
+
+  /// No description provided for @hostEditorAuthPasswordOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Password only'**
+  String get hostEditorAuthPasswordOnly;
+
+  /// No description provided for @secretUseKeyInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a key instead'**
+  String get secretUseKeyInstead;
+
+  /// No description provided for @secretPickKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a key'**
+  String get secretPickKey;
+
+  /// No description provided for @secretPickKeyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This key is saved on the host, so it is used from now on.'**
+  String get secretPickKeyBody;
+
+  /// No description provided for @secretNoKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no keys yet.'**
+  String get secretNoKeys;
 }
 
 class _AppLocalizationsDelegate

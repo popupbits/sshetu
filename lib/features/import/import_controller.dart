@@ -122,9 +122,12 @@ class ImportController {
           // OpenSSH falls back to the local account name; so do we, rather
           // than saving a host with an empty username that cannot connect.
           username: discovered.username ?? _localUsername(),
-          authMethod: identityId == null
-              ? SshAuthMethod.password
-              : SshAuthMethod.publicKey,
+          // publicKey even when the config named no IdentityFile. That is
+          // what `ssh` does: it offers the user's default keys and only asks
+          // for a password if the server refuses them. Marking these as
+          // password hosts is what made nine of ten imported hosts prompt for
+          // a password they did not need.
+          authMethod: SshAuthMethod.publicKey,
           identityId: identityId,
           // Only within this import: pointing at a host that was not brought
           // across would leave a dangling reference the schema would reject.

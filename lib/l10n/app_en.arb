@@ -242,5 +242,13 @@
   "sessionsEmptyPickHost": "Pick a host on the left to open a session.",
   "sessionsGoToHosts": "Choose a host",
   "terminalSessionEnded": "Session ended",
-  "timeNow": "now"
+  "timeNow": "now",
+  "hostEditorIdentityAny": "Any of my keys",
+  "hostEditorAuthKeyHint": "Offers your keys, and falls back to a password if the server refuses them — the same as ssh.",
+  "hostEditorAuthPasswordHint": "Never offers a key to this host.",
+  "hostEditorAuthPasswordOnly": "Password only",
+  "secretUseKeyInstead": "Use a key instead",
+  "secretPickKey": "Choose a key",
+  "secretPickKeyBody": "This key is saved on the host, so it is used from now on.",
+  "secretNoKeys": "You have no keys yet."
 }

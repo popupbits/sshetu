@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 /// Current schema version. Bump this when you add a migration.
-const int kSchemaVersion = 1;
+const int kSchemaVersion = 2;
 
 /// One migration step.
 ///
@@ -125,4 +125,5 @@ List<String> splitSqlStatements(String script) {
 /// Migrations in order. Index N takes the schema from version N to N+1.
 const List<Migration> migrations = <Migration>[
   SqlMigration('lib/core/db/migrations/v1_initial.sql'),
+  SqlMigration('lib/core/db/migrations/v2_import_auth_method.sql'),
 ];

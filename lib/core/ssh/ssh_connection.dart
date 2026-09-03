@@ -254,13 +254,22 @@ class SshConnection {
         allowLegacy: hop.allowLegacyAlgorithms,
       ),
       onVerifyHostKey: verifier.verify,
-      onPasswordRequest: hop.authMethod == SshAuthMethod.password
-          ? () async =>
-                await credentials.password(hop) ??
-                (throw SshConnectionException(
-                  'No password supplied for ${hop.address}.',
-                ))
-          : null,
+      // Password is always wired as a *fallback*, not as an exclusive mode.
+      //
+      // SSH negotiates: the client offers its public keys, and only if the
+      // server refuses them — or asks for a password outright — does password
+      // authentication happen. dartssh2 follows that order, so wiring both is
+      // what `ssh` does, and it is why a host whose config named no
+      // IdentityFile can now authenticate with a key instead of falling
+      // straight to a password prompt it did not need.
+      //
+      // Nobody is prompted who would not have been: this callback is invoked
+      // only when the server actually asks.
+      onPasswordRequest: () async =>
+          await credentials.password(hop) ??
+          (throw SshConnectionException(
+            'No password supplied for ${hop.address}.',
+          )),
       keepAliveInterval: hop.keepaliveInterval,
       handshakeTimeout: connectTimeout,
       authTimeout: connectTimeout,
@@ -310,56 +319,53 @@ class SshConnection {
     return client;
   }
 
+  /// The key pairs to offer [hop], or null when there are none.
+  ///
+  /// Null rather than an error: a host with no usable key is not broken, it is
+  /// a host that will authenticate with a password. Only a host that named a
+  /// specific key and could not produce it is a configuration error worth
+  /// stopping for.
   Future<List<SSHKeyPair>?> _identities(SshTarget hop) async {
+    // `password` is an explicit choice not to offer keys, and it is honoured.
+    // Offering them anyway would send the user's public keys to a server they
+    // deliberately did not want them sent to — a small disclosure (which other
+    // machines this person can reach) but not ours to make on their behalf.
     if (hop.authMethod != SshAuthMethod.publicKey) return null;
-    if (hop.identityId == null) {
-      throw SshConnectionException(
-        '${hop.address} uses key authentication but has no key selected.',
-      );
-    }
 
-    final pem = await credentials.privateKey(hop);
-    if (pem == null) {
-      throw SshConnectionException(
-        'The private key for ${hop.address} is not available.',
-      );
-    }
+    final keys = await credentials.privateKeys(hop);
 
-    final bool encrypted;
-    try {
-      encrypted = SSHKeyPair.isEncryptedPem(pem);
-    } on Object catch (e) {
-      throw _undecodableKey(hop, e);
-    }
-
-    String? passphrase;
-    if (encrypted) {
-      passphrase = await credentials.passphrase(hop);
-      if (passphrase == null) {
+    if (keys.isEmpty) {
+      if (hop.identityId != null) {
         throw SshConnectionException(
-          'The key for ${hop.address} is passphrase-protected and no '
-          'passphrase was supplied.',
+          'The private key for ${hop.address} is not available.',
         );
+      }
+      return null;
+    }
+
+    final pairs = <SSHKeyPair>[];
+    final rejected = <String>[];
+    for (final key in keys) {
+      try {
+        pairs.addAll(SSHKeyPair.fromPem(key.pem, key.passphrase));
+      } on Object {
+        // One unreadable key among several must not sink the connection: the
+        // others may well be the one this server wants. Recorded by label so
+        // a total failure can still name what went wrong, and never by the
+        // decoder's message — that can quote the bytes it choked on, and
+        // those bytes are key material.
+        rejected.add(key.label);
       }
     }
 
-    try {
-      return SSHKeyPair.fromPem(pem, passphrase);
-    } on Object catch (e) {
-      throw _undecodableKey(hop, e);
-    }
-  }
-
-  /// Reports an unusable key by the *type* of the failure only.
-  ///
-  /// A decoder's exception can quote the bytes it choked on, and those bytes
-  /// are key material — so neither its message nor the PEM is ever passed
-  /// along, into a log or onto a screen.
-  SshConnectionException _undecodableKey(SshTarget hop, Object error) =>
-      SshConnectionException(
-        'The private key for ${hop.address} could not be decoded '
-        '(${error.runtimeType}). A wrong passphrase looks like this.',
+    if (pairs.isEmpty) {
+      throw SshConnectionException(
+        'None of the keys offered to ${hop.address} could be decoded '
+        '(${rejected.join(', ')}). A wrong passphrase looks like this.',
       );
+    }
+    return pairs;
+  }
 
   void _handleDropped(SSHClient client, Object? error) {
     // Only the session actually in use reports a drop: one that never

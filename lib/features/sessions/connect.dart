@@ -8,7 +8,9 @@ import '../../core/ssh/host_key.dart';
 import '../../core/terminal/terminal_session.dart';
 import '../../core/ui/feedback.dart';
 import '../../core/util/responsive.dart';
+import '../../core/ssh/ssh_target.dart';
 import '../hosts/domain/ssh_host.dart';
+import '../hosts/hosts_controller.dart';
 import '../hosts/widgets/host_key_dialog.dart';
 import '../hosts/widgets/secret_dialog.dart';
 import 'session_manager.dart';
@@ -27,6 +29,12 @@ Future<void> connectToHost(
 ) async {
   final manager = ref.read(sessionManagerProvider.notifier);
 
+  // Set when the user answers a password prompt with "use a key instead".
+  // The running attempt cannot change its mind mid-handshake — dartssh2 was
+  // given its identities before the socket opened — so the choice is recorded,
+  // this attempt is cancelled, and the connection is made again with the key.
+  SecretUseIdentity? keyChoice;
+
   final TerminalSession session;
   try {
     session = await manager.connect(
@@ -37,7 +45,16 @@ Future<void> connectToHost(
       },
       prompt: (request) async {
         if (!context.mounted) return null;
-        return showSecretDialog(context, request);
+        final outcome = await showSecretDialog(context, request);
+        return switch (outcome) {
+          SecretSupplied(:final response) => response,
+          // Cancels this attempt on purpose; the retry below carries the key.
+          SecretUseIdentity() => () {
+            keyChoice = outcome;
+            return null;
+          }(),
+          null => null,
+        };
       },
     );
   } on Object catch (error, stackTrace) {
@@ -52,6 +69,26 @@ Future<void> connectToHost(
   }
 
   if (!context.mounted) return;
+
+  // Retry with the key the user reached for, rather than making them cancel,
+  // find the host editor, change it, and start again.
+  final choice = keyChoice;
+  if (choice != null) {
+    manager.close(session.id);
+    final withKey = host.copyWith(
+      identityId: choice.identityId,
+      authMethod: SshAuthMethod.publicKey,
+      updatedAt: DateTime.now().toUtc(),
+    );
+    // Saved by default, because being asked for a password when a key would
+    // have worked means the host is configured wrong — fixing it for this
+    // attempt only would raise the same dialog next time.
+    if (choice.remember) {
+      await ref.read(hostsControllerProvider).save(withKey);
+    }
+    if (context.mounted) await connectToHost(context, ref, withKey);
+    return;
+  }
 
   // A refused host key deserves its own explanation rather than a generic
   // failure line: for a *changed* key it is the most important thing this app
@@ -69,16 +106,11 @@ Future<void> connectToHost(
 
   if (!context.mounted) return;
 
-  // Where a session opens depends on the form factor, because the two shapes
-  // are genuinely different:
-  //
-  //  * Desktop has a workspace — sidebar, tabs, terminal — so connecting means
-  //    switching to it. Pushing a full-screen route over it would throw away
-  //    the tabs and the sidebar that are the point of having a desktop layout.
-  //  * A phone has no room for all three, so the terminal is a page of its own.
-  if (context.useRail) {
-    context.goTo(Routes.sessions);
-  } else {
+  // Desktop needs no navigation at all: the terminal occupies the right of
+  // the window already, and the new session is the selected tab. Sending the
+  // user somewhere would only take the panel they were working in away from
+  // them. A phone has no room for both, so there the terminal is a page.
+  if (!context.useRail) {
     context.pushTo(Routes.terminalFor(session.id));
   }
 }

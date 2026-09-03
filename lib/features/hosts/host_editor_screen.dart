@@ -207,8 +207,8 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                   ),
                   ButtonSegment(
                     value: SshAuthMethod.password,
-                    label: Text(l10n.hostEditorAuthPassword),
-                    icon: const Icon(PiconsRegular.password),
+                    label: Text(l10n.hostEditorAuthPasswordOnly),
+                    icon: const Icon(PiconsRegular.lockSimple),
                   ),
                 ],
                 selected: {_auth},

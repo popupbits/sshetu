@@ -71,47 +71,52 @@ class HostTile extends ConsumerWidget {
           ],
         ],
       ),
-      subtitle: Text(
-        host.subtitle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: scheme.onSurfaceVariant,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+      subtitle: Row(
         children: [
-          Tooltip(
-            message: host.authMethod == SshAuthMethod.password
-                ? l10n.hostEditorAuthPassword
-                : l10n.hostEditorAuthKey,
-            child: Icon(
-              // `password` draws a row of asterisks, which at 14px is a smear
-              // rather than a symbol. A closed padlock reads instantly and
-              // pairs naturally with the key.
-              host.authMethod == SshAuthMethod.password
-                  ? PiconsRegular.lockSimple
-                  : PiconsRegular.key,
-              size: 15,
-              color: scheme.onSurfaceVariant,
+          // Auth and age move onto the second line, next to the address they
+          // describe. As a trailing cluster they cost 120px of the row, which
+          // in a 320px side panel is most of the name — every host came out as
+          // `192.168....`, and the octets are the only part that identifies it.
+          Icon(
+            // `password` draws a row of asterisks, which at this size is a
+            // smear rather than a symbol. A closed padlock reads instantly
+            // and pairs naturally with the key.
+            host.authMethod == SshAuthMethod.password
+                ? PiconsRegular.lockSimple
+                : PiconsRegular.key,
+            size: 12,
+            color: scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: Spacing.xs),
+          Flexible(
+            child: Text(
+              host.subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
-          const SizedBox(width: Spacing.md),
-          SizedBox(
-            width: 56,
-            child: Text(
+          if (host.lastConnectedAt != null) ...[
+            Text(
+              ' · ',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            Text(
               _lastUsed(context, host.lastConnectedAt),
-              textAlign: TextAlign.end,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
             ),
-          ),
-          _HostMenu(host: host),
+          ],
         ],
       ),
+      // Only the menu is trailing now, so the name has the row.
+      trailing: _HostMenu(host: host),
     );
   }
 

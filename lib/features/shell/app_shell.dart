@@ -7,6 +7,8 @@ import '../../core/util/responsive.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../l10n/app_localizations.dart';
+import '../sessions/session_shortcuts.dart';
+import '../sessions/widgets/terminal_workspace.dart';
 
 /// One navigation destination.
 class ShellDestination {
@@ -49,19 +51,33 @@ class AppShell extends StatelessWidget {
   }
 
   /// The AppBar actions for the destination at [index].
-  List<Widget> _actionsFor(BuildContext context, int index) {
+  List<Widget> _actionsFor(
+    BuildContext context,
+    int index, {
+    bool dense = false,
+  }) {
     final l10n = AppLocalizations.of(context);
+    final size = dense ? 16.0 : 24.0;
+    final constraints = dense
+        ? const BoxConstraints.tightFor(width: 28, height: 28)
+        : null;
     return switch (index) {
       // Hosts
       0 => [
         IconButton(
           tooltip: l10n.hostsImport,
-          icon: const Icon(PiconsRegular.downloadSimple),
+          icon: Icon(PiconsRegular.downloadSimple, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
           onPressed: () => context.pushTo(Routes.importOpenSsh),
         ),
         IconButton(
           tooltip: l10n.hostsAdd,
-          icon: const Icon(PiconsRegular.plus),
+          icon: Icon(PiconsRegular.plus, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
           onPressed: () => context.pushTo(Routes.hostNew),
         ),
       ],
@@ -69,7 +85,10 @@ class AppShell extends StatelessWidget {
       2 => [
         IconButton(
           tooltip: l10n.keysImport,
-          icon: const Icon(PiconsRegular.downloadSimple),
+          icon: Icon(PiconsRegular.downloadSimple, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
           onPressed: () => context.pushTo(Routes.importFocused('keys')),
         ),
       ],
@@ -86,67 +105,125 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  /// Branch indices shown in the desktop rail.
+  ///
+  /// Sessions is missing on purpose. On desktop the terminal is not a place
+  /// you navigate to — it is always on the right — so a rail entry leading to
+  /// it would be a button that goes where you already are. The phone keeps it,
+  /// because there the terminal really is a separate screen.
+  static const List<int> _desktopBranches = [0, 2, 3, 4];
+
   @override
   Widget build(BuildContext context) {
     final destinations = destinationsOf(context);
     final index = navigationShell.currentIndex;
-    final useRail = context.useRail;
 
+    // Wrapped around the whole shell rather than around the terminal: Cmd-W
+    // has to close a tab while the focus is in the host list too, which is
+    // exactly where it will be when someone has just started a session.
+    return SessionShortcuts(
+      child: context.useRail
+          ? _buildDesktop(context, destinations, index)
+          : _buildCompact(context, destinations, index),
+    );
+  }
+
+  /// Rail, one contextual panel, terminal.
+  ///
+  /// The layout this replaced had *two* vertical columns before any content —
+  /// the rail, then a host sidebar — and the host list appeared in both the
+  /// sidebar and the Hosts destination. That is 600px of chrome and one list
+  /// drawn twice.
+  ///
+  /// So there is one navigation column and one panel, and the panel shows
+  /// whatever the rail selected: hosts, keys, tunnels, settings. The terminal
+  /// keeps the rest of the window at all times, which is what makes this a
+  /// workspace rather than a set of pages — looking up a key no longer takes
+  /// the shell you are working in off the screen.
+  Widget _buildDesktop(
+    BuildContext context,
+    List<ShellDestination> destinations,
+    int index,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    // Settings is a page, not a list; it does not read in a 300px column.
+    final panelIndex = _desktopBranches.contains(index) ? index : 0;
+
+    return Scaffold(
+      // No AppBar. Its title said the name of the destination, which the panel
+      // header now says in a third of the height — and a terminal's scarcest
+      // resource is vertical space.
+      body: SafeArea(
+        child: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _desktopBranches.indexOf(panelIndex),
+              onDestinationSelected: (i) => _go(_desktopBranches[i]),
+              labelType: NavigationRailLabelType.all,
+              backgroundColor: scheme.surfaceContainerLow,
+              destinations: [
+                for (final branch in _desktopBranches)
+                  NavigationRailDestination(
+                    icon: Icon(destinations[branch].icon),
+                    label: Text(destinations[branch].label),
+                  ),
+              ],
+            ),
+            VerticalDivider(width: 1, color: scheme.outlineVariant),
+            SizedBox(
+              // 320 rather than 300: an IPv4 address plus a monogram is
+              // almost exactly 300, and the difference decides whether a
+              // host list of addresses is readable or a column of ellipses.
+              width: 320,
+              child: Column(
+                children: [
+                  PanelHeader(
+                    title: destinations[panelIndex].label,
+                    actions: _actionsFor(context, panelIndex, dense: true),
+                  ),
+                  Expanded(child: navigationShell),
+                ],
+              ),
+            ),
+            VerticalDivider(width: 1, color: scheme.outlineVariant),
+            const Expanded(child: TerminalWorkspace()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Bottom bar, one screen at a time.
+  Widget _buildCompact(
+    BuildContext context,
+    List<ShellDestination> destinations,
+    int index,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: Text(destinations[index].label),
-        // Per-destination actions rather than a floating button: the same
-        // widget then works on a phone and on a desktop window, where a FAB
-        // floating over a list reads as out of place.
         actions: _actionsFor(context, index),
       ),
-      // Modal on a phone; the wide layout below shows it inline instead.
-      drawer: useRail
-          ? null
-          : _AppDrawer(
-              destinations: destinations,
-              selectedIndex: index,
-              onSelected: (i) {
-                Navigator.of(context).pop();
-                _go(i);
-              },
+      drawer: _AppDrawer(
+        destinations: destinations,
+        selectedIndex: index,
+        onSelected: (i) {
+          Navigator.of(context).pop();
+          _go(i);
+        },
+      ),
+      body: navigationShell,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: index,
+        onDestinationSelected: _go,
+        destinations: [
+          for (final destination in destinations)
+            NavigationDestination(
+              icon: Icon(destination.icon),
+              label: destination.label,
             ),
-      body: Row(
-        children: [
-          if (useRail) ...[
-            NavigationRail(
-              selectedIndex: index,
-              onDestinationSelected: _go,
-              labelType: context.isExpanded
-                  ? NavigationRailLabelType.none
-                  : NavigationRailLabelType.all,
-              extended: context.isExpanded,
-              destinations: [
-                for (final destination in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(destination.icon),
-                    label: Text(destination.label),
-                  ),
-              ],
-            ),
-            const VerticalDivider(width: 1),
-          ],
-          Expanded(child: navigationShell),
         ],
       ),
-      bottomNavigationBar: useRail
-          ? null
-          : NavigationBar(
-              selectedIndex: index,
-              onDestinationSelected: _go,
-              destinations: [
-                for (final destination in destinations)
-                  NavigationDestination(
-                    icon: Icon(destination.icon),
-                    label: destination.label,
-                  ),
-              ],
-            ),
     );
   }
 }

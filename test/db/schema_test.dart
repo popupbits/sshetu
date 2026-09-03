@@ -52,6 +52,65 @@ void main() {
         'updated_at': t,
       });
 
+  group('v2 — repairing hosts the import mislabelled', () {
+    Future<void> insertPasswordHost(String id, {String? identity}) =>
+        db.insert('hosts', {
+          'id': id,
+          'label': id,
+          'hostname': '$id.example.com',
+          'username': 'root',
+          'auth_method': 'password',
+          'identity_id': identity,
+          'created_at': t,
+          'updated_at': t,
+        });
+
+    test('a password host with no key is moved to key auth', () async {
+      // Exactly the shape the import bug produced. `ssh` would have offered
+      // the user's keys here; the row said to prompt for a password instead.
+      await insertPasswordHost('imported');
+
+      // Re-run the migrations over the existing rows, as an upgrade does.
+      for (final migration in migrations.skip(1)) {
+        await migration.run(db, (path) async => File(path).readAsString());
+      }
+
+      final row = (await db.query('hosts', where: "id = 'imported'")).single;
+      expect(row['auth_method'], 'publicKey');
+      expect(row['dirty'], 1, reason: 'the change has to reach the backend');
+    });
+
+    test('a password host that names a key is left alone', () async {
+      // Not the bug's shape: someone chose this deliberately.
+      await db.insert('identities', {
+        'id': 'k1',
+        'label': 'laptop',
+        'key_type': 'ssh-ed25519',
+        'created_at': t,
+        'updated_at': t,
+      });
+      await insertPasswordHost('deliberate', identity: 'k1');
+
+      for (final migration in migrations.skip(1)) {
+        await migration.run(db, (path) async => File(path).readAsString());
+      }
+
+      final row = (await db.query('hosts', where: "id = 'deliberate'")).single;
+      expect(row['auth_method'], 'password');
+    });
+
+    test('a key host is untouched', () async {
+      await insertHost('keyed');
+
+      for (final migration in migrations.skip(1)) {
+        await migration.run(db, (path) async => File(path).readAsString());
+      }
+
+      final row = (await db.query('hosts', where: "id = 'keyed'")).single;
+      expect(row['auth_method'], 'publicKey');
+    });
+  });
+
   group('tables', () {
     test('every table the app needs exists', () async {
       final rows = await db.query(

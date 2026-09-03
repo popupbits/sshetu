@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 import '../../core/ssh/host_key_verifier.dart';
 import '../../core/ssh/ssh_connection.dart';
+import '../../core/ssh/ssh_credentials.dart';
 import '../../core/ssh/vault_credential_source.dart';
 import '../../core/terminal/terminal_session.dart';
 import '../hosts/domain/ssh_host.dart';
@@ -13,17 +14,30 @@ import '../hosts/domain/ssh_host.dart';
 /// navigated away from: switching to Hosts to start a second connection must
 /// not kill the first, and on a phone that is the normal way to use the app.
 class SessionManager extends Notifier<List<TerminalSession>> {
+  /// The live sessions. The source of truth; [state] mirrors it.
+  ///
+  /// Held as a field rather than read back out of [state] because Riverpod 3
+  /// forbids touching a provider from inside its own life-cycle callbacks —
+  /// and the one place that matters is exactly the one that matters most:
+  /// tearing every session down when the container goes away. Reading `state`
+  /// there threw, which meant the app could exit leaving SSH connections open.
+  final List<TerminalSession> _sessions = [];
+
   @override
   List<TerminalSession> build() {
     ref.onDispose(() {
-      for (final session in state) {
+      for (final session in _sessions) {
         session.dispose();
       }
+      _sessions.clear();
     });
     return const [];
   }
 
   var _counter = 0;
+
+  /// Publishes [_sessions] as immutable state.
+  void _publish() => state = List.unmodifiable(_sessions);
 
   String? _activeId;
 
@@ -35,10 +49,10 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   String? get activeId {
     // A tab that has been closed must not stay "active" — the getter resolves
     // against live state rather than trusting a stored id.
-    if (_activeId != null && state.any((s) => s.id == _activeId)) {
+    if (_activeId != null && _sessions.any((s) => s.id == _activeId)) {
       return _activeId;
     }
-    return state.isEmpty ? null : state.last.id;
+    return _sessions.isEmpty ? null : _sessions.last.id;
   }
 
   /// The session the workspace is showing, if any.
@@ -52,7 +66,7 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     _activeId = id;
     // The list itself has not changed, but which of them is showing has, and
     // that is what the strip and the pane are watching.
-    state = [...state];
+    _publish();
   }
 
   /// Opens a session to [host] and returns it.
@@ -84,6 +98,18 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       ),
       credentials: VaultCredentialSource(
         vault: ref.read(secretVaultProvider),
+        // Read lazily, at connect time: a key imported since the app started
+        // should be offered without a restart.
+        catalog: () async => [
+          for (final identity
+              in await ref.read(identityRepositoryProvider).all())
+            AvailableIdentity(
+              id: identity.id,
+              label: identity.label,
+              keyType: identity.keyType,
+              hasPassphrase: identity.hasPassphrase,
+            ),
+        ],
         prompt: prompt,
       ),
     );
@@ -101,7 +127,8 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     );
 
     _activeId = session.id;
-    state = [...state, session];
+    _sessions.add(session);
+    _publish();
     await hosts.touch(host.id, now: DateTime.now().toUtc());
     // Started after the tab exists, so the UI can show "connecting" and the
     // host key prompt has a screen to appear over.
@@ -117,32 +144,25 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   /// terminal does not come through here, so backing out of a session keeps it
   /// running, which is the difference the user actually cares about.
   void close(String id) {
-    final index = state.indexWhere((s) => s.id == id);
+    final index = _sessions.indexWhere((s) => s.id == id);
     if (index < 0) return;
 
-    final remaining = <TerminalSession>[];
-    for (final session in state) {
-      if (session.id == id) {
-        session.dispose();
-      } else {
-        remaining.add(session);
-      }
-    }
+    _sessions.removeAt(index).dispose();
 
     // Focus the neighbour, the way every tabbed interface does: closing the
     // tab you are looking at should leave you next to where you were, not on
     // whichever tab happens to be last.
     if (_activeId == id) {
-      _activeId = remaining.isEmpty
+      _activeId = _sessions.isEmpty
           ? null
-          : remaining[(index - 1).clamp(0, remaining.length - 1)].id;
+          : _sessions[(index - 1).clamp(0, _sessions.length - 1)].id;
     }
 
-    state = remaining;
+    _publish();
   }
 
   TerminalSession? byId(String id) {
-    for (final session in state) {
+    for (final session in _sessions) {
       if (session.id == id) return session;
     }
     return null;

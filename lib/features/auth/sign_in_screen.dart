@@ -53,6 +53,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      // Sign-in used to be the app's gate, so it needed no way out. It is
+      // optional now — everything works without an account, and this is
+      // reached by choice from Settings — which made a screen with no back
+      // button a trap you could only leave by quitting.
+      //
+      // `AppBar()` alone is right: automaticallyImplyLeading shows the back
+      // arrow exactly when there is somewhere to go back to, so this stays
+      // correct if sign-in is ever the first screen again.
+      appBar: AppBar(),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
