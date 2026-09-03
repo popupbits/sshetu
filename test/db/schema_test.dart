@@ -31,31 +31,26 @@ void main() {
 
   const t = 1735689600000; // an arbitrary fixed epoch
 
-  Future<void> insertGroup(String id, {String? parent}) => db.insert(
-    'host_groups',
-    {
-      'id': id,
-      'name': id,
-      'parent_id': parent,
-      'created_at': t,
-      'updated_at': t,
-    },
-  );
+  Future<void> insertGroup(String id, {String? parent}) =>
+      db.insert('host_groups', {
+        'id': id,
+        'name': id,
+        'parent_id': parent,
+        'created_at': t,
+        'updated_at': t,
+      });
 
-  Future<void> insertHost(
-    String id, {
-    String? group,
-    String? jump,
-  }) => db.insert('hosts', {
-    'id': id,
-    'group_id': group,
-    'label': id,
-    'hostname': '$id.example.com',
-    'username': 'root',
-    'jump_host_id': jump,
-    'created_at': t,
-    'updated_at': t,
-  });
+  Future<void> insertHost(String id, {String? group, String? jump}) =>
+      db.insert('hosts', {
+        'id': id,
+        'group_id': group,
+        'label': id,
+        'hostname': '$id.example.com',
+        'username': 'root',
+        'jump_host_id': jump,
+        'created_at': t,
+        'updated_at': t,
+      });
 
   group('tables', () {
     test('every table the app needs exists', () async {
@@ -66,13 +61,16 @@ void main() {
       );
       final names = rows.map((r) => r['name']! as String).toSet();
 
-      expect(names, containsAll(<String>{
-        'host_groups',
-        'identities',
-        'hosts',
-        'known_hosts',
-        'tunnels',
-      }));
+      expect(
+        names,
+        containsAll(<String>{
+          'host_groups',
+          'identities',
+          'hosts',
+          'known_hosts',
+          'tunnels',
+        }),
+      );
     });
 
     test('the placeholder table beej generated is gone', () async {
@@ -85,21 +83,28 @@ void main() {
   });
 
   group('defaults are the safe ones', () {
-    test('a host defaults to port 22, modern algorithms and a keepalive', () async {
-      await insertHost('h1');
-      final row = (await db.query('hosts', where: "id = 'h1'")).single;
+    test(
+      'a host defaults to port 22, modern algorithms and a keepalive',
+      () async {
+        await insertHost('h1');
+        final row = (await db.query('hosts', where: "id = 'h1'")).single;
 
-      expect(row['port'], 22);
-      expect(
-        row['allow_legacy_algorithms'],
-        0,
-        reason: 'weakened algorithms must never be the stored default',
-      );
-      expect(row['keepalive_seconds'], 30);
-      expect(row['auth_method'], 'publicKey');
-      expect(row['deleted_at'], isNull);
-      expect(row['dirty'], 1, reason: 'a new row has not reached the backend');
-    });
+        expect(row['port'], 22);
+        expect(
+          row['allow_legacy_algorithms'],
+          0,
+          reason: 'weakened algorithms must never be the stored default',
+        );
+        expect(row['keepalive_seconds'], 30);
+        expect(row['auth_method'], 'publicKey');
+        expect(row['deleted_at'], isNull);
+        expect(
+          row['dirty'],
+          1,
+          reason: 'a new row has not reached the backend',
+        );
+      },
+    );
 
     test('a tunnel binds loopback unless told otherwise', () async {
       await insertHost('h1');
@@ -117,7 +122,8 @@ void main() {
       expect(
         row['listen_host'],
         '127.0.0.1',
-        reason: 'binding 0.0.0.0 exposes the forward to the whole network and '
+        reason:
+            'binding 0.0.0.0 exposes the forward to the whole network and '
             'must be an explicit choice',
       );
       expect(row['auto_start'], 0);
@@ -182,52 +188,54 @@ void main() {
       );
     });
 
-    test('an identity can be deleted; hosts using it fall back to no key', () async {
-      await db.insert('identities', {
-        'id': 'k1',
-        'label': 'laptop',
-        'key_type': 'ssh-ed25519',
-        'created_at': t,
-        'updated_at': t,
-      });
-      await db.insert('hosts', {
-        'id': 'h1',
-        'label': 'h1',
-        'hostname': 'h1.example.com',
-        'username': 'root',
-        'identity_id': 'k1',
-        'created_at': t,
-        'updated_at': t,
-      });
+    test(
+      'an identity can be deleted; hosts using it fall back to no key',
+      () async {
+        await db.insert('identities', {
+          'id': 'k1',
+          'label': 'laptop',
+          'key_type': 'ssh-ed25519',
+          'created_at': t,
+          'updated_at': t,
+        });
+        await db.insert('hosts', {
+          'id': 'h1',
+          'label': 'h1',
+          'hostname': 'h1.example.com',
+          'username': 'root',
+          'identity_id': 'k1',
+          'created_at': t,
+          'updated_at': t,
+        });
 
-      await db.delete('identities', where: "id = 'k1'");
+        await db.delete('identities', where: "id = 'k1'");
 
-      final row = (await db.query('hosts', where: "id = 'h1'")).single;
-      expect(row['identity_id'], isNull);
-    });
+        final row = (await db.query('hosts', where: "id = 'h1'")).single;
+        expect(row['identity_id'], isNull);
+      },
+    );
   });
 
   group('known_hosts', () {
-    test('is keyed by address, so re-trusting replaces rather than duplicates', () async {
-      Future<void> trust(String fingerprint) => db.insert(
-        'known_hosts',
-        {
+    test(
+      'is keyed by address, so re-trusting replaces rather than duplicates',
+      () async {
+        Future<void> trust(String fingerprint) => db.insert('known_hosts', {
           'hostname': 'example.com',
           'port': 22,
           'key_type': 'ssh-ed25519',
           'fingerprint': fingerprint,
           'trusted_at': t,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      await trust('SHA256:one');
-      await trust('SHA256:two');
+        await trust('SHA256:one');
+        await trust('SHA256:two');
 
-      final rows = await db.query('known_hosts');
-      expect(rows, hasLength(1));
-      expect(rows.single['fingerprint'], 'SHA256:two');
-    });
+        final rows = await db.query('known_hosts');
+        expect(rows, hasLength(1));
+        expect(rows.single['fingerprint'], 'SHA256:two');
+      },
+    );
 
     test('the same hostname on another port is a separate identity', () async {
       for (final port in [22, 2222]) {
@@ -284,7 +292,8 @@ void main() {
           expect(
             forbidden,
             isNot(contains(column['name'])),
-            reason: '$table.${column['name']} looks like a credential; '
+            reason:
+                '$table.${column['name']} looks like a credential; '
                 'secrets belong in the SecretVault',
           );
         }

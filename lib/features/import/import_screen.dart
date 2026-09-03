@@ -68,9 +68,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   /// take a deliberate act, not a silent scan.
   Future<void> _pickDirectory() async {
     final path = await getDirectoryPath(
-      confirmButtonText: AppLocalizations.of(
-        context,
-      ).importChooseFolderConfirm,
+      confirmButtonText: AppLocalizations.of(context).importChooseFolderConfirm,
       initialDirectory: OpenSshScanner().defaultSshPath,
     );
     if (path == null || !mounted) return;
@@ -112,9 +110,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.focus == ImportFocus.keys
-              ? l10n.keysImport
-              : l10n.importTitle,
+          widget.focus == ImportFocus.keys ? l10n.keysImport : l10n.importTitle,
         ),
         actions: [
           IconButton(

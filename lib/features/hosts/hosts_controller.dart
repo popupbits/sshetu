@@ -22,9 +22,7 @@ class HostSearch extends Notifier<String> {
   void update(String query) => state = query;
 }
 
-final hostSearchProvider = NotifierProvider<HostSearch, String>(
-  HostSearch.new,
-);
+final hostSearchProvider = NotifierProvider<HostSearch, String>(HostSearch.new);
 
 /// Hosts matching the current search.
 final filteredHostsProvider = Provider<AsyncValue<List<SshHost>>>((ref) {
@@ -58,6 +56,4 @@ class HostsController {
   }
 }
 
-final hostsControllerProvider = Provider<HostsController>(
-  HostsController.new,
-);
+final hostsControllerProvider = Provider<HostsController>(HostsController.new);

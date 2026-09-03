@@ -106,8 +106,7 @@ class SshTarget {
     identityId: clearIdentityId ? null : (identityId ?? this.identityId),
     credentialId: credentialId ?? this.credentialId,
     jumpTarget: clearJumpTarget ? null : (jumpTarget ?? this.jumpTarget),
-    allowLegacyAlgorithms:
-        allowLegacyAlgorithms ?? this.allowLegacyAlgorithms,
+    allowLegacyAlgorithms: allowLegacyAlgorithms ?? this.allowLegacyAlgorithms,
     keepaliveInterval: keepaliveInterval ?? this.keepaliveInterval,
   );
 

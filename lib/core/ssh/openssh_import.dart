@@ -174,8 +174,7 @@ class OpenSshScanner {
   /// Whether this platform can read `~/.ssh` without the user picking it.
   ///
   /// False on macOS: the sandbox denies it, so the picker is the only route.
-  static bool get canScanHomeDirectly =>
-      Platform.isLinux || Platform.isWindows;
+  static bool get canScanHomeDirectly => Platform.isLinux || Platform.isWindows;
 
   /// Scans for hosts and keys. Never throws — a directory that cannot be read
   /// yields an empty result, because "found nothing" is a state the import

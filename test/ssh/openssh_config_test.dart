@@ -194,7 +194,10 @@ Host db
   ProxyCommand nc %h %p
   LocalForward 5432 localhost:5432
 ''');
-      expect(hosts.single.unsupported, containsAll(['proxycommand', 'localforward']));
+      expect(
+        hosts.single.unsupported,
+        containsAll(['proxycommand', 'localforward']),
+      );
     });
 
     test('a host with nothing unsupported reports nothing', () {
@@ -221,7 +224,10 @@ Host db
 
     test('a malformed public key yields null rather than throwing', () {
       expect(OpenSshScanner.fingerprintOf('not-a-key'), isNull);
-      expect(OpenSshScanner.fingerprintOf('ssh-ed25519 !!!not-base64!!!'), isNull);
+      expect(
+        OpenSshScanner.fingerprintOf('ssh-ed25519 !!!not-base64!!!'),
+        isNull,
+      );
     });
   });
 

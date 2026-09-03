@@ -41,7 +41,8 @@ void main() {
       expect(
         detached,
         isEmpty,
-        reason: 'lines still held by the buffer must stay attached; '
+        reason:
+            'lines still held by the buffer must stay attached; '
             'detaching a live alias is what trips assert(attached) later',
       );
 
@@ -116,13 +117,20 @@ void main() {
       // Begin a mouse drag part-way down the viewport.
       final origin = tester.getTopLeft(find.byType(TerminalView));
       final start = origin + const Offset(20, 60);
-      final gesture = await tester.startGesture(start, kind: PointerDeviceKind.mouse);
+      final gesture = await tester.startGesture(
+        start,
+        kind: PointerDeviceKind.mouse,
+      );
       await tester.pump();
       await gesture.moveTo(start + const Offset(120, 40));
       await tester.pump();
 
       final startedAt = controller.selection?.begin;
-      expect(startedAt, isNotNull, reason: 'the drag should have selected something');
+      expect(
+        startedAt,
+        isNotNull,
+        reason: 'the drag should have selected something',
+      );
       final anchoredLine = startedAt!.y;
 
       // Output arrives while the drag is still held: the buffer scrolls under
@@ -139,7 +147,8 @@ void main() {
       expect(
         controller.selection?.begin.y,
         anchoredLine,
-        reason: 'the selection start must follow its buffer line, not the '
+        reason:
+            'the selection start must follow its buffer line, not the '
             'screen position it was first seen at',
       );
 

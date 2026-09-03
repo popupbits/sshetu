@@ -40,7 +40,10 @@ class AppShell extends StatelessWidget {
         icon: PiconsRegular.terminalWindow,
       ),
       ShellDestination(label: l10n.navKeys, icon: PiconsRegular.key),
-      ShellDestination(label: l10n.navTunnels, icon: PiconsRegular.arrowsLeftRight),
+      ShellDestination(
+        label: l10n.navTunnels,
+        icon: PiconsRegular.arrowsLeftRight,
+      ),
       ShellDestination(label: l10n.navSettings, icon: PiconsRegular.gear),
     ];
   }

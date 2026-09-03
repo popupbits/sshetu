@@ -5,14 +5,17 @@ import 'package:ssh_navigator/core/secrets/secret_vault.dart';
 
 void main() {
   group('SecretRef', () {
-    test('namespaces by owner kind, so a host and an identity cannot collide', () {
-      // Both created from one import would otherwise share an id.
-      const id = 'shared-id';
-      expect(
-        const SecretRef.hostPassword(id).storageKey,
-        isNot(const SecretRef.identityPrivateKey(id).storageKey),
-      );
-    });
+    test(
+      'namespaces by owner kind, so a host and an identity cannot collide',
+      () {
+        // Both created from one import would otherwise share an id.
+        const id = 'shared-id';
+        expect(
+          const SecretRef.hostPassword(id).storageKey,
+          isNot(const SecretRef.identityPrivateKey(id).storageKey),
+        );
+      },
+    );
 
     test('separates a private key from its passphrase', () {
       expect(
@@ -25,10 +28,10 @@ void main() {
       // The failure this guards is silent: forget the passphrase slot and key
       // material stays on the device after the user deleted the key.
       final refs = SecretRef.forIdentity('k1');
-      expect(
-        refs.map((r) => r.kind).toSet(),
-        {SecretKind.identityPrivateKey, SecretKind.identityPassphrase},
-      );
+      expect(refs.map((r) => r.kind).toSet(), {
+        SecretKind.identityPrivateKey,
+        SecretKind.identityPassphrase,
+      });
     });
 
     test('toString carries the address but never a value', () {
@@ -47,11 +50,14 @@ void main() {
       expect(await vault.read(ref), isNull);
     });
 
-    test('deleting a missing secret succeeds, so purging is idempotent', () async {
-      await vault.delete(ref);
-      await vault.delete(ref);
-      expect(await vault.contains(ref), isFalse);
-    });
+    test(
+      'deleting a missing secret succeeds, so purging is idempotent',
+      () async {
+        await vault.delete(ref);
+        await vault.delete(ref);
+        expect(await vault.contains(ref), isFalse);
+      },
+    );
 
     test('deleteAll removes every slot for an owner', () async {
       await vault.write(const SecretRef.identityPrivateKey('k1'), 'PEM');
@@ -68,7 +74,10 @@ void main() {
 
       await vault.deleteAll(SecretRef.forIdentity('k1'));
 
-      expect(await vault.read(const SecretRef.identityPrivateKey('k2')), 'PEM-2');
+      expect(
+        await vault.read(const SecretRef.identityPrivateKey('k2')),
+        'PEM-2',
+      );
     });
   });
 
@@ -122,10 +131,7 @@ void main() {
       allow = false;
       final vault = build();
 
-      await expectLater(
-        vault.read(ref),
-        throwsA(isA<VaultLockedException>()),
-      );
+      await expectLater(vault.read(ref), throwsA(isA<VaultLockedException>()));
     });
 
     test('a presence check that throws locks rather than opens', () async {

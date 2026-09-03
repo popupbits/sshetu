@@ -1,0 +1,8 @@
+# The `live` tag marks tests that start a real OpenSSH server on loopback and
+# connect to it. They need no network and no privileges, so they run by default
+# where `sshd` exists and skip themselves where it does not.
+#
+# CI excludes them explicitly (`--exclude-tags live`), because a hosted runner
+# refusing to start sshd should not read as this app being broken.
+tags:
+  live:

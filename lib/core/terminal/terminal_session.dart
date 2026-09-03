@@ -56,6 +56,7 @@ class TerminalSession extends ChangeNotifier {
     _coalescer = OutputCoalescer(onData: terminal.write);
 
     _stateSubscription = connection.states.listen((state) {
+      if (_disposed) return;
       _connectionState = state;
       if (state.status == SshConnectionStatus.disconnected &&
           _status == TerminalSessionStatus.running) {
@@ -89,6 +90,12 @@ class TerminalSession extends ChangeNotifier {
   StreamSubscription<Uint8List>? _stdoutSubscription;
   StreamSubscription<Uint8List>? _stderrSubscription;
   SSHSession? _session;
+
+  /// Set in [dispose]. A session's `done` future can complete *after* the tab
+  /// was closed — the remote side hangs up while teardown is in flight — and
+  /// notifying a disposed ChangeNotifier throws. Nothing is listening by then
+  /// anyway.
+  bool _disposed = false;
 
   TerminalSessionStatus _status = TerminalSessionStatus.connecting;
   TerminalSessionStatus get status => _status;
@@ -185,6 +192,7 @@ class TerminalSession extends ChangeNotifier {
   }
 
   void _handleClosed() {
+    if (_disposed) return;
     if (_status == TerminalSessionStatus.failed) return;
     if (_status == TerminalSessionStatus.closed) return;
     _status = TerminalSessionStatus.closed;
@@ -193,6 +201,7 @@ class TerminalSession extends ChangeNotifier {
   }
 
   void _fail(String message) {
+    if (_disposed) return;
     _status = TerminalSessionStatus.failed;
     _error = message;
     // Into the terminal as well as onto the status line: the scrollback is
@@ -208,6 +217,7 @@ class TerminalSession extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _stdoutSubscription?.cancel();
     _stderrSubscription?.cancel();
     _stateSubscription?.cancel();

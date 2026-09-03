@@ -12,8 +12,9 @@ import 'known_hosts_store.dart';
 ///
 /// It is only ever called for [HostKeyVerdict.unknown]. A **changed** key is
 /// never offered to the user as a yes/no.
-typedef HostKeyTrustDecision =
-    FutureOr<bool> Function(HostKeyPresentation presentation);
+typedef HostKeyTrustDecision = FutureOr<bool> Function(
+  HostKeyPresentation presentation,
+);
 
 /// Decides whether to accept the host key a server presented.
 ///

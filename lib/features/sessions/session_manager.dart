@@ -59,7 +59,12 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     );
 
     final session = TerminalSession(
-      id: '${host.id}#${_counter++}',
+      // Must be safe in a URL path: the session id goes into
+      // `/terminal/<id>`, and a '#' would be read as a fragment delimiter —
+      // go_router would then match `/terminal/<hostId>` and look up an id that
+      // does not exist, so the screen would open on "no open sessions" and
+      // tapping a host would appear to do nothing at all.
+      id: '${host.id}-${_counter++}',
       title: host.label,
       connection: connection,
       startupCommand: host.startupCommand,
@@ -95,6 +100,4 @@ class SessionManager extends Notifier<List<TerminalSession>> {
 }
 
 final sessionManagerProvider =
-    NotifierProvider<SessionManager, List<TerminalSession>>(
-      SessionManager.new,
-    );
+    NotifierProvider<SessionManager, List<TerminalSession>>(SessionManager.new);

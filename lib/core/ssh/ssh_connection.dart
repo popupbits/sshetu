@@ -18,8 +18,10 @@ import 'ssh_target.dart';
 /// entry for *its own* address. Verifying only the final host would let a
 /// compromised bastion go unnoticed, which is exactly the machine an attacker
 /// would want.
-typedef HostKeyVerifierFactory =
-    SshHostKeyVerifier Function(String hostname, int port);
+typedef HostKeyVerifierFactory = SshHostKeyVerifier Function(
+  String hostname,
+  int port,
+);
 
 /// Raised when a connection cannot be established or has been lost.
 ///
@@ -96,7 +98,9 @@ class SshConnection {
   /// key is refused, or authentication fails — never returns a closed session.
   Future<SSHClient> client() {
     if (_closed) {
-      throw SshConnectionException('Connection to ${target.address} is closed.');
+      throw SshConnectionException(
+        'Connection to ${target.address} is closed.',
+      );
     }
     final existing = _client;
     if (existing != null && !existing.isClosed) return Future.value(existing);

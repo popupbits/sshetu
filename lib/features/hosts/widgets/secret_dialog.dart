@@ -37,9 +37,9 @@ class _SecretDialogState extends State<_SecretDialog> {
     super.dispose();
   }
 
-  void _submit() => Navigator.of(context).pop(
-    SecretResponse(_controller.text, remember: _remember),
-  );
+  void _submit() =>
+      Navigator.of(context)
+          .pop(SecretResponse(_controller.text, remember: _remember));
 
   @override
   Widget build(BuildContext context) {

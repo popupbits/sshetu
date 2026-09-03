@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/error/error_logger.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../core/ssh/host_key.dart';
@@ -25,17 +26,29 @@ Future<void> connectToHost(
 ) async {
   final manager = ref.read(sessionManagerProvider.notifier);
 
-  final session = await manager.connect(
-    host,
-    onUnknownHostKey: (presentation) async {
-      if (!context.mounted) return false;
-      return showHostKeyDialog(context, presentation);
-    },
-    prompt: (request) async {
-      if (!context.mounted) return null;
-      return showSecretDialog(context, request);
-    },
-  );
+  final TerminalSession session;
+  try {
+    session = await manager.connect(
+      host,
+      onUnknownHostKey: (presentation) async {
+        if (!context.mounted) return false;
+        return showHostKeyDialog(context, presentation);
+      },
+      prompt: (request) async {
+        if (!context.mounted) return null;
+        return showSecretDialog(context, request);
+      },
+    );
+  } on Object catch (error, stackTrace) {
+    // Everything that can fail *before* a session exists lands here — reading
+    // known hosts, resolving a jump chain, the first database touch. Without
+    // this the future completes with an error nobody is listening to and the
+    // tap simply does nothing, which is the single most confusing way for a
+    // connection to fail.
+    ErrorLogger.instance.record(error, stackTrace, source: 'connect');
+    if (context.mounted) context.toast('$error');
+    return;
+  }
 
   if (!context.mounted) return;
 

@@ -75,9 +75,8 @@ class OutputCoalescer {
        _scheduleWatchdog = scheduleWatchdog ?? _defaultScheduleWatchdog,
        _cancelWatchdog = cancelWatchdog ?? _defaultCancelWatchdog,
        _clock = clock ?? _defaultClock {
-    _decoderSink = const Utf8Decoder(
-      allowMalformed: true,
-    ).startChunkedConversion(_CallbackSink(_decoded.write));
+    _decoderSink = const Utf8Decoder(allowMalformed: true)
+        .startChunkedConversion(_CallbackSink(_decoded.write));
     // The clock starts here: a session's first output is a login banner, not
     // an echo of anything, so there is nothing to gain by rushing it.
     _lastFlushAt = _clock();
@@ -189,7 +188,15 @@ class OutputCoalescer {
   }
 
   static void _defaultScheduleFrameCallback(VoidCallback callback) {
-    SchedulerBinding.instance.addPostFrameCallback((_) => callback());
+    try {
+      SchedulerBinding.instance.addPostFrameCallback((_) => callback());
+    } on Object {
+      // No binding — a headless context, such as a test driving a real
+      // connection without a widget tree. Throwing here would escape from
+      // inside a stream listener and silently stop all further output, which
+      // is a spectacular failure for a missing frame scheduler. The watchdog
+      // timer is the fallback clock, and is exactly what it is for.
+    }
   }
 
   static Object _defaultScheduleWatchdog(Duration d, VoidCallback callback) =>

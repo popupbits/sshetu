@@ -79,7 +79,9 @@ void main() {
   group('listing', () {
     test('is ordered by recency, so the host you want is at the top', () async {
       await repository.save(host('old', lastConnectedAt: DateTime.utc(2025)));
-      await repository.save(host('recent', lastConnectedAt: DateTime.utc(2026)));
+      await repository.save(
+        host('recent', lastConnectedAt: DateTime.utc(2026)),
+      );
       await repository.save(host('never'));
 
       final ids = (await repository.all()).map((h) => h.id).toList();
@@ -110,7 +112,8 @@ void main() {
       expect(
         await vault.contains(const SecretRef.hostPassword('h1')),
         isFalse,
-        reason: 'keeping a credential for a deleted host is the wrong half '
+        reason:
+            'keeping a credential for a deleted host is the wrong half '
             'to remember',
       );
     });
@@ -131,10 +134,11 @@ void main() {
 
       final target = await repository.targetFor((await repository.byId('db'))!);
 
-      expect(
-        target.chain.map((t) => t.hostname).toList(),
-        ['edge.example.com', 'bastion.example.com', 'db.example.com'],
-      );
+      expect(target.chain.map((t) => t.hostname).toList(), [
+        'edge.example.com',
+        'bastion.example.com',
+        'db.example.com',
+      ]);
     });
 
     test('carries the host id so its secrets can be found', () async {
@@ -148,11 +152,9 @@ void main() {
       // way to learn about a typo than simply connecting.
       await repository.save(host('a'));
       await repository.save(host('b', jumpHostId: 'a'));
-      await database.raw.update(
-        'hosts',
-        {'jump_host_id': 'b'},
-        where: "id = 'a'",
-      );
+      await database.raw.update('hosts', {
+        'jump_host_id': 'b',
+      }, where: "id = 'a'");
 
       final target = await repository.targetFor((await repository.byId('b'))!);
 
@@ -160,16 +162,19 @@ void main() {
       expect(target.hostname, 'b.example.com');
     });
 
-    test('a jump host that was deleted stops the chain rather than throwing', () async {
-      await repository.save(host('bastion'));
-      await repository.save(host('db', jumpHostId: 'bastion'));
-      // Tombstoned, so byId no longer finds it.
-      await repository.delete('bastion', now: now);
+    test(
+      'a jump host that was deleted stops the chain rather than throwing',
+      () async {
+        await repository.save(host('bastion'));
+        await repository.save(host('db', jumpHostId: 'bastion'));
+        // Tombstoned, so byId no longer finds it.
+        await repository.delete('bastion', now: now);
 
-      final target = await repository.targetFor(
-        (await repository.byId('db'))!,
-      );
-      expect(target.jumpTarget, isNull);
-    });
+        final target = await repository.targetFor(
+          (await repository.byId('db'))!,
+        );
+        expect(target.jumpTarget, isNull);
+      },
+    );
   });
 }

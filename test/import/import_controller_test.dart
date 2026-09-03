@@ -105,15 +105,16 @@ Host web
     await writeConfig('Host web\n  HostName web.example.com');
 
     final result = await scan();
-    await container.read(importControllerProvider).import(
-      scan: result,
-      hostAliases: {'web'},
-      keyPaths: {'${sshDir.path}/id_ed25519'},
-    );
+    await container
+        .read(importControllerProvider)
+        .import(
+          scan: result,
+          hostAliases: {'web'},
+          keyPaths: {'${sshDir.path}/id_ed25519'},
+        );
 
-    final identity = (await container
-        .read(identityRepositoryProvider)
-        .all()).single;
+    final identity =
+        (await container.read(identityRepositoryProvider).all()).single;
 
     expect(
       await vault.read(SecretRef.identityPrivateKey(identity.id)),
@@ -133,11 +134,13 @@ Host web
     await writeConfig('Host web\n  HostName web.example.com');
 
     final result = await scan();
-    final outcome = await container.read(importControllerProvider).import(
-      scan: result,
-      hostAliases: const {},
-      keyPaths: {'${sshDir.path}/id_ed25519'},
-    );
+    final outcome = await container
+        .read(importControllerProvider)
+        .import(
+          scan: result,
+          hostAliases: const {},
+          keyPaths: {'${sshDir.path}/id_ed25519'},
+        );
 
     expect(outcome.hosts, 0);
     expect(outcome.keys, 1);
@@ -149,11 +152,9 @@ Host web
     await writeConfig('Host web\n  HostName web.example.com');
 
     final result = await scan();
-    final outcome = await container.read(importControllerProvider).import(
-      scan: result,
-      hostAliases: {'web'},
-      keyPaths: const {},
-    );
+    final outcome = await container
+        .read(importControllerProvider)
+        .import(scan: result, hostAliases: {'web'}, keyPaths: const {});
 
     expect(outcome.keys, 0);
     expect(await container.read(identityRepositoryProvider).all(), isEmpty);
@@ -173,11 +174,9 @@ Host drop
 ''');
 
     final result = await scan();
-    await container.read(importControllerProvider).import(
-      scan: result,
-      hostAliases: {'keep'},
-      keyPaths: const {},
-    );
+    await container
+        .read(importControllerProvider)
+        .import(scan: result, hostAliases: {'keep'}, keyPaths: const {});
 
     final labels = (await container.read(hostRepositoryProvider).all())
         .map((h) => h.label)
@@ -196,11 +195,13 @@ Host bastion
 ''');
 
     final result = await scan();
-    await container.read(importControllerProvider).import(
-      scan: result,
-      hostAliases: {'db', 'bastion'},
-      keyPaths: const {},
-    );
+    await container
+        .read(importControllerProvider)
+        .import(
+          scan: result,
+          hostAliases: {'db', 'bastion'},
+          keyPaths: const {},
+        );
 
     final repository = container.read(hostRepositoryProvider);
     final hosts = await repository.all();
@@ -210,10 +211,10 @@ Host bastion
     expect(db.jumpHostId, bastion.id);
 
     final target = await repository.targetFor(db);
-    expect(
-      target.chain.map((t) => t.hostname).toList(),
-      ['bastion.example.com', 'db.internal'],
-    );
+    expect(target.chain.map((t) => t.hostname).toList(), [
+      'bastion.example.com',
+      'db.internal',
+    ]);
   });
 
   test('a jump host left out of the import does not dangle', () async {
@@ -229,11 +230,9 @@ Host bastion
 ''');
 
     final result = await scan();
-    await container.read(importControllerProvider).import(
-      scan: result,
-      hostAliases: {'db'},
-      keyPaths: const {},
-    );
+    await container
+        .read(importControllerProvider)
+        .import(scan: result, hostAliases: {'db'}, keyPaths: const {});
 
     final host = (await container.read(hostRepositoryProvider).all()).single;
     expect(host.label, 'db');
@@ -251,19 +250,21 @@ abcdef
 ''');
 
     final result = await scan();
-    await container.read(importControllerProvider).import(
-      scan: result,
-      hostAliases: const {},
-      keyPaths: {'${sshDir.path}/legacy'},
-    );
+    await container
+        .read(importControllerProvider)
+        .import(
+          scan: result,
+          hostAliases: const {},
+          keyPaths: {'${sshDir.path}/legacy'},
+        );
 
-    final identity = (await container
-        .read(identityRepositoryProvider)
-        .all()).single;
+    final identity =
+        (await container.read(identityRepositoryProvider).all()).single;
     expect(
       identity.hasPassphrase,
       isTrue,
-      reason: 'so the app can ask at the right moment rather than failing '
+      reason:
+          'so the app can ask at the right moment rather than failing '
           'mid-handshake',
     );
   });

@@ -80,32 +80,38 @@ void main() {
       );
     });
 
-    test('is trusted on first use when the user accepts, and remembered', () async {
-      final verifier = build(onUnknown: (_) => true);
+    test(
+      'is trusted on first use when the user accepts, and remembered',
+      () async {
+        final verifier = build(onUnknown: (_) => true);
 
-      expect(await verifier.verify('ssh-ed25519', fp(kFingerprint)), isTrue);
+        expect(await verifier.verify('ssh-ed25519', fp(kFingerprint)), isTrue);
 
-      final stored = store.find('example.com', 22);
-      expect(stored, isNotNull);
-      expect(stored!.fingerprint, kFingerprint);
-      expect(stored.keyType, 'ssh-ed25519');
-      expect(stored.trustedAt, DateTime.utc(2026, 1, 1));
-    });
+        final stored = store.find('example.com', 22);
+        expect(stored, isNotNull);
+        expect(stored!.fingerprint, kFingerprint);
+        expect(stored.keyType, 'ssh-ed25519');
+        expect(stored.trustedAt, DateTime.utc(2026, 1, 1));
+      },
+    );
 
-    test('describes itself with the fingerprint the user must compare', () async {
-      HostKeyPresentation? seen;
-      final verifier = build(
-        onUnknown: (p) {
-          seen = p;
-          return false;
-        },
-      );
-      await verifier.verify('ssh-ed25519', fp(kFingerprint));
+    test(
+      'describes itself with the fingerprint the user must compare',
+      () async {
+        HostKeyPresentation? seen;
+        final verifier = build(
+          onUnknown: (p) {
+            seen = p;
+            return false;
+          },
+        );
+        await verifier.verify('ssh-ed25519', fp(kFingerprint));
 
-      expect(seen!.verdict, HostKeyVerdict.unknown);
-      expect(seen!.describe(), contains(kFingerprint));
-      expect(seen!.describe(), contains('example.com:22'));
-    });
+        expect(seen!.verdict, HostKeyVerdict.unknown);
+        expect(seen!.describe(), contains(kFingerprint));
+        expect(seen!.describe(), contains('example.com:22'));
+      },
+    );
   });
 
   group('a changed key', () {
@@ -154,15 +160,18 @@ void main() {
       expect(presentation.describe(), contains(kOtherFingerprint));
     });
 
-    test('counts a same-fingerprint key of a different type as changed', () async {
-      // A server that swapped ssh-rsa for ssh-ed25519 under the same address
-      // is still a different identity, and pinning must notice.
-      await trustExisting(keyType: 'ssh-rsa');
-      final verifier = build();
+    test(
+      'counts a same-fingerprint key of a different type as changed',
+      () async {
+        // A server that swapped ssh-rsa for ssh-ed25519 under the same address
+        // is still a different identity, and pinning must notice.
+        await trustExisting(keyType: 'ssh-rsa');
+        final verifier = build();
 
-      expect(await verifier.verify('ssh-ed25519', fp(kFingerprint)), isFalse);
-      expect(verifier.lastPresentation!.verdict, HostKeyVerdict.changed);
-    });
+        expect(await verifier.verify('ssh-ed25519', fp(kFingerprint)), isFalse);
+        expect(verifier.lastPresentation!.verdict, HostKeyVerdict.changed);
+      },
+    );
 
     test('can be resolved only by forgetting the pin deliberately', () async {
       await trustExisting();

@@ -26,10 +26,11 @@ void main() {
         jumpTarget: bastion,
       );
 
-      expect(
-        db.chain.map((t) => t.hostname).toList(),
-        ['edge', 'bastion', 'db'],
-      );
+      expect(db.chain.map((t) => t.hostname).toList(), [
+        'edge',
+        'bastion',
+        'db',
+      ]);
     });
 
     test('address carries no secret', () {
@@ -72,10 +73,10 @@ void main() {
     // dartssh2 exports the concrete algorithm types but not their shared
     // SSHAlgorithm supertype, so `name` is read off each list directly.
     List<String> kex(SSHAlgorithms a) => [for (final e in a.kex) e.name];
-    List<String> hostkey(SSHAlgorithms a) =>
-        [for (final e in a.hostkey) e.name];
-    List<String> cipher(SSHAlgorithms a) =>
-        [for (final e in a.cipher) e.name];
+    List<String> hostkey(SSHAlgorithms a) => [
+      for (final e in a.hostkey) e.name,
+    ];
+    List<String> cipher(SSHAlgorithms a) => [for (final e in a.cipher) e.name];
     List<String> mac(SSHAlgorithms a) => [for (final e in a.mac) e.name];
 
     test('the modern set excludes everything dartssh2 4.0 dropped', () {

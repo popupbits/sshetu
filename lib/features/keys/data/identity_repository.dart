@@ -49,16 +49,10 @@ class IdentityRepository {
     String? passphrase,
   }) async {
     if (privateKey != null) {
-      await vault.write(
-        SecretRef.identityPrivateKey(identity.id),
-        privateKey,
-      );
+      await vault.write(SecretRef.identityPrivateKey(identity.id), privateKey);
     }
     if (passphrase != null) {
-      await vault.write(
-        SecretRef.identityPassphrase(identity.id),
-        passphrase,
-      );
+      await vault.write(SecretRef.identityPassphrase(identity.id), passphrase);
     }
     await database.insert(
       _table,

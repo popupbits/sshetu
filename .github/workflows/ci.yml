@@ -41,4 +41,7 @@ jobs:
         run: flutter analyze
 
       - name: Test
-        run: flutter test
+        # `live` tests start a real sshd on loopback. They run locally where
+        # one exists and are excluded here, because a hosted runner refusing to
+        # start sshd should not read as this app being broken.
+        run: flutter test --exclude-tags live

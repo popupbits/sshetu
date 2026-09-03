@@ -51,7 +51,9 @@ class SqfliteKnownHostsStore implements KnownHostsStore {
     final rows = await _db.query(_table);
     _cache
       ..clear()
-      ..addEntries(rows.map(_fromRow).map((k) => MapEntry(_key(k.hostname, k.port), k)));
+      ..addEntries(
+        rows.map(_fromRow).map((k) => MapEntry(_key(k.hostname, k.port), k)),
+      );
   }
 
   @override
@@ -109,7 +111,8 @@ class InMemoryKnownHostsStore implements KnownHostsStore {
   static String _key(String hostname, int port) => '$hostname:$port';
 
   @override
-  KnownHostKey? find(String hostname, int port) => _values[_key(hostname, port)];
+  KnownHostKey? find(String hostname, int port) =>
+      _values[_key(hostname, port)];
 
   @override
   List<KnownHostKey> all() => _values.values.toList();

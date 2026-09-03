@@ -48,9 +48,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final sessions = ref.watch(sessionManagerProvider);
-    final session = sessions
-        .where((s) => s.id == widget.sessionId)
-        .firstOrNull;
+    final session = sessions.where((s) => s.id == widget.sessionId).firstOrNull;
 
     if (session == null) {
       return Scaffold(

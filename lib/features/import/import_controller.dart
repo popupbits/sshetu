@@ -35,9 +35,9 @@ final pickedSshDirectoryProvider =
 /// have gone away specifically to add a key, and showing them a cached
 /// "nothing found" would be actively misleading.
 final openSshScanProvider = FutureProvider.autoDispose<OpenSshScanResult>(
-  (ref) => OpenSshScanner(
-    explicitDirectory: ref.watch(pickedSshDirectoryProvider),
-  ).scan(),
+  (ref) =>
+      OpenSshScanner(explicitDirectory: ref.watch(pickedSshDirectoryProvider))
+          .scan(),
 );
 
 /// Turns scan results into saved hosts and identities.

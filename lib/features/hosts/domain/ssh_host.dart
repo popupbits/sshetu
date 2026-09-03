@@ -59,8 +59,7 @@ class SshHost {
   final DateTime updatedAt;
 
   /// `user@host:port`. Carries no secret.
-  String get address =>
-      '$username@$hostname${port == 22 ? '' : ':$port'}';
+  String get address => '$username@$hostname${port == 22 ? '' : ':$port'}';
 
   /// Whether [query] matches this host, for the search field.
   ///
@@ -127,8 +126,7 @@ class SshHost {
     authMethod: authMethod ?? this.authMethod,
     identityId: clearIdentityId ? null : (identityId ?? this.identityId),
     jumpHostId: clearJumpHostId ? null : (jumpHostId ?? this.jumpHostId),
-    allowLegacyAlgorithms:
-        allowLegacyAlgorithms ?? this.allowLegacyAlgorithms,
+    allowLegacyAlgorithms: allowLegacyAlgorithms ?? this.allowLegacyAlgorithms,
     startupCommand: clearStartupCommand
         ? null
         : (startupCommand ?? this.startupCommand),

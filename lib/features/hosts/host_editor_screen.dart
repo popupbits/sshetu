@@ -224,9 +224,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                     border: const OutlineInputBorder(),
                   ),
                   items: [
-                    DropdownMenuItem(
-                      child: Text(l10n.hostEditorIdentityNone),
-                    ),
+                    DropdownMenuItem(child: Text(l10n.hostEditorIdentityNone)),
                     for (final identity in identities)
                       DropdownMenuItem(
                         value: identity.id,
@@ -293,8 +291,8 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
 
   String? Function(String?) _required(AppLocalizations l10n) =>
       (value) => (value == null || value.trim().isEmpty)
-          ? l10n.hostEditorRequired
-          : null;
+      ? l10n.hostEditorRequired
+      : null;
 
   static final _random = Random.secure();
 

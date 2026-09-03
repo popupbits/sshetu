@@ -35,8 +35,7 @@ class KeysScreen extends ConsumerWidget {
             title: l10n.keysEmptyTitle,
             message: l10n.keysEmptyBody,
             action: FilledButton.icon(
-              onPressed: () =>
-                  context.pushTo(Routes.importFocused('keys')),
+              onPressed: () => context.pushTo(Routes.importFocused('keys')),
               icon: const Icon(PiconsRegular.downloadSimple),
               label: Text(l10n.keysImport),
             ),

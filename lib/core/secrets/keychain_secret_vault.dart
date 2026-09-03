@@ -14,11 +14,13 @@ import 'secret_vault.dart';
 /// always use — never leaves the machine.
 class KeychainSecretVault implements SecretVault {
   KeychainSecretVault({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage(
-        aOptions: _androidOptions,
-        iOptions: _iosOptions,
-        mOptions: _macOsOptions,
-      );
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            aOptions: _androidOptions,
+            iOptions: _iosOptions,
+            mOptions: _macOsOptions,
+          );
 
   final FlutterSecureStorage _storage;
 
