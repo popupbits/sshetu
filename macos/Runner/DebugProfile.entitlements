@@ -2,38 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- THE SANDBOX IS OFF IN DEBUG, AND ONLY IN DEBUG.
-	
-	     Not a shortcut — the alternative does not build. A sandboxed macOS app
-	     cannot reach the Keychain unless it is signed into a keychain access
-	     group, and `keychain-access-groups` requires a development certificate
-	     and a DEVELOPMENT_TEAM. With the ad-hoc signing a fresh checkout uses,
-	     Xcode refuses outright: "has entitlements that require signing with a
-	     development certificate". Without that entitlement every vault write
-	     fails with errSecMissingEntitlement, which is what saving an imported
-	     private key does.
-	
-	     So debug runs unsandboxed: the Keychain works, and ~/.ssh can be read
-	     directly, so import auto-detects instead of needing the folder picker.
-	
-	     WHAT THIS COSTS, and it is not small: the sandbox is exactly what the
-	     release build turns back on, so two things work here that will not work
-	     there unless they are tested there.
-	
-	       * Keychain access needs `keychain-access-groups` in Release.
-	         entitlements — already declared, and it needs a signing team.
-	       * ~/.ssh is NOT readable under the sandbox. The folder picker is the
-	         real path, and it must be exercised on a release build before
-	         shipping, because nothing in a debug run will reveal it is broken.
-	
-	     See docs/macos-sandbox.md. -->
 	<key>com.apple.security.app-sandbox</key>
-	<false/>
+	<true/>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
+	<!-- Outgoing connections. Without this an SSH client cannot open a single
+	     socket: the sandbox denies connect() and every host looks unreachable.
+	     Flutter's template omits it, which is fine for an app that talks to an
+	     HTTP API through a plugin, and fatal here. -->
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- Local port forwarding binds a listening socket on this machine. -->
 	<key>com.apple.security.network.server</key>
+	<true/>
+	<!-- The OpenSSH import reads a folder the user picks. Under the sandbox
+	     ~/.ssh cannot be reached any other way — Directory.existsSync() simply
+	     returns false, verified on this build — and it should not be: that
+	     folder holds every key they own, so opening it is a decision made in a
+	     file panel, not one an app takes by itself.
+	
+	     Deliberately NOT `keychain-access-groups`. See KeychainSecretVault:
+	     that entitlement requires a DEVELOPMENT_TEAM, and it is only needed for
+	     the macOS data-protection keychain, which this app does not use. -->
+	<key>com.apple.security.files.user-selected.read-only</key>
 	<true/>
 </dict>
 </plist>

@@ -1,71 +1,70 @@
-# macOS: the sandbox, the Keychain, and ~/.ssh
+# macOS: the Keychain, the sandbox, and ~/.ssh
 
-Debug and release do **not** have the same entitlements on macOS, and the
-difference is load-bearing. This file exists so nobody discovers it the hard
-way, at submission time.
+Three macOS-specific things bit this app during its first test drive. All are
+fixed; this records what was actually wrong, because two of them presented as
+something else entirely.
 
-## The situation
+## 1. The Keychain — "Unexpected security result code"
 
-| | Debug | Release |
-|---|---|---|
-| App sandbox | **off** | on |
-| Keychain (`flutter_secure_storage`) | works | needs `keychain-access-groups` **and a signing team** |
-| Reading `~/.ssh` directly | works | **denied** — the folder picker is the only route |
-| `network.client` | on | on |
+**Symptom:** importing keys failed with a `SecretVaultException`. Every vault
+write failed, sandboxed or not, signed or not.
 
-## Why debug is unsandboxed
+**Cause:** macOS has *two* keychains. `flutter_secure_storage`'s `MacOsOptions`
+defaults `usesDataProtectionKeychain` to **true**, selecting the
+data-protection keychain, which behaves like iOS: it requires the app to be
+signed into a keychain access group. That needs `keychain-access-groups`, which
+needs a `DEVELOPMENT_TEAM`. Without one, `SecItemAdd` fails and the plugin
+reports the unhelpful `PlatformException: Unexpected security result code`.
 
-Not convenience — the sandboxed configuration does not build without a paid
-developer account.
+**Fix:** `KeychainSecretVault` sets `usesDataProtectionKeychain: false`, using
+the legacy file-based login keychain. Verified working both sandboxed and
+unsandboxed, with ad-hoc signing and no team.
 
-A sandboxed macOS app cannot touch the Keychain unless it is signed into a
-keychain access group. Declaring `keychain-access-groups` requires a
-development certificate and a `DEVELOPMENT_TEAM`, and with the ad-hoc signing
-a fresh checkout uses, Xcode refuses to build at all:
+**If this app is ever submitted to the Mac App Store with a real team:** the
+data-protection keychain is the better home for secrets, but flipping the flag
+moves where items live. Existing users would need a migration, not a flag flip.
 
-```
-error: "Runner" has entitlements that require signing with a development
-certificate. Enable development signing in the Signing & Capabilities editor.
-```
+**The wrong turn worth remembering:** the first fix assumed the sandbox was
+blocking the Keychain and disabled the sandbox in debug. It did not help,
+because the sandbox was never the problem — and it would have left debug and
+release behaving differently for no gain. Get the error code before changing
+the configuration; `SecretVaultException` carries one now, precisely so the
+next person does not have to guess.
 
-Leave the entitlement out and keep the sandbox, and the app builds but every
-vault write fails with `errSecMissingEntitlement` (-34018) — which is exactly
-what saving an imported private key does. That was hit for real during the
-first test drive of the import feature.
+## 2. Outgoing connections
 
-So debug turns the sandbox off. The Keychain works, and `~/.ssh` is readable
-directly, so import auto-detects rather than asking for a folder.
+Flutter's macOS template does not include `com.apple.security.network.client`.
+Without it the sandbox denies `connect()` and **every host looks unreachable** —
+an SSH client that cannot open a single socket. Both entitlement files declare
+it now, and they are otherwise identical apart from `allow-jit` in debug.
 
-## What that costs, and what to do about it
+Keeping the two files in agreement matters more than it looks: a release that
+omits `network.client` ships an app that cannot connect, and nothing in a debug
+run would reveal it.
 
-**Two things work in debug that will not work in a release build until they
-are tested in a release build.**
+## 3. Reading ~/.ssh
 
-1. **Keychain access.** Release declares `keychain-access-groups`, which needs
-   `DEVELOPMENT_TEAM` set in `macos/Runner/Configs/`. Until it is, a release
-   build will not sign.
+Under the sandbox `~/.ssh` is invisible. `Directory.existsSync()` returns
+**false** — verified on a real build — which is indistinguishable from the
+folder not existing. There is no entitlement that fixes this, and there should
+not be: that folder holds every private key the user owns.
 
-2. **Reading `~/.ssh`.** Under the sandbox this is denied outright, and
-   `Directory.existsSync()` returns false — indistinguishable from the folder
-   not being there. The app handles this: `OpenSshScanner.canScanHomeDirectly`
-   is false on macOS, and the import screen offers a folder picker, which is
-   what grants the sandbox permission to read it
-   (`com.apple.security.files.user-selected.read-only`).
+The import screen therefore offers a folder picker, and picking the folder is
+what grants the sandbox permission to read it
+(`com.apple.security.files.user-selected.read-only`). The panel opens *inside*
+`~/.ssh` rather than at the home directory, because `.ssh` is a dotfile and
+would otherwise be hidden behind a keyboard shortcut most people do not know.
 
-   **That path is not exercised by any debug run.** It has to be checked on a
-   signed release build before shipping.
+`OpenSshScanner.canScanHomeDirectly` is false on macOS and true on Linux and
+Windows, where auto-detection works with no picker.
+
+**The sandbox is on in debug as well as release**, so this path is exercised
+every time anyone imports on a Mac, rather than being a release-only surprise.
 
 ## Before shipping macOS
 
-- [ ] Set `DEVELOPMENT_TEAM` and confirm a release build signs.
-- [ ] On the release build: import → **Choose folder** → pick `~/.ssh`, and
-      confirm hosts and keys are found.
-- [ ] On the release build: import a key, quit, reopen, and confirm the key is
-      still usable — that is the Keychain round trip the sandbox affects.
-- [ ] Connect to a real host, to confirm `network.client` survived.
-
-## Why not just sandbox debug too and skip the Keychain
-
-Because the Keychain *is* the local vault. Falling back to anything else in
-debug would mean testing a storage path that never ships — a worse lie than
-the one documented here.
+- [ ] Connect to a real host — confirms `network.client`.
+- [ ] Import → **Choose folder** → `~/.ssh`, confirm hosts and keys are found.
+- [ ] Import a key, quit, reopen, connect with it — the Keychain round trip.
+- [ ] If a signing team is added, re-run all three: entitlements resolve
+      differently once `$(AppIdentifierPrefix)` is real.

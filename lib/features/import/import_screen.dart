@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
+import '../../core/error/error_logger.dart';
 import '../../core/ssh/openssh_import.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/feedback.dart';
@@ -91,7 +92,12 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       if (!mounted) return;
       context.toast(l10n.importDone(outcome.hosts, outcome.keys));
       Navigator.of(context).maybePop();
-    } on Object catch (e) {
+    } on Object catch (e, stackTrace) {
+      // Into the on-device log as well as the toast. A toast is gone in three
+      // seconds, and this is exactly the failure someone will report later as
+      // "importing my keys didn't work" — Settings > Diagnostics is where they
+      // can then find what actually happened, with the platform's error code.
+      ErrorLogger.instance.record(e, stackTrace, source: 'import');
       if (!mounted) return;
       setState(() => _busy = false);
       context.toast('$e');

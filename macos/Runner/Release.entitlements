@@ -2,32 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Release IS sandboxed. Debug is not — see DebugProfile.entitlements for
-	     why, and docs/macos-sandbox.md for what has to be re-tested here as a
-	     result. -->
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<!-- Outgoing connections. Without this an SSH client cannot open a single
 	     socket: the sandbox denies connect() and every host looks unreachable.
 	     Flutter's template omits it, which is fine for an app that talks to an
-	     HTTP API through a plugin and fatal here. -->
+	     HTTP API through a plugin, and fatal here. -->
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<!-- Local port forwarding binds a listening socket on this machine. -->
 	<key>com.apple.security.network.server</key>
 	<true/>
 	<!-- The OpenSSH import reads a folder the user picks. Under the sandbox
-	     ~/.ssh cannot be reached any other way, and it should not be: that
+	     ~/.ssh cannot be reached any other way — Directory.existsSync() simply
+	     returns false, verified on this build — and it should not be: that
 	     folder holds every key they own, so opening it is a decision made in a
-	     file panel. -->
+	     file panel, not one an app takes by itself.
+	
+	     Deliberately NOT `keychain-access-groups`. See KeychainSecretVault:
+	     that entitlement requires a DEVELOPMENT_TEAM, and it is only needed for
+	     the macOS data-protection keychain, which this app does not use. -->
 	<key>com.apple.security.files.user-selected.read-only</key>
 	<true/>
-	<!-- flutter_secure_storage writes to the Keychain, and a sandboxed app
-	     cannot without this. REQUIRES a DEVELOPMENT_TEAM: building release
-	     without one fails to sign. -->
-	<key>keychain-access-groups</key>
-	<array>
-		<string>$(AppIdentifierPrefix)com.popupbits.sshNavigator</string>
-	</array>
 </dict>
 </plist>

@@ -46,8 +46,26 @@ class KeychainSecretVault implements SecretVault {
     accessibility: KeychainAccessibility.first_unlock_this_device,
   );
 
+  /// `usesDataProtectionKeychain` is **off**, against the plugin's default.
+  ///
+  /// macOS has two keychains. The data-protection one behaves like iOS and is
+  /// what `MacOsOptions` selects by default — but it requires the app to be
+  /// signed into a keychain access group, which requires `keychain-access-groups`,
+  /// which requires a DEVELOPMENT_TEAM. Without one, every write fails with
+  /// `PlatformException: Unexpected security result code`, sandboxed or not.
+  /// That is not a dev-only annoyance: it is the failure a contributor hits on
+  /// a fresh checkout, and it presents as "importing your keys is broken".
+  ///
+  /// The legacy file-based login keychain has no such requirement and works in
+  /// both cases, so it is the one universal choice available here.
+  ///
+  /// If this app is ever submitted to the Mac App Store with a signing team,
+  /// revisit: the data-protection keychain is the better home for secrets, but
+  /// switching moves where items live, so existing users would need a
+  /// migration rather than a flag flip.
   static const _macOsOptions = MacOsOptions(
     accessibility: KeychainAccessibility.first_unlock_this_device,
+    usesDataProtectionKeychain: false,
   );
 
   @override
