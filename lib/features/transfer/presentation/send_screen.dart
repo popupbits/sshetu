@@ -341,10 +341,14 @@ class _Code extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             const SizedBox(width: Spacing.sm),
-            Text(
-              l10n.transferWaiting,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            // Flexible, so a narrow pane wraps the sentence instead of
+            // overflowing the row it sits in.
+            Flexible(
+              child: Text(
+                l10n.transferWaiting,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],

@@ -45,4 +45,27 @@ void main() {
     expect(find.byType(Dialog), findsNothing);
     expect(find.byType(LicensePage), findsOneWidget);
   });
+
+  testWidgets('the licences dialog fits every window it can open in', (
+    tester,
+  ) async {
+    // A dialog gives its child loose constraints, and LicensePage lays itself
+    // out side-by-side above 840 points. A window between those two numbers is
+    // where a fixed master column and the space actually available disagree.
+    for (final width in [1600.0, 1200.0, 1000.0, 900.0, 860.0, 700.0, 620.0]) {
+      await pump(tester, Size(width, 900));
+
+      await tester.tap(find.text('Open-source licences'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'the licences overflowed at ${width}pt',
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    }
+  });
 }

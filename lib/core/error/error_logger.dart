@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -129,6 +130,47 @@ class ErrorLogger {
   /// Attach a remote destination. Optional, and always best-effort.
   void attachSink(ErrorSink sink) => _sink = sink;
 
+  /// Updates the notifier, waiting for the frame to end if one is running.
+  ///
+  /// A layout overflow is reported from inside paint, and anything listening
+  /// to this notifier calls `setState` when it changes — which during a frame
+  /// is itself an error ("Build scheduled during frame"). So one overflow
+  /// became two errors, the second louder and less true than the first, and
+  /// the diagnostics screen filled up with the logger's own noise.
+  ///
+  /// Outside a frame this is immediate, because the common case — a caught
+  /// exception on a button tap — should not wait for anything.
+  void _publish(List<ErrorRecord> next) {
+    final binding = _binding;
+    final phase = binding?.schedulerPhase ?? SchedulerPhase.idle;
+    if (binding == null ||
+        phase == SchedulerPhase.idle ||
+        phase == SchedulerPhase.postFrameCallbacks) {
+      _records.value = next;
+      return;
+    }
+    binding.addPostFrameCallback((_) {
+      _records.value = next;
+    });
+  }
+
+  /// The scheduler, if Flutter is running at all.
+  ///
+  /// Null before a binding exists. Bootstrap records errors from its very
+  /// first lines, and `SchedulerBinding.instance` throws until something has
+  /// initialised one — a logger that needs the framework up in order to log
+  /// is useless at exactly the moment things are going wrong. It swallowed
+  /// every record, silently, because `record` catches everything.
+  ///
+  /// No frames means nothing to wait for, so that case publishes immediately.
+  static SchedulerBinding? get _binding {
+    try {
+      return SchedulerBinding.instance;
+    } on Object {
+      return null;
+    }
+  }
+
   /// Record an error. Never throws.
   ///
   /// [ignore] records nothing but still returns normally, so callers can pass
@@ -154,7 +196,7 @@ class ErrorLogger {
       final ErrorRecord updated;
       if (index >= 0) {
         updated = current[index].seenAgain(now);
-        _records.value = [updated, ...current]..removeAt(index + 1);
+        _publish([updated, ...current]..removeAt(index + 1));
       } else {
         updated = ErrorRecord(
           fingerprint: fingerprint,
@@ -166,7 +208,7 @@ class ErrorLogger {
           lastSeen: now,
           count: 1,
         );
-        _records.value = [updated, ...current].take(maxRecords).toList();
+        _publish([updated, ...current].take(maxRecords).toList());
       }
 
       _scheduleSave();

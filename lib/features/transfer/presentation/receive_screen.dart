@@ -292,27 +292,46 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
             // something goes wrong helps nobody.
             Text(l10n.transferPasteInstead, style: theme.textTheme.labelLarge),
             const SizedBox(height: Spacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _pasted,
-                    autocorrect: false,
-                    decoration: InputDecoration(
-                      hintText: l10n.transferPasteHint,
-                      border: const OutlineInputBorder(),
-                    ),
-                    onSubmitted: (value) => unawaited(_onCode(value)),
+            // Side by side while there is room, stacked when there is not.
+            // A button cannot shrink below its own label, so a Row here
+            // overflowed by eighty points as soon as this became a tab in a
+            // pane someone could drag narrow.
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final field = TextField(
+                  controller: _pasted,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    hintText: l10n.transferPasteHint,
+                    border: const OutlineInputBorder(),
                   ),
-                ),
-                const SizedBox(width: Spacing.sm),
-                FilledButton(
+                  onSubmitted: (value) => unawaited(_onCode(value)),
+                );
+                final button = FilledButton(
                   onPressed: _busy
                       ? null
                       : () => unawaited(_onCode(_pasted.text)),
                   child: Text(l10n.transferReceive),
-                ),
-              ],
+                );
+
+                if (constraints.maxWidth < 380) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      field,
+                      const SizedBox(height: Spacing.sm),
+                      button,
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: field),
+                    const SizedBox(width: Spacing.sm),
+                    button,
+                  ],
+                );
+              },
             ),
           ],
         ],

@@ -189,4 +189,31 @@ void main() {
     expect(panelWidthOf(tester), WorkspaceLayout.maxPanel);
     expect(find.byType(TerminalWorkspace), findsOneWidget);
   });
+
+  testWidgets('every destination fits at every desktop width', (tester) async {
+    // The desktop equivalent of the phone overflow sweep. Found a real one:
+    // a window resized narrow while a destination other than Hosts was
+    // showing overflowed by 112 points, and the overflow arrived during
+    // paint — which the error logger then tried to record mid-frame.
+    for (final width in [1600.0, 1100.0, 900.0, 760.0, 700.0, 640.0]) {
+      await pumpAt(tester, Size(width, 900));
+
+      for (final destination in const [
+        'Keys',
+        'Tunnels',
+        'Settings',
+        'Hosts',
+      ]) {
+        final tab = find.text(destination);
+        if (tab.evaluate().isEmpty) continue;
+        await tester.tap(tab.first, warnIfMissed: false);
+        await tester.pumpAndSettle();
+        expect(
+          tester.takeException(),
+          isNull,
+          reason: '$destination overflowed at ${width}pt',
+        );
+      }
+    }
+  });
 }
