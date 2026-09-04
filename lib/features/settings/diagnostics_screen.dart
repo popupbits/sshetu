@@ -16,7 +16,11 @@ import '../../l10n/app_localizations.dart';
 /// This exists so a user can tell you *what* broke instead of "it crashed".
 /// Nothing here leaves the device unless they tap share.
 class DiagnosticsScreen extends StatelessWidget {
-  const DiagnosticsScreen({super.key});
+  const DiagnosticsScreen({this.embedded = false, super.key});
+
+  /// True when this is a tab in the desktop workspace, which supplies the
+  /// title and the way out.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +29,9 @@ class DiagnosticsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.settingsDiagnostics),
+        automaticallyImplyLeading: !embedded,
+        // The tab already names it.
+        title: embedded ? null : Text(l10n.settingsDiagnostics),
         actions: [
           ValueListenableBuilder<List<ErrorRecord>>(
             valueListenable: logger.records,

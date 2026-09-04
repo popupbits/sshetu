@@ -167,7 +167,11 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !widget.embedded,
-        title: Text(isNew ? l10n.tunnelEditorNew : l10n.tunnelEditorEdit),
+        // The tab already carries the name. Repeating it here would say the
+        // same word twice, forty pixels apart.
+        title: widget.embedded
+            ? null
+            : Text(isNew ? l10n.tunnelEditorNew : l10n.tunnelEditorEdit),
         actions: [
           TextButton(onPressed: _save, child: Text(l10n.hostEditorSave)),
         ],

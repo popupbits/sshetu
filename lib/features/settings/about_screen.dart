@@ -8,7 +8,11 @@ import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
-  const AboutScreen({super.key});
+  const AboutScreen({this.embedded = false, super.key});
+
+  /// True when this is a tab in the desktop workspace, which supplies the
+  /// title and the way out.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +20,9 @@ class AboutScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.aboutTitle)),
+      // Embedded, the tab is the title and there are no actions, so a bar
+      // here would be an empty strip stealing height from the content.
+      appBar: embedded ? null : AppBar(title: Text(l10n.aboutTitle)),
       body: ContentWidth(
         maxWidth: 720,
         child: ListView(

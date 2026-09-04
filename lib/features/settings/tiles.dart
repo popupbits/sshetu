@@ -6,9 +6,7 @@ import '../sessions/open_screens.dart';
 
 import '../../core/error/error_logger.dart';
 import '../../core/error/error_record.dart';
-import '../../core/router/navigation.dart';
 import '../../core/ssh/openssh_import.dart';
-import '../../core/router/routes.dart';
 import '../../core/util/launcher.dart';
 import '../../core/util/review_prompt.dart';
 import '../../l10n/app_localizations.dart';
@@ -68,7 +66,7 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
           title: Text(l10n.knownHostsTitle),
           subtitle: Text(l10n.knownHostsSubtitle),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.pushTo(Routes.knownHosts),
+          onTap: () => openKnownHosts(context, ref),
         ),
       ],
     ),
@@ -114,14 +112,14 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
                   : l10n.settingsDiagnosticsBody(records.length),
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.pushTo(Routes.diagnostics),
+            onTap: () => openDiagnostics(context, ref),
           ),
         ),
         ListTile(
           leading: const Icon(PiconsRegular.info),
           title: Text(l10n.aboutTitle),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.pushTo(Routes.about),
+          onTap: () => openAbout(context, ref),
         ),
         ListTile(
           leading: const Icon(PiconsRegular.shareNetwork),

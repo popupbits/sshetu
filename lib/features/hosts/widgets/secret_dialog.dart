@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../../core/router/navigation.dart';
-import '../../../core/router/routes.dart';
+import '../../import/import_screen.dart';
+import '../../sessions/open_screens.dart';
+
 import '../../../core/ssh/vault_credential_source.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../l10n/app_localizations.dart';
@@ -161,16 +162,16 @@ class _SecretDialogState extends ConsumerState<_SecretDialog> {
 }
 
 /// Picks which key to authenticate with, and whether to keep the choice.
-class _KeyPicker extends StatefulWidget {
+class _KeyPicker extends ConsumerStatefulWidget {
   const _KeyPicker({required this.identities});
 
   final List<SshIdentity> identities;
 
   @override
-  State<_KeyPicker> createState() => _KeyPickerState();
+  ConsumerState<_KeyPicker> createState() => _KeyPickerState();
 }
 
-class _KeyPickerState extends State<_KeyPicker> {
+class _KeyPickerState extends ConsumerState<_KeyPicker> {
   /// Saving is the default, because it is the point. Someone reaching for a
   /// key while being asked for a password is telling you the host is
   /// configured wrong; fixing it only for this attempt would mean the same
@@ -193,8 +194,10 @@ class _KeyPickerState extends State<_KeyPicker> {
           ),
           FilledButton.icon(
             onPressed: () {
+              // The dialog closes first: opening a tab behind a modal would
+              // put the thing the user asked for where they cannot see it.
               Navigator.of(context).pop();
-              context.pushTo(Routes.importFocused('keys'));
+              openImport(context, ref, focus: ImportFocus.keys);
             },
             icon: const Icon(PiconsRegular.downloadSimple, size: 16),
             label: Text(l10n.keysImport),

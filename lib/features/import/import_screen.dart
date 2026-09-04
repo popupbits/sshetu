@@ -203,9 +203,15 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !widget.embedded,
-        title: Text(
-          widget.focus == ImportFocus.keys ? l10n.keysImport : l10n.importTitle,
-        ),
+        // The tab already carries the name. Repeating it here would say the
+        // same word twice, forty pixels apart.
+        title: widget.embedded
+            ? null
+            : Text(
+                widget.focus == ImportFocus.keys
+                    ? l10n.keysImport
+                    : l10n.importTitle,
+              ),
         actions: [
           // Both of these act on a directory scan, which mobile has none of:
           // there is no ~/.ssh to find and no directory picker worth using.

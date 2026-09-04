@@ -23,7 +23,11 @@ import '../../l10n/app_localizations.dart';
 /// does not exist, and the pressure to add a "trust anyway" button somewhere
 /// worse becomes irresistible.
 class KnownHostsScreen extends ConsumerWidget {
-  const KnownHostsScreen({super.key});
+  const KnownHostsScreen({this.embedded = false, super.key});
+
+  /// True when this is a tab in the desktop workspace, which supplies the
+  /// title and the way out.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +35,9 @@ class KnownHostsScreen extends ConsumerWidget {
     final store = ref.watch(knownHostsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.knownHostsTitle)),
+      // Embedded, the tab is the title and there are no actions, so a bar
+      // here would be an empty strip stealing height from the content.
+      appBar: embedded ? null : AppBar(title: Text(l10n.knownHostsTitle)),
       body: store.when(
         loading: () => const LoadingView(),
         error: (error, _) => ErrorView(

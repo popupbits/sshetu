@@ -128,17 +128,17 @@ class AppMenuBar extends ConsumerWidget {
           menus: [
             PlatformMenuItem(
               label: l10n.menuTrustedHostKeys,
-              onSelected: () => context.pushTo(Routes.knownHosts),
+              onSelected: () => openKnownHosts(context, ref),
             ),
             PlatformMenuItem(
               label: l10n.menuDiagnostics,
-              onSelected: () => context.pushTo(Routes.diagnostics),
+              onSelected: () => openDiagnostics(context, ref),
             ),
             PlatformMenuItemGroup(
               members: [
                 PlatformMenuItem(
                   label: l10n.settingsAbout,
-                  onSelected: () => context.pushTo(Routes.about),
+                  onSelected: () => openAbout(context, ref),
                 ),
               ],
             ),

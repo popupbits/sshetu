@@ -135,9 +135,15 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !widget.embedded,
-        title: Text(
-          widget.hostId == null ? l10n.hostEditorNew : l10n.hostEditorEdit,
-        ),
+        // The tab already carries the name. Repeating it here would say the
+        // same word twice, forty pixels apart.
+        title: widget.embedded
+            ? null
+            : Text(
+                widget.hostId == null
+                    ? l10n.hostEditorNew
+                    : l10n.hostEditorEdit,
+              ),
         actions: [
           TextButton(onPressed: _save, child: Text(l10n.hostEditorSave)),
         ],

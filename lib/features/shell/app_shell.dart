@@ -1,10 +1,12 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
+import '../import/import_screen.dart';
+import '../sessions/open_screens.dart';
+
 import '../../core/util/responsive.dart';
-import '../../core/router/navigation.dart';
-import '../../core/router/routes.dart';
 import '../../l10n/app_localizations.dart';
 import '../keys/widgets/generate_key_sheet.dart';
 import '../sessions/session_shortcuts.dart';
@@ -26,7 +28,7 @@ class ShellDestination {
 /// find no drawer on it.
 ///
 /// Adapts by width: a bottom bar on a phone, a rail once there is room.
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
@@ -53,6 +55,7 @@ class AppShell extends StatelessWidget {
   /// The AppBar actions for the destination at [index].
   List<Widget> _actionsFor(
     BuildContext context,
+    WidgetRef ref,
     int index, {
     bool dense = false,
   }) {
@@ -70,7 +73,7 @@ class AppShell extends StatelessWidget {
           visualDensity: dense ? VisualDensity.compact : null,
           padding: dense ? EdgeInsets.zero : null,
           constraints: constraints,
-          onPressed: () => context.pushTo(Routes.importOpenSsh),
+          onPressed: () => openImport(context, ref),
         ),
         IconButton(
           tooltip: l10n.hostsAdd,
@@ -78,7 +81,7 @@ class AppShell extends StatelessWidget {
           visualDensity: dense ? VisualDensity.compact : null,
           padding: dense ? EdgeInsets.zero : null,
           constraints: constraints,
-          onPressed: () => context.pushTo(Routes.hostNew),
+          onPressed: () => openHostEditor(context, ref),
         ),
       ],
       // Keys
@@ -97,7 +100,7 @@ class AppShell extends StatelessWidget {
           visualDensity: dense ? VisualDensity.compact : null,
           padding: dense ? EdgeInsets.zero : null,
           constraints: constraints,
-          onPressed: () => context.pushTo(Routes.importFocused('keys')),
+          onPressed: () => openImport(context, ref, focus: ImportFocus.keys),
         ),
       ],
       // Tunnels
@@ -108,7 +111,7 @@ class AppShell extends StatelessWidget {
           visualDensity: dense ? VisualDensity.compact : null,
           padding: dense ? EdgeInsets.zero : null,
           constraints: constraints,
-          onPressed: () => context.pushTo(Routes.tunnelNew),
+          onPressed: () => openTunnelEditor(context, ref),
         ),
       ],
       _ => const [],
@@ -133,7 +136,7 @@ class AppShell extends StatelessWidget {
   static const List<int> _desktopBranches = [0, 2, 3, 4];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final destinations = destinationsOf(context);
     final index = navigationShell.currentIndex;
 
@@ -142,8 +145,8 @@ class AppShell extends StatelessWidget {
     // exactly where it will be when someone has just started a session.
     return SessionShortcuts(
       child: context.useRail
-          ? _buildDesktop(context, destinations, index)
-          : _buildCompact(context, destinations, index),
+          ? _buildDesktop(context, ref, destinations, index)
+          : _buildCompact(context, ref, destinations, index),
     );
   }
 
@@ -161,6 +164,7 @@ class AppShell extends StatelessWidget {
   /// the shell you are working in off the screen.
   Widget _buildDesktop(
     BuildContext context,
+    WidgetRef ref,
     List<ShellDestination> destinations,
     int index,
   ) {
@@ -198,7 +202,7 @@ class AppShell extends StatelessWidget {
                 children: [
                   PanelHeader(
                     title: destinations[panelIndex].label,
-                    actions: _actionsFor(context, panelIndex, dense: true),
+                    actions: _actionsFor(context, ref, panelIndex, dense: true),
                   ),
                   Expanded(child: navigationShell),
                 ],
@@ -215,13 +219,14 @@ class AppShell extends StatelessWidget {
   /// Bottom bar, one screen at a time.
   Widget _buildCompact(
     BuildContext context,
+    WidgetRef ref,
     List<ShellDestination> destinations,
     int index,
   ) {
     return Scaffold(
       appBar: AppBar(
         title: Text(destinations[index].label),
-        actions: _actionsFor(context, index),
+        actions: _actionsFor(context, ref, index),
       ),
       // No drawer. It listed exactly the destinations the bottom bar already
       // shows, so it was a second way to reach the same five screens — and it

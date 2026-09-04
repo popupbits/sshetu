@@ -7,6 +7,9 @@ import '../../l10n/app_localizations.dart';
 import '../files/file_browser_screen.dart';
 import '../hosts/host_editor_screen.dart';
 import '../import/import_screen.dart';
+import '../settings/about_screen.dart';
+import '../settings/diagnostics_screen.dart';
+import '../settings/known_hosts_screen.dart';
 import '../tunnels/tunnel_editor_screen.dart';
 import 'open_in_workspace.dart';
 
@@ -86,3 +89,35 @@ void openFiles(BuildContext context, WidgetRef ref, String sessionId) =>
       route: Routes.filesFor(sessionId),
       builder: (_) => FileBrowserScreen(sessionId: sessionId, embedded: true),
     );
+
+/// The read-only pages under Settings. Tabs too, for the same reason: reading
+/// a fingerprint or a diagnostic beside a terminal beats replacing it.
+void openKnownHosts(BuildContext context, WidgetRef ref) => openInWorkspace(
+  context,
+  ref,
+  id: 'known-hosts',
+  title: AppLocalizations.of(context).knownHostsTitle,
+  icon: PiconsRegular.shieldCheck,
+  route: Routes.knownHosts,
+  builder: (_) => const KnownHostsScreen(embedded: true),
+);
+
+void openDiagnostics(BuildContext context, WidgetRef ref) => openInWorkspace(
+  context,
+  ref,
+  id: 'diagnostics',
+  title: AppLocalizations.of(context).settingsDiagnostics,
+  icon: PiconsRegular.bug,
+  route: Routes.diagnostics,
+  builder: (_) => const DiagnosticsScreen(embedded: true),
+);
+
+void openAbout(BuildContext context, WidgetRef ref) => openInWorkspace(
+  context,
+  ref,
+  id: 'about',
+  title: AppLocalizations.of(context).aboutTitle,
+  icon: PiconsRegular.info,
+  route: Routes.about,
+  builder: (_) => const AboutScreen(embedded: true),
+);

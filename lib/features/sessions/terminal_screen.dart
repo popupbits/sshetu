@@ -3,8 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../../core/router/navigation.dart';
-import '../../core/router/routes.dart';
+import 'open_screens.dart';
+
 import '../../core/ui/views.dart';
 import '../../l10n/app_localizations.dart';
 import 'session_manager.dart';
@@ -95,7 +95,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
             IconButton(
               tooltip: l10n.filesTitle,
               icon: const Icon(PiconsRegular.folderOpen),
-              onPressed: () => context.pushTo(Routes.filesFor(session.id)),
+              onPressed: () => openFiles(context, ref, session.id),
             ),
             IconButton(
               tooltip: l10n.terminalCloseTab,
