@@ -31,7 +31,41 @@ import '../support/test_database.dart';
 void main() {
   late AppDatabase database;
 
-  setUp(() async => database = await openTestDatabase());
+  setUp(() async {
+    database = await openTestDatabase();
+    // With content, not empty. An editor with no keys and no other hosts
+    // renders none of its dropdowns, so an empty database is exactly the
+    // shape that never overflows — and exactly the shape a real user is not.
+    final now = DateTime.utc(2026).millisecondsSinceEpoch;
+    for (final key in const [
+      ('k1', 'work laptop ed25519', 'ssh-ed25519'),
+      ('k2', 'an older RSA key kept for one legacy box', 'ssh-rsa'),
+    ]) {
+      await database.raw.insert('identities', {
+        'id': key.$1,
+        'label': key.$2,
+        'key_type': key.$3,
+        'has_passphrase': 0,
+        'origin': 'generated',
+        'created_at': now,
+        'updated_at': now,
+      });
+    }
+    for (final host in const ['bastion', 'production-database-eu-west-1']) {
+      await database.raw.insert('hosts', {
+        'id': host,
+        'label': host,
+        'hostname': '$host.internal.example.com',
+        'port': 22,
+        'username': 'root',
+        'auth_method': 'publicKey',
+        'allow_legacy_algorithms': 0,
+        'keepalive_seconds': 30,
+        'created_at': now,
+        'updated_at': now,
+      });
+    }
+  });
   tearDown(() async => database.raw.close());
 
   final pages = <String, WidgetBuilder>{

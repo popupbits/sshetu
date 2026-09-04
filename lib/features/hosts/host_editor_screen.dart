@@ -247,6 +247,11 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
               if (_auth == SshAuthMethod.publicKey) ...[
                 const SizedBox(height: Spacing.lg),
                 DropdownButtonFormField<String?>(
+                  // isExpanded: a dropdown sizes itself to its selected item, and
+                  // a key or host with a descriptive name is wider than the pane
+                  // it sits in. Without it the row overflows rather than the
+                  // label ellipsising.
+                  isExpanded: true,
                   initialValue: _identityId,
                   decoration: InputDecoration(
                     labelText: l10n.hostEditorIdentity,
@@ -268,6 +273,11 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
 
               SectionLabel(l10n.hostEditorAdvanced),
               DropdownButtonFormField<String?>(
+                // isExpanded: a dropdown sizes itself to its selected item, and
+                // a key or host with a descriptive name is wider than the pane
+                // it sits in. Without it the row overflows rather than the
+                // label ellipsising.
+                isExpanded: true,
                 initialValue: _jumpHostId,
                 decoration: InputDecoration(
                   labelText: l10n.hostEditorJump,

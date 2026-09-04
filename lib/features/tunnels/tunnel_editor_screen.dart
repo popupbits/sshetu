@@ -189,6 +189,11 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
               // looks like a field and does nothing when tapped reads as
               // broken rather than as deliberate.
               DropdownButtonFormField<String?>(
+                // isExpanded: a dropdown sizes itself to its selected item, and
+                // a key or host with a descriptive name is wider than the pane
+                // it sits in. Without it the row overflows rather than the
+                // label ellipsising.
+                isExpanded: true,
                 initialValue: _selectedHostId,
                 decoration: InputDecoration(
                   labelText: l10n.tunnelEditorHost,
