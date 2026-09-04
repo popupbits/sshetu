@@ -2613,6 +2613,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed.'**
   String get diagnosticsRemoved;
+
+  /// No description provided for @settingsDefaultKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Default key'**
+  String get settingsDefaultKey;
+
+  /// No description provided for @settingsDefaultKeyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New servers start with this key. You can change it per server.'**
+  String get settingsDefaultKeyBody;
+
+  /// No description provided for @settingsDefaultKeyNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No default'**
+  String get settingsDefaultKeyNone;
+
+  /// No description provided for @hostEditorConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get hostEditorConnection;
+
+  /// No description provided for @hostEditorConnectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'root@192.168.1.10'**
+  String get hostEditorConnectionHint;
+
+  /// No description provided for @hostEditorConnectionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste an address or a whole ssh command — user, host and port are read from it.'**
+  String get hostEditorConnectionHelp;
+
+  /// No description provided for @hostEditorConnectionInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That does not look like an address SSHetu can reach.'**
+  String get hostEditorConnectionInvalid;
+
+  /// No description provided for @hostEditorIdentityFileIgnored.
+  ///
+  /// In en, this message translates to:
+  /// **'The -i path was ignored. SSHetu uses the keys it holds; choose one under Advanced options.'**
+  String get hostEditorIdentityFileIgnored;
 }
 
 class _AppLocalizationsDelegate

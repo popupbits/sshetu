@@ -6,6 +6,7 @@ import 'package:sshetu/core/app.dart';
 import 'package:sshetu/core/settings/settings_controller.dart';
 import 'package:sshetu/features/hosts/domain/ssh_host.dart';
 import 'package:sshetu/features/hosts/hosts_controller.dart';
+import 'package:sshetu/features/keys/domain/ssh_identity.dart';
 import 'package:sshetu/features/keys/keys_controller.dart';
 import 'package:sshetu/features/sessions/widgets/terminal_workspace.dart';
 import 'package:sshetu/features/shell/workspace_layout.dart';
@@ -25,6 +26,21 @@ void main() {
       label: 'bastion',
       hostname: '10.0.0.4',
       username: 'root',
+      createdAt: now,
+      updatedAt: now,
+    ),
+  ];
+
+  // With keys, because several controls only exist when there are any — the
+  // default-key picker in Settings among them — and a screen that renders
+  // nothing cannot overflow.
+  final identities = [
+    SshIdentity(
+      id: 'k1',
+      label: 'an older RSA key kept for one legacy box',
+      keyType: 'ssh-rsa',
+      hasPassphrase: false,
+      origin: IdentityOrigin.imported,
       createdAt: now,
       updatedAt: now,
     ),
@@ -60,7 +76,7 @@ void main() {
             () => SettingsController(initial: readSettings(preferences)),
           ),
           hostsProvider.overrideWith((ref) => hosts),
-          identitiesProvider.overrideWith((ref) => const []),
+          identitiesProvider.overrideWith((ref) => identities),
           tunnelsProvider.overrideWith((ref) => const []),
         ],
         child: const SshetuApp(),

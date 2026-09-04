@@ -653,5 +653,13 @@
   "diagnosticsCopyOne": "Copy this error",
   "diagnosticsRemoveOne": "Remove this error",
   "diagnosticsCopied": "Copied.",
-  "diagnosticsRemoved": "Removed."
+  "diagnosticsRemoved": "Removed.",
+  "settingsDefaultKey": "Default key",
+  "settingsDefaultKeyBody": "New servers start with this key. You can change it per server.",
+  "settingsDefaultKeyNone": "No default",
+  "hostEditorConnection": "Server",
+  "hostEditorConnectionHint": "root@192.168.1.10",
+  "hostEditorConnectionHelp": "Paste an address or a whole ssh command \u2014 user, host and port are read from it.",
+  "hostEditorConnectionInvalid": "That does not look like an address SSHetu can reach.",
+  "hostEditorIdentityFileIgnored": "The -i path was ignored. SSHetu uses the keys it holds; choose one under Advanced options."
 }

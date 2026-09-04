@@ -11,6 +11,7 @@ import '../../core/util/launcher.dart';
 import '../../core/util/review_prompt.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/presentation/open_backup.dart';
+import 'widgets/default_key_tile.dart';
 import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/language_tile.dart';
@@ -62,6 +63,7 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
     SettingsSection(
       title: l10n.settingsSecurity,
       tiles: [
+        const DefaultKeyTile(),
         ListTile(
           leading: const Icon(PiconsRegular.shieldCheck),
           title: Text(l10n.knownHostsTitle),

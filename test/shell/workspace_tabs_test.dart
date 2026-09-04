@@ -151,9 +151,21 @@ void main() {
 
   for (final entry in pages.entries) {
     testWidgets('${entry.key} fits a tab at any pane width', (tester) async {
-      // The narrowest is the panel's own floor beside a terminal; the widest
-      // is a maximised window with the panel dragged small.
-      for (final width in [1500.0, 900.0, 640.0, 420.0, 320.0]) {
+      // From a small phone to a maximised window, through every step where
+      // something switches layout: 720 is where the tunnel picker goes side
+      // by side, 380 where the receive screen stacks its button.
+      for (final width in [
+        1600.0,
+        1100.0,
+        800.0,
+        720.0,
+        700.0,
+        640.0,
+        420.0,
+        380.0,
+        360.0,
+        320.0,
+      ]) {
         await pumpTab(tester, entry.key, entry.value, Size(width, 900));
 
         expect(

@@ -36,6 +36,7 @@ class AppSettings {
     this.localeCode,
     this.textScale = 1.0,
     this.panelWidth = WorkspaceLayout.defaultPanel,
+    this.defaultIdentityId,
   });
 
   /// Id of the chosen [AccentOption]; see [Accents.byId].
@@ -56,6 +57,14 @@ class AppSettings {
   /// overrides it for as long as it is that narrow. See [WorkspaceLayout].
   final double panelWidth;
 
+  /// The key a new host starts with.
+  ///
+  /// Most people have one key and use it everywhere; making them pick it on
+  /// every host is a question with the same answer every time. Null means "no
+  /// preference", which is not the same as having no keys — it is the state a
+  /// fresh install is in, and the state someone returns to by choosing it.
+  final String? defaultIdentityId;
+
   AccentOption get accent => Accents.byId(accentId);
 
   Locale? get locale => localeCode == null ? null : Locale(localeCode!);
@@ -67,6 +76,8 @@ class AppSettings {
     bool clearLocale = false,
     double? textScale,
     double? panelWidth,
+    String? defaultIdentityId,
+    bool clearDefaultIdentity = false,
   }) {
     return AppSettings(
       accentId: accentId ?? this.accentId,
@@ -74,6 +85,9 @@ class AppSettings {
       localeCode: clearLocale ? null : (localeCode ?? this.localeCode),
       textScale: textScale ?? this.textScale,
       panelWidth: panelWidth ?? this.panelWidth,
+      defaultIdentityId: clearDefaultIdentity
+          ? null
+          : (defaultIdentityId ?? this.defaultIdentityId),
     );
   }
 
@@ -84,11 +98,18 @@ class AppSettings {
       other.themeMode == themeMode &&
       other.localeCode == localeCode &&
       other.textScale == textScale &&
-      other.panelWidth == panelWidth;
+      other.panelWidth == panelWidth &&
+      other.defaultIdentityId == defaultIdentityId;
 
   @override
-  int get hashCode =>
-      Object.hash(accentId, themeMode, localeCode, textScale, panelWidth);
+  int get hashCode => Object.hash(
+    accentId,
+    themeMode,
+    localeCode,
+    textScale,
+    panelWidth,
+    defaultIdentityId,
+  );
 }
 
 /// The text-scale steps offered in Settings. A slider invites values that

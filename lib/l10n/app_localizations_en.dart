@@ -1441,4 +1441,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diagnosticsRemoved => 'Removed.';
+
+  @override
+  String get settingsDefaultKey => 'Default key';
+
+  @override
+  String get settingsDefaultKeyBody =>
+      'New servers start with this key. You can change it per server.';
+
+  @override
+  String get settingsDefaultKeyNone => 'No default';
+
+  @override
+  String get hostEditorConnection => 'Server';
+
+  @override
+  String get hostEditorConnectionHint => 'root@192.168.1.10';
+
+  @override
+  String get hostEditorConnectionHelp =>
+      'Paste an address or a whole ssh command — user, host and port are read from it.';
+
+  @override
+  String get hostEditorConnectionInvalid =>
+      'That does not look like an address SSHetu can reach.';
+
+  @override
+  String get hostEditorIdentityFileIgnored =>
+      'The -i path was ignored. SSHetu uses the keys it holds; choose one under Advanced options.';
 }

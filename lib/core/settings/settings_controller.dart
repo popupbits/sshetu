@@ -27,6 +27,7 @@ const _keyThemeMode = 'settings.themeMode';
 const _keyLocale = 'settings.locale';
 const _keyTextScale = 'settings.textScale';
 const _keyPanelWidth = 'settings.panelWidth';
+const _keyDefaultIdentity = 'settings.defaultIdentity';
 
 /// Read persisted settings, falling back to defaults for anything missing or
 /// corrupt. Called from bootstrap before the first frame.
@@ -42,6 +43,7 @@ AppSettings readSettings(SharedPreferences preferences) {
     panelWidth: WorkspaceLayout.clampPreference(
       preferences.getDouble(_keyPanelWidth) ?? WorkspaceLayout.defaultPanel,
     ),
+    defaultIdentityId: preferences.getString(_keyDefaultIdentity),
   );
 }
 
@@ -71,6 +73,16 @@ class SettingsController extends Notifier<AppSettings> {
     final clamped = scale.clamp(textScaleSteps.first, textScaleSteps.last);
     _update(state.copyWith(textScale: clamped), _keyTextScale, clamped);
   }
+
+  /// The key new hosts start with. Pass null for no preference.
+  void setDefaultIdentity(String? identityId) => _update(
+    state.copyWith(
+      defaultIdentityId: identityId,
+      clearDefaultIdentity: identityId == null,
+    ),
+    _keyDefaultIdentity,
+    identityId,
+  );
 
   /// Sets how wide the desktop list panel should be.
   ///

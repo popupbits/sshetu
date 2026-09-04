@@ -215,29 +215,29 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
               // hard part of port forwarding, so it is asked first, in words,
               // and everything after it adapts.
               SectionLabel(l10n.tunnelWhat),
-              _KindChoice(
-                kind: TunnelKind.local,
+              _KindChoices(
                 selected: _kind,
-                icon: PiconsRegular.arrowLeft,
-                title: l10n.tunnelLocalPlain,
-                body: l10n.tunnelLocalPlainBody,
                 onSelected: _selectKind,
-              ),
-              _KindChoice(
-                kind: TunnelKind.remote,
-                selected: _kind,
-                icon: PiconsRegular.arrowRight,
-                title: l10n.tunnelRemotePlain,
-                body: l10n.tunnelRemotePlainBody,
-                onSelected: _selectKind,
-              ),
-              _KindChoice(
-                kind: TunnelKind.socks,
-                selected: _kind,
-                icon: PiconsRegular.globeSimple,
-                title: l10n.tunnelSocksPlain,
-                body: l10n.tunnelSocksPlainBody,
-                onSelected: _selectKind,
+                choices: [
+                  (
+                    kind: TunnelKind.local,
+                    icon: PiconsRegular.arrowLeft,
+                    title: l10n.tunnelLocalPlain,
+                    body: l10n.tunnelLocalPlainBody,
+                  ),
+                  (
+                    kind: TunnelKind.remote,
+                    icon: PiconsRegular.arrowRight,
+                    title: l10n.tunnelRemotePlain,
+                    body: l10n.tunnelRemotePlainBody,
+                  ),
+                  (
+                    kind: TunnelKind.socks,
+                    icon: PiconsRegular.globeSimple,
+                    title: l10n.tunnelSocksPlain,
+                    body: l10n.tunnelSocksPlainBody,
+                  ),
+                ],
               ),
 
               const SizedBox(height: Spacing.lg),
@@ -585,3 +585,67 @@ class _Preview extends StatelessWidget {
     );
   }
 }
+
+/// The three directions, laid out to fit.
+///
+/// Stacked they read as a list of sentences, which is right on a phone and in
+/// a narrow pane. Given room they sit side by side, because three short cards
+/// in a column of empty space make the choice look longer than it is — and
+/// this is a choice people find hard enough already without it appearing to
+/// have more to it than three options.
+class _KindChoices extends StatelessWidget {
+  const _KindChoices({
+    required this.choices,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final List<
+    ({TunnelKind kind, IconData icon, String title, String body})
+  >
+  choices;
+  final TunnelKind selected;
+  final void Function(TunnelKind) onSelected;
+
+  /// Below this, three cards side by side are three columns of one word each.
+  static const double _sideBySide = 720;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cards = [
+          for (final choice in choices)
+            _KindChoice(
+              kind: choice.kind,
+              selected: selected,
+              icon: choice.icon,
+              title: choice.title,
+              body: choice.body,
+              onSelected: onSelected,
+            ),
+        ];
+
+        if (constraints.maxWidth < _sideBySide) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: cards,
+          );
+        }
+
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                if (i > 0) const SizedBox(width: Spacing.sm),
+                Expanded(child: cards[i]),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
