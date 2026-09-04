@@ -43,6 +43,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionClose => 'Close';
 
   @override
+  String get actionShow => 'Show';
+
+  @override
+  String get actionHide => 'Hide';
+
+  @override
   String get comingSoon => 'Nothing here yet';
 
   @override
@@ -1253,4 +1259,119 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuAboutApp => 'About SSHetu';
+
+  @override
+  String get backupTitle => 'Backup';
+
+  @override
+  String get backupBody =>
+      'An encrypted copy of your servers, keys and tunnels, saved as a file you keep.';
+
+  @override
+  String get backupExport => 'Save a backup…';
+
+  @override
+  String get backupImport => 'Restore from a backup…';
+
+  @override
+  String get backupPassphrase => 'Passphrase';
+
+  @override
+  String get backupPassphraseConfirm => 'Repeat passphrase';
+
+  @override
+  String get backupPassphraseHelp =>
+      'This passphrase is the only thing protecting the file. It cannot be recovered — if you lose it, the backup is gone.';
+
+  @override
+  String get backupPassphraseMismatch => 'The two passphrases are different.';
+
+  @override
+  String backupPassphraseTooShort(int count) {
+    return 'Use at least $count characters.';
+  }
+
+  @override
+  String get backupStrengthWeak => 'Weak — easy to guess';
+
+  @override
+  String get backupStrengthFair => 'Fair';
+
+  @override
+  String get backupStrengthStrong => 'Strong';
+
+  @override
+  String get backupIncludeSecrets => 'Include keys and passwords';
+
+  @override
+  String get backupIncludeSecretsBody =>
+      'Without these the backup restores your servers but you will have to supply keys again.';
+
+  @override
+  String get backupWorking => 'Encrypting…';
+
+  @override
+  String backupSaved(String path) {
+    return 'Backup saved to $path';
+  }
+
+  @override
+  String get backupShared => 'Backup ready to save.';
+
+  @override
+  String get backupSaveAnother => 'Save another';
+
+  @override
+  String get backupRestoreTitle => 'Restore a backup';
+
+  @override
+  String get backupRestoreBody =>
+      'Choose a backup file, then enter the passphrase it was saved with.';
+
+  @override
+  String get backupChooseFile => 'Choose file…';
+
+  @override
+  String get backupOpening => 'Opening…';
+
+  @override
+  String get backupOpen => 'Open backup';
+
+  @override
+  String get backupRestore => 'Restore';
+
+  @override
+  String get backupRestoreWarning =>
+      'Restoring replaces anything on this device with the same name. It cannot be undone.';
+
+  @override
+  String backupContents(
+    int hosts,
+    int identities,
+    int tunnels,
+    int knownHosts,
+  ) {
+    return '$hosts servers, $identities keys, $tunnels tunnels, $knownHosts trusted host keys';
+  }
+
+  @override
+  String get backupWithSecrets => 'Includes private keys and saved passwords.';
+
+  @override
+  String get backupWithoutSecrets =>
+      'Does not include private keys or passwords.';
+
+  @override
+  String backupWrittenOn(String date, String version) {
+    return 'Saved $date by SSHetu $version';
+  }
+
+  @override
+  String get backupRestored => 'Restored.';
+
+  @override
+  String get menuSaveBackup => 'Save a Backup…';
+
+  @override
+  String get menuRestoreBackup => 'Restore from a Backup…';
 }

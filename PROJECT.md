@@ -412,6 +412,17 @@ the desktop shows a QR code carrying a single-use secret, the phone scans it,
 and the two talk over the local network on a channel sealed with that secret.
 The listener is open only while that sheet is open. See `features/transfer`.
 
+Having no account also removes the backup an account gives you for free, and
+"my laptop died" is a more common disaster than "my provider was breached". So
+there is an explicit one: **an encrypted backup file**, in `features/backup`.
+The passphrase becomes a key via **Argon2id** (64 MiB, t=3) — memory-hard,
+because a backup sits in a cloud folder for years and PBKDF2 is what a GPU
+farm eats for breakfast — and the body is sealed with the same
+XSalsa20-Poly1305 the transfer uses. The envelope is readable so the file can
+name itself and carry its own KDF parameters; a SHA-256 of it travels *inside*
+the sealed body so a rewritten header is refused. Counts live inside too: a
+backup should not advertise how many servers its owner runs.
+
 If a backend is ever added, it belongs behind the same seams that made removing
 this one cheap: `SecretVault` for credentials, the repositories for rows.
 

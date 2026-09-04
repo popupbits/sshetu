@@ -18,6 +18,8 @@ abstract final class Routes {
   /// resolves to nothing at all.
   static const String transferSend = '/settings/transfer/send';
   static const String transferReceive = '/settings/transfer/receive';
+  static const String backupExport = '/settings/backup/export';
+  static const String backupImport = '/settings/backup/restore';
   static const String diagnostics = '/settings/diagnostics';
   static const String splash = '/splash';
 

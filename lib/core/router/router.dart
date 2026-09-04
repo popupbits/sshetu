@@ -14,6 +14,8 @@ import '../../features/tunnels/tunnels_screen.dart';
 import '../../features/settings/about_screen.dart';
 import '../../features/settings/diagnostics_screen.dart';
 import '../../features/settings/known_hosts_screen.dart';
+import '../../features/backup/presentation/export_screen.dart';
+import '../../features/backup/presentation/import_screen.dart';
 import '../../features/transfer/presentation/receive_screen.dart';
 import '../../features/transfer/presentation/send_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -149,6 +151,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'transfer/receive',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (_, _) => const TransferReceiveScreen(),
+                  ),
+                  GoRoute(
+                    path: 'backup/export',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (_, _) => const BackupExportScreen(),
+                  ),
+                  GoRoute(
+                    path: 'backup/restore',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (_, _) => const BackupImportScreen(),
                   ),
                   GoRoute(
                     path: 'diagnostics',

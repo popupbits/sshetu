@@ -67,15 +67,55 @@ class AboutScreen extends StatelessWidget {
               leading: const Icon(PiconsRegular.scroll),
               title: Text(l10n.aboutLicenses),
               subtitle: Text(l10n.aboutLicensesSubtitle),
-              onTap: () => showLicensePage(
-                context: context,
-                applicationName: l10n.appTitle,
-                applicationLegalese: AppConfig.legalese,
-              ),
+              onTap: () => _showLicences(context, l10n),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Licences, without losing what is behind them.
+  ///
+  /// `showLicensePage` pushes a route, which on a desktop means the whole
+  /// window — terminals, tabs and all — is replaced by a list of MIT texts,
+  /// and the only way back is a back button. That is far too much ceremony
+  /// for "what am I shipping": it is a reference you glance at and dismiss.
+  ///
+  /// So on a desktop it is a dialog you can escape, and on a phone it stays a
+  /// page, because a phone has no room to be anything else and a dialog there
+  /// is a page with wasted margins.
+  void _showLicences(BuildContext context, AppLocalizations l10n) {
+    if (!context.useRail) {
+      showLicensePage(
+        context: context,
+        applicationName: l10n.appTitle,
+        applicationLegalese: AppConfig.legalese,
+      );
+      return;
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        final size = MediaQuery.sizeOf(context);
+        return Dialog(
+          clipBehavior: Clip.antiAlias,
+          child: ConstrainedBox(
+            // Wide enough for LicensePage's own master-detail layout to go
+            // side by side (it switches at 840), so the dialog reads as one
+            // pane rather than a list that navigates within itself.
+            constraints: BoxConstraints(
+              maxWidth: 1000,
+              maxHeight: size.height * 0.85,
+            ),
+            child: LicensePage(
+              applicationName: l10n.appTitle,
+              applicationLegalese: AppConfig.legalese,
+            ),
+          ),
+        );
+      },
     );
   }
 }

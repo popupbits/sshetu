@@ -27,7 +27,10 @@
 	     Deliberately NOT `keychain-access-groups`. See KeychainSecretVault:
 	     that entitlement requires a DEVELOPMENT_TEAM, and it is only needed for
 	     the macOS data-protection keychain, which this app does not use. -->
-	<key>com.apple.security.files.user-selected.read-only</key>
+	<!-- read-write, not read-only: the OpenSSH import only reads, but saving
+	     an encrypted backup writes to a path the user picks in the save panel.
+	     Under the sandbox a read-only grant makes that write fail silently. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
 </dict>
 </plist>

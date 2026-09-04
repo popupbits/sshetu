@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../features/backup/presentation/open_backup.dart';
 import '../../features/sessions/open_screens.dart';
 
 import '../../features/sessions/session_manager.dart';
@@ -123,6 +124,19 @@ class AppMenuBar extends ConsumerWidget {
                 PlatformMenuItem(
                   label: l10n.menuReceiveFromDevice,
                   onSelected: () => openTransferReceive(context, ref),
+                ),
+              ],
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: l10n.menuSaveBackup,
+                  shortcut: _primary(LogicalKeyboardKey.keyS),
+                  onSelected: () => openBackupExport(context, ref),
+                ),
+                PlatformMenuItem(
+                  label: l10n.menuRestoreBackup,
+                  onSelected: () => openBackupImport(context, ref),
                 ),
               ],
             ),

@@ -160,6 +160,18 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get actionClose;
 
+  /// No description provided for @actionShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get actionShow;
+
+  /// No description provided for @actionHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get actionHide;
+
   /// No description provided for @comingSoon.
   ///
   /// In en, this message translates to:
@@ -2289,6 +2301,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'About SSHetu'**
   String get menuAboutApp;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backupTitle;
+
+  /// No description provided for @backupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An encrypted copy of your servers, keys and tunnels, saved as a file you keep.'**
+  String get backupBody;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a backup…'**
+  String get backupExport;
+
+  /// No description provided for @backupImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup…'**
+  String get backupImport;
+
+  /// No description provided for @backupPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get backupPassphrase;
+
+  /// No description provided for @backupPassphraseConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat passphrase'**
+  String get backupPassphraseConfirm;
+
+  /// No description provided for @backupPassphraseHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'This passphrase is the only thing protecting the file. It cannot be recovered — if you lose it, the backup is gone.'**
+  String get backupPassphraseHelp;
+
+  /// No description provided for @backupPassphraseMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two passphrases are different.'**
+  String get backupPassphraseMismatch;
+
+  /// No description provided for @backupPassphraseTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least {count} characters.'**
+  String backupPassphraseTooShort(int count);
+
+  /// No description provided for @backupStrengthWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak — easy to guess'**
+  String get backupStrengthWeak;
+
+  /// No description provided for @backupStrengthFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get backupStrengthFair;
+
+  /// No description provided for @backupStrengthStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get backupStrengthStrong;
+
+  /// No description provided for @backupIncludeSecrets.
+  ///
+  /// In en, this message translates to:
+  /// **'Include keys and passwords'**
+  String get backupIncludeSecrets;
+
+  /// No description provided for @backupIncludeSecretsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Without these the backup restores your servers but you will have to supply keys again.'**
+  String get backupIncludeSecretsBody;
+
+  /// No description provided for @backupWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypting…'**
+  String get backupWorking;
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved to {path}'**
+  String backupSaved(String path);
+
+  /// No description provided for @backupShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup ready to save.'**
+  String get backupShared;
+
+  /// No description provided for @backupSaveAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Save another'**
+  String get backupSaveAnother;
+
+  /// No description provided for @backupRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup'**
+  String get backupRestoreTitle;
+
+  /// No description provided for @backupRestoreBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a backup file, then enter the passphrase it was saved with.'**
+  String get backupRestoreBody;
+
+  /// No description provided for @backupChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file…'**
+  String get backupChooseFile;
+
+  /// No description provided for @backupOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening…'**
+  String get backupOpening;
+
+  /// No description provided for @backupOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open backup'**
+  String get backupOpen;
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backupRestore;
+
+  /// No description provided for @backupRestoreWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring replaces anything on this device with the same name. It cannot be undone.'**
+  String get backupRestoreWarning;
+
+  /// No description provided for @backupContents.
+  ///
+  /// In en, this message translates to:
+  /// **'{hosts} servers, {identities} keys, {tunnels} tunnels, {knownHosts} trusted host keys'**
+  String backupContents(int hosts, int identities, int tunnels, int knownHosts);
+
+  /// No description provided for @backupWithSecrets.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes private keys and saved passwords.'**
+  String get backupWithSecrets;
+
+  /// No description provided for @backupWithoutSecrets.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not include private keys or passwords.'**
+  String get backupWithoutSecrets;
+
+  /// No description provided for @backupWrittenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {date} by SSHetu {version}'**
+  String backupWrittenOn(String date, String version);
+
+  /// No description provided for @backupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored.'**
+  String get backupRestored;
+
+  /// No description provided for @menuSaveBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a Backup…'**
+  String get menuSaveBackup;
+
+  /// No description provided for @menuRestoreBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a Backup…'**
+  String get menuRestoreBackup;
 }
 
 class _AppLocalizationsDelegate

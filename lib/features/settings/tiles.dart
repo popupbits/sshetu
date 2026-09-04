@@ -10,6 +10,7 @@ import '../../core/ssh/openssh_import.dart';
 import '../../core/util/launcher.dart';
 import '../../core/util/review_prompt.dart';
 import '../../l10n/app_localizations.dart';
+import '../backup/presentation/open_backup.dart';
 import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/language_tile.dart';
@@ -88,6 +89,28 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
           title: Text(l10n.transferReceive),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => openTransferReceive(context, ref),
+        ),
+      ],
+    ),
+    // The app has no account, which is right for an SSH client and removes
+    // the accidental backup an account gives you. This is that backup, made
+    // explicit: a file you hold, encrypted before it leaves.
+    SettingsSection(
+      title: l10n.backupTitle,
+      tiles: [
+        ListTile(
+          leading: const Icon(PiconsRegular.archive),
+          title: Text(l10n.backupExport),
+          subtitle: Text(l10n.backupBody),
+          isThreeLine: true,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => openBackupExport(context, ref),
+        ),
+        ListTile(
+          leading: const Icon(PiconsRegular.clockCounterClockwise),
+          title: Text(l10n.backupImport),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => openBackupImport(context, ref),
         ),
       ],
     ),
