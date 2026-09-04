@@ -11,6 +11,11 @@ abstract final class Routes {
   static const String settings = '/settings';
   static const String about = '/settings/about';
   static const String knownHosts = '/settings/known-hosts';
+
+  /// Moving a configuration to another device, and the two halves of it.
+  static const String transfer = '/transfer';
+  static const String transferSend = '/transfer/send';
+  static const String transferReceive = '/transfer/receive';
   static const String diagnostics = '/settings/diagnostics';
   static const String splash = '/splash';
 

@@ -16,6 +16,14 @@
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!--
+      Scanning the QR code another device shows. Requested at the moment the
+      scanner opens and never before, and the app is fully usable without it —
+      a device can always receive by pasting the code as text instead.
+    -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+
     <application
         android:label="sshetu"
         android:name="${applicationName}"

@@ -480,5 +480,81 @@
     }
   },
   "importNotAKey": "That file is not a private key.",
-  "importNoteBodyMobile": "Add a private key from a file on this device."
+  "importNoteBodyMobile": "Add a private key from a file on this device.",
+  "transferTitle": "Move to another device",
+  "transferBody": "Send your servers, keys and tunnels straight to another device on the same network. Nothing goes through a server, and nothing is stored anywhere but the two devices.",
+  "transferSend": "Send to a device",
+  "transferReceive": "Receive from a device",
+  "transferSendTitle": "Scan this on the other device",
+  "transferSendBody": "Open SSHetu on the other device, choose Receive, and point it at this code.",
+  "transferIncludeSecrets": "Include keys and passwords",
+  "transferIncludeSecretsBody": "Sends the private keys and saved passwords themselves, not just the list of servers.",
+  "transferWaiting": "Waiting for the other device…",
+  "transferSentTo": "Sent to {device}",
+  "@transferSentTo": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "transferReceiveTitle": "Scan the other device's code",
+  "transferReceiveBody": "On the device that has your servers, choose Move to another device, then Send.",
+  "transferPasteInstead": "Paste a code instead",
+  "transferPasteHint": "sshetu://transfer/…",
+  "transferOfferTitle": "Accept this transfer?",
+  "transferOfferFrom": "From {device}",
+  "@transferOfferFrom": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "transferOfferHosts": "{count, plural, =0{No servers} =1{1 server} other{{count} servers}}",
+  "@transferOfferHosts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferOfferKeys": "{count, plural, =0{No keys} =1{1 key} other{{count} keys}}",
+  "@transferOfferKeys": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferOfferTunnels": "{count, plural, =0{No tunnels} =1{1 tunnel} other{{count} tunnels}}",
+  "@transferOfferTunnels": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferOfferTrusted": "{count, plural, =0{No trusted host keys} =1{1 trusted host key} other{{count} trusted host keys}}",
+  "@transferOfferTrusted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferOfferSecrets": "Includes private keys and saved passwords",
+  "transferOfferNoSecrets": "No keys or passwords included",
+  "transferOfferReplaces": "Anything already on this device with the same name is replaced.",
+  "transferAccept": "Accept",
+  "transferReceived": "{count, plural, =1{1 server received} other{{count} servers received}}",
+  "@transferReceived": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferScanAgain": "Scan again",
+  "transferCameraDenied": "SSHetu needs the camera to scan a code. You can paste the code as text instead."
 }

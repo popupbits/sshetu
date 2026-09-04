@@ -14,6 +14,8 @@ import '../../features/tunnels/tunnels_screen.dart';
 import '../../features/settings/about_screen.dart';
 import '../../features/settings/diagnostics_screen.dart';
 import '../../features/settings/known_hosts_screen.dart';
+import '../../features/transfer/presentation/receive_screen.dart';
+import '../../features/transfer/presentation/send_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../ui/views.dart';
@@ -133,6 +135,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'known-hosts',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (_, _) => const KnownHostsScreen(),
+                  ),
+                  // Leaf pages, and deliberately full-screen: the send
+                  // screen holds a listening socket open for exactly as long
+                  // as it is on screen, so it must not be something the nav
+                  // bar can leave half-visible.
+                  GoRoute(
+                    path: 'transfer/send',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (_, _) => const TransferSendScreen(),
+                  ),
+                  GoRoute(
+                    path: 'transfer/receive',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (_, _) => const TransferReceiveScreen(),
                   ),
                   GoRoute(
                     path: 'diagnostics',

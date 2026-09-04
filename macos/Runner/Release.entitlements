@@ -8,6 +8,11 @@
 	     socket: the sandbox denies connect() and every host looks unreachable.
 	     Flutter's template omits it, which is fine for an app that talks to an
 	     HTTP API through a plugin, and fatal here. -->
+	<!-- Scanning a QR code from another device. Without this the
+	     sandbox denies the camera and the scanner shows a black frame
+	     with no error. -->
+	<key>com.apple.security.device.camera</key>
+	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<!-- Local port forwarding binds a listening socket on this machine. -->

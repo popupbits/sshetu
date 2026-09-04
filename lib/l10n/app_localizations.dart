@@ -1899,6 +1899,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a private key from a file on this device.'**
   String get importNoteBodyMobile;
+
+  /// No description provided for @transferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to another device'**
+  String get transferTitle;
+
+  /// No description provided for @transferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your servers, keys and tunnels straight to another device on the same network. Nothing goes through a server, and nothing is stored anywhere but the two devices.'**
+  String get transferBody;
+
+  /// No description provided for @transferSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to a device'**
+  String get transferSend;
+
+  /// No description provided for @transferReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive from a device'**
+  String get transferReceive;
+
+  /// No description provided for @transferSendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan this on the other device'**
+  String get transferSendTitle;
+
+  /// No description provided for @transferSendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open SSHetu on the other device, choose Receive, and point it at this code.'**
+  String get transferSendBody;
+
+  /// No description provided for @transferIncludeSecrets.
+  ///
+  /// In en, this message translates to:
+  /// **'Include keys and passwords'**
+  String get transferIncludeSecrets;
+
+  /// No description provided for @transferIncludeSecretsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends the private keys and saved passwords themselves, not just the list of servers.'**
+  String get transferIncludeSecretsBody;
+
+  /// No description provided for @transferWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the other device…'**
+  String get transferWaiting;
+
+  /// No description provided for @transferSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {device}'**
+  String transferSentTo(String device);
+
+  /// No description provided for @transferReceiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the other device\'s code'**
+  String get transferReceiveTitle;
+
+  /// No description provided for @transferReceiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On the device that has your servers, choose Move to another device, then Send.'**
+  String get transferReceiveBody;
+
+  /// No description provided for @transferPasteInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a code instead'**
+  String get transferPasteInstead;
+
+  /// No description provided for @transferPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'sshetu://transfer/…'**
+  String get transferPasteHint;
+
+  /// No description provided for @transferOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept this transfer?'**
+  String get transferOfferTitle;
+
+  /// No description provided for @transferOfferFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {device}'**
+  String transferOfferFrom(String device);
+
+  /// No description provided for @transferOfferHosts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No servers} =1{1 server} other{{count} servers}}'**
+  String transferOfferHosts(int count);
+
+  /// No description provided for @transferOfferKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No keys} =1{1 key} other{{count} keys}}'**
+  String transferOfferKeys(int count);
+
+  /// No description provided for @transferOfferTunnels.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No tunnels} =1{1 tunnel} other{{count} tunnels}}'**
+  String transferOfferTunnels(int count);
+
+  /// No description provided for @transferOfferTrusted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No trusted host keys} =1{1 trusted host key} other{{count} trusted host keys}}'**
+  String transferOfferTrusted(int count);
+
+  /// No description provided for @transferOfferSecrets.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes private keys and saved passwords'**
+  String get transferOfferSecrets;
+
+  /// No description provided for @transferOfferNoSecrets.
+  ///
+  /// In en, this message translates to:
+  /// **'No keys or passwords included'**
+  String get transferOfferNoSecrets;
+
+  /// No description provided for @transferOfferReplaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything already on this device with the same name is replaced.'**
+  String get transferOfferReplaces;
+
+  /// No description provided for @transferAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get transferAccept;
+
+  /// No description provided for @transferReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 server received} other{{count} servers received}}'**
+  String transferReceived(int count);
+
+  /// No description provided for @transferScanAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan again'**
+  String get transferScanAgain;
+
+  /// No description provided for @transferCameraDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'SSHetu needs the camera to scan a code. You can paste the code as text instead.'**
+  String get transferCameraDenied;
 }
 
 class _AppLocalizationsDelegate

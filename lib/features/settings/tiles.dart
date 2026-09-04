@@ -69,10 +69,27 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
         ),
       ],
     ),
-    // Where "get this onto my phone" will live. Not an account: a direct,
-    // one-shot transfer between two devices the user has in front of them.
-    // Wired up in the next step; the section is left out entirely until it
-    // does something rather than shipping a row that goes nowhere.
+    // Not an account: a direct, one-shot transfer between two devices the
+    // user has in front of them, over their own network.
+    SettingsSection(
+      title: l10n.transferTitle,
+      tiles: [
+        ListTile(
+          leading: const Icon(PiconsRegular.qrCode),
+          title: Text(l10n.transferSend),
+          subtitle: Text(l10n.transferBody),
+          isThreeLine: true,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.pushTo(Routes.transferSend),
+        ),
+        ListTile(
+          leading: const Icon(PiconsRegular.downloadSimple),
+          title: Text(l10n.transferReceive),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.pushTo(Routes.transferReceive),
+        ),
+      ],
+    ),
     SettingsSection(
       title: l10n.settingsAbout,
       tiles: [

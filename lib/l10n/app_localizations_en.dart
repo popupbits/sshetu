@@ -1001,4 +1001,140 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importNoteBodyMobile =>
       'Add a private key from a file on this device.';
+
+  @override
+  String get transferTitle => 'Move to another device';
+
+  @override
+  String get transferBody =>
+      'Send your servers, keys and tunnels straight to another device on the same network. Nothing goes through a server, and nothing is stored anywhere but the two devices.';
+
+  @override
+  String get transferSend => 'Send to a device';
+
+  @override
+  String get transferReceive => 'Receive from a device';
+
+  @override
+  String get transferSendTitle => 'Scan this on the other device';
+
+  @override
+  String get transferSendBody =>
+      'Open SSHetu on the other device, choose Receive, and point it at this code.';
+
+  @override
+  String get transferIncludeSecrets => 'Include keys and passwords';
+
+  @override
+  String get transferIncludeSecretsBody =>
+      'Sends the private keys and saved passwords themselves, not just the list of servers.';
+
+  @override
+  String get transferWaiting => 'Waiting for the other device…';
+
+  @override
+  String transferSentTo(String device) {
+    return 'Sent to $device';
+  }
+
+  @override
+  String get transferReceiveTitle => 'Scan the other device\'s code';
+
+  @override
+  String get transferReceiveBody =>
+      'On the device that has your servers, choose Move to another device, then Send.';
+
+  @override
+  String get transferPasteInstead => 'Paste a code instead';
+
+  @override
+  String get transferPasteHint => 'sshetu://transfer/…';
+
+  @override
+  String get transferOfferTitle => 'Accept this transfer?';
+
+  @override
+  String transferOfferFrom(String device) {
+    return 'From $device';
+  }
+
+  @override
+  String transferOfferHosts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count servers',
+      one: '1 server',
+      zero: 'No servers',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferOfferKeys(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count keys',
+      one: '1 key',
+      zero: 'No keys',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferOfferTunnels(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tunnels',
+      one: '1 tunnel',
+      zero: 'No tunnels',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transferOfferTrusted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trusted host keys',
+      one: '1 trusted host key',
+      zero: 'No trusted host keys',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferOfferSecrets =>
+      'Includes private keys and saved passwords';
+
+  @override
+  String get transferOfferNoSecrets => 'No keys or passwords included';
+
+  @override
+  String get transferOfferReplaces =>
+      'Anything already on this device with the same name is replaced.';
+
+  @override
+  String get transferAccept => 'Accept';
+
+  @override
+  String transferReceived(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count servers received',
+      one: '1 server received',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferScanAgain => 'Scan again';
+
+  @override
+  String get transferCameraDenied =>
+      'SSHetu needs the camera to scan a code. You can paste the code as text instead.';
 }
