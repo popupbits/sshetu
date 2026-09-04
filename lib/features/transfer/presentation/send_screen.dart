@@ -16,6 +16,7 @@ import '../../../core/ui/views.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/transfer_payload.dart';
+import '../transfer_providers.dart';
 import '../transfer_session.dart';
 
 /// Shows the code, and holds the listener open exactly as long as it is shown.
@@ -39,6 +40,10 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
   TransferSender? _sender;
   String? _sentTo;
   String? _error;
+
+  /// Which part of starting is currently taking time, so the wait can name
+  /// itself instead of being one spinner that covers everything.
+  TransferStartStep? _step;
 
   /// Off by default. Sending key material is the most dangerous thing this app
   /// does, and it should take a deliberate tap rather than being the path of
@@ -81,6 +86,7 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
       _error = null;
       _sentTo = null;
       _sender = null;
+      _step = null;
     });
 
     try {
@@ -93,6 +99,11 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
       final sender = await TransferSender.start(
         payload: payload,
         deviceName: await _deviceName(),
+        clearToListen: ref.read(listenPermissionProvider),
+        onStep: (step) {
+          if (!mounted || generation != _generation) return;
+          setState(() => _step = step);
+        },
       );
       if (!mounted || generation != _generation) {
         await sender.close();
@@ -112,8 +123,24 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
       setState(() {
         _error = error is TransferException ? error.message : '$error';
         _starting = false;
+        _step = null;
       });
     }
+  }
+
+  /// Abandons a start that is waiting on something outside the app.
+  ///
+  /// Bumping the generation is what makes this immediate: the pending start is
+  /// now superseded, so whatever it eventually returns lands on the floor.
+  void _cancelStart() {
+    _generation++;
+    unawaited(_sender?.close());
+    setState(() {
+      _sender = null;
+      _starting = false;
+      _step = null;
+      _error = AppLocalizations.of(context).transferNotStarted;
+    });
   }
 
   /// What the other device calls this one. The hostname, because on a laptop
@@ -167,9 +194,11 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
           _Code(
             sender: _sender,
             starting: _starting,
+            step: _step,
             error: _error,
             sentTo: _sentTo,
             onRetry: _restart,
+            onCancel: _cancelStart,
           ),
           const SizedBox(height: Spacing.xl),
           SwitchListTile(
@@ -209,16 +238,20 @@ class _Code extends StatelessWidget {
   const _Code({
     required this.sender,
     required this.starting,
+    required this.step,
     required this.error,
     required this.sentTo,
     required this.onRetry,
+    required this.onCancel,
   });
 
   final TransferSender? sender;
   final bool starting;
+  final TransferStartStep? step;
   final String? error;
   final String? sentTo;
   final Future<void> Function() onRetry;
+  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -244,9 +277,30 @@ class _Code extends StatelessWidget {
       );
     }
     if (starting || sender == null) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: Spacing.xxxl),
-        child: LoadingView(),
+      // Named, and with a way out. Waiting on a system permission dialog can
+      // take as long as it takes someone to find it, and a wait nobody can
+      // abandon is how a screen comes to look broken.
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: Spacing.xxl),
+        child: Column(
+          children: [
+            const LoadingView(),
+            const SizedBox(height: Spacing.lg),
+            Text(
+              switch (step) {
+                TransferStartStep.permission => l10n.transferStepPermission,
+                TransferStartStep.binding => l10n.transferStepBinding,
+                null => l10n.transferStepBinding,
+              },
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: Spacing.md),
+            TextButton(onPressed: onCancel, child: Text(l10n.transferCancel)),
+          ],
+        ),
       );
     }
 

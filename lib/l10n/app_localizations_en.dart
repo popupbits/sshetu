@@ -1204,4 +1204,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transferFirewallNote =>
       'macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.';
+
+  @override
+  String get transferStepPermission =>
+      'Asking macOS for permission to accept connections…';
+
+  @override
+  String get transferStepBinding => 'Opening a port…';
+
+  @override
+  String get transferCancel => 'Cancel';
+
+  @override
+  String get transferNotStarted => 'Sharing hasn\'t started.';
 }

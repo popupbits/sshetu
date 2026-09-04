@@ -2193,6 +2193,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.'**
   String get transferFirewallNote;
+
+  /// No description provided for @transferStepPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Asking macOS for permission to accept connections…'**
+  String get transferStepPermission;
+
+  /// No description provided for @transferStepBinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening a port…'**
+  String get transferStepBinding;
+
+  /// No description provided for @transferCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get transferCancel;
+
+  /// No description provided for @transferNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing hasn\'t started.'**
+  String get transferNotStarted;
 }
 
 class _AppLocalizationsDelegate

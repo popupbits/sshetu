@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:async/async.dart';
@@ -66,6 +67,66 @@ class TransferOffer {
   final bool includesSecrets;
 }
 
+/// How long to wait for permission to accept incoming connections.
+///
+/// Long, because on macOS this is a person walking to a dialog that may have
+/// opened behind the window or on another Space. Finite, because a wait with
+/// no end is indistinguishable from a hang.
+const Duration kListenPermissionTimeout = Duration(seconds: 90);
+
+/// How long a bind may take once permission is settled. Should be instant.
+const Duration kListenTimeout = Duration(seconds: 10);
+
+/// The slow parts of starting a transfer, in the order they happen.
+enum TransferStartStep {
+  /// Waiting for the OS to allow this app to accept incoming connections.
+  permission,
+
+  /// Opening the port and working out this device's addresses.
+  binding,
+}
+
+/// Gets permission to listen out of the way before the real socket is opened.
+///
+/// macOS asks "Do you want the application to accept incoming network
+/// connections?" the first time a binary it has not seen calls `listen()`, and
+/// holds that syscall until someone answers. Dart runs the syscall on the
+/// calling isolate's thread — so doing it here would stop the UI isolate dead:
+/// no frames, no spinner, no way to cancel, and macOS marking the window as
+/// not responding. That is the freeze people were hitting, and no timeout on
+/// this isolate could have rescued it, because a blocked thread cannot run the
+/// timer that would fire.
+///
+/// So the first `listen()` happens on a throwaway isolate. That thread is free
+/// to sit in the syscall for as long as the dialog is up; ours keeps painting,
+/// and if the answer never comes we can say what is waiting on whom.
+///
+/// Every other platform returns immediately: Android, iOS, Windows and Linux
+/// do not gate an outbound-initiated listen behind a prompt.
+Future<void> askToListen() async {
+  if (!Platform.isMacOS) return;
+  try {
+    await Isolate.run(() async {
+      final probe = await ServerSocket.bind(InternetAddress.anyIPv4, 0);
+      await probe.close();
+    }).timeout(kListenPermissionTimeout);
+  } on TimeoutException {
+    // The isolate is still parked in the syscall and will exit on its own the
+    // moment the dialog is answered. Leaving it there costs one blocked
+    // thread; killing it would not unblock the syscall any sooner.
+    throw const TransferException(
+      'macOS has not yet allowed SSHetu to accept incoming connections. '
+      'Look for a system dialog asking about it — it can open behind this '
+      'window — and choose Allow. If there is no dialog, add SSHetu under '
+      'System Settings \u2192 Network \u2192 Firewall \u2192 Options.',
+    );
+  } on Object catch (error) {
+    throw TransferException(
+      'This device would not let SSHetu open a port. ($error)',
+    );
+  }
+}
+
 /// The sending half: shows a code, waits for one device, hands over once.
 ///
 /// The listener exists only while this object does. There is no background
@@ -81,12 +142,28 @@ class TransferSender {
   /// something a scanner could look for on a network to find machines running
   /// this app — and there is no reason to have one when the port travels in
   /// the code.
+  ///
+  /// [onStep] is called as this progresses, so a screen can say which slow
+  /// thing is happening rather than showing one spinner for all of them.
   static Future<TransferSender> start({
     required TransferPayload payload,
     required String deviceName,
     List<String>? addresses,
+    void Function(TransferStartStep)? onStep,
+    Future<void> Function()? clearToListen,
   }) async {
-    final server = await ServerSocket.bind(InternetAddress.anyIPv4, 0);
+    onStep?.call(TransferStartStep.permission);
+    await (clearToListen ?? askToListen)();
+
+    onStep?.call(TransferStartStep.binding);
+    final server = await ServerSocket.bind(InternetAddress.anyIPv4, 0).timeout(
+      kListenTimeout,
+      onTimeout: () => throw const TransferException(
+        'This device would not open a port for the transfer. '
+        'Check whether a firewall or security tool is blocking SSHetu, '
+        'then try again.',
+      ),
+    );
     final found = addresses ?? await localAddresses();
     if (found.isEmpty) {
       await server.close();

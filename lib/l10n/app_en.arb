@@ -578,5 +578,9 @@
   "menuSettings": "Settings",
   "menuTrustedHostKeys": "Trusted Host Keys",
   "menuDiagnostics": "Diagnostics",
-  "transferFirewallNote": "macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you."
+  "transferFirewallNote": "macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.",
+  "transferStepPermission": "Asking macOS for permission to accept connections…",
+  "transferStepBinding": "Opening a port…",
+  "transferCancel": "Cancel",
+  "transferNotStarted": "Sharing hasn't started."
 }

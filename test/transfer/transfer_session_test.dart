@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -206,6 +207,53 @@ void main() {
     await handed;
 
     expect(await receiver.raw.query('hosts'), hasLength(200));
+  });
+
+  test('permission that never comes is a message, not a hang', () async {
+    await seed();
+
+    await expectLater(
+      TransferSender.start(
+        payload: await TransferPayload.read(
+          sender.raw,
+          vault: senderVault,
+          includeSecrets: false,
+        ),
+        deviceName: 'laptop',
+        clearToListen: () async =>
+            throw const TransferException('Firewall said no.'),
+      ),
+      throwsA(
+        isA<TransferException>().having(
+          (e) => e.message,
+          'message',
+          'Firewall said no.',
+        ),
+      ),
+    );
+  });
+
+  test('asking to listen leaves this isolate free to keep working', () async {
+    // The whole point of the pre-clearance: whatever the OS does with the
+    // first listen, it does not happen on the thread that draws frames. A
+    // stalled event loop here is a frozen window there.
+    final ticks = <int>[];
+    final clock = Stopwatch()..start();
+    final timer = Timer.periodic(
+      const Duration(milliseconds: 10),
+      (_) => ticks.add(clock.elapsedMilliseconds),
+    );
+
+    await askToListen();
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    timer.cancel();
+
+    expect(ticks, isNotEmpty);
+    var worst = 0;
+    for (var i = 1; i < ticks.length; i++) {
+      worst = worst > ticks[i] - ticks[i - 1] ? worst : ticks[i] - ticks[i - 1];
+    }
+    expect(worst, lessThan(500), reason: 'the event loop stalled');
   });
 
   test('nobody scanning in time is a message, not a hang', () async {
