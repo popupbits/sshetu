@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../../core/ssh/key_material_cache.dart';
 import 'domain/ssh_identity.dart';
 
 /// Every key the user has.
@@ -22,6 +23,9 @@ class IdentitiesController {
     await _ref
         .read(identityRepositoryProvider)
         .save(identity, privateKey: privateKey, passphrase: passphrase);
+    // A key that was just rewritten must not be offered from the copy read
+    // before it changed.
+    _ref.read(keyMaterialCacheProvider).forget(identity.id);
     _ref.invalidate(identitiesProvider);
   }
 
@@ -42,6 +46,7 @@ class IdentitiesController {
           .read(identityRepositoryProvider)
           .delete(id, now: DateTime.now().toUtc());
     } finally {
+      _ref.read(keyMaterialCacheProvider).forget(id);
       _ref.invalidate(identitiesProvider);
     }
   }

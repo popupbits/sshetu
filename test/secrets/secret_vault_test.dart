@@ -192,4 +192,60 @@ void main() {
       expect(prompts, 2);
     });
   });
+
+  group('a store that refuses to erase', () {
+    test('still has every other secret taken from it', () async {
+      // Stopping at the first refusal left the rest behind: a key the store
+      // would not erase also stranded its passphrase, which nothing would
+      // ever come back for.
+      final refused = <String>{'identity/k1/private'};
+      final vault = _PartlyRefusingVault(refused);
+      await vault.write(SecretRef.identityPrivateKey('k1'), 'KEY');
+      await vault.write(SecretRef.identityPassphrase('k1'), 'PHRASE');
+
+      await expectLater(
+        vault.deleteAll(SecretRef.forIdentity('k1')),
+        throwsA(isA<SecretVaultException>()),
+      );
+
+      expect(
+        await vault.read(SecretRef.identityPassphrase('k1')),
+        isNull,
+        reason: 'the passphrase was erasable and must be gone',
+      );
+      expect(
+        await vault.read(SecretRef.identityPrivateKey('k1')),
+        'KEY',
+        reason: 'and the one that was refused is honestly still there',
+      );
+    });
+  });
+}
+
+/// Refuses to delete exactly the keys it was told to.
+class _PartlyRefusingVault extends InMemorySecretVault {
+  _PartlyRefusingVault(this.refuse);
+
+  final Set<String> refuse;
+
+  @override
+  Future<void> delete(SecretRef ref) async {
+    if (refuse.contains(ref.storageKey)) {
+      throw SecretVaultException('Could not remove secret', ref: ref);
+    }
+    return super.delete(ref);
+  }
+
+  @override
+  Future<void> deleteAll(Iterable<SecretRef> refs) async {
+    Object? failure;
+    for (final ref in refs) {
+      try {
+        await delete(ref);
+      } on Object catch (error) {
+        failure ??= error;
+      }
+    }
+    if (failure != null) throw failure;
+  }
 }

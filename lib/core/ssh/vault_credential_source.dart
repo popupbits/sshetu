@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../secrets/secret_ref.dart';
 import '../secrets/secret_vault.dart';
+import 'key_material_cache.dart';
 import 'ssh_credentials.dart';
 import 'ssh_target.dart';
 
@@ -57,7 +58,8 @@ class VaultCredentialSource implements SshCredentialSource {
     required this.vault,
     this.catalog = _noIdentities,
     this.prompt,
-  });
+    KeyMaterialCache? keyCache,
+  }) : _keyCache = keyCache ?? KeyMaterialCache();
 
   final SecretVault vault;
 
@@ -66,20 +68,16 @@ class VaultCredentialSource implements SshCredentialSource {
 
   final SecretPrompt? prompt;
 
-  /// Key material already read, for the life of *this* source.
+  /// Key material already read.
   ///
-  /// One source is built per connection, so this is scoped to one session and
-  /// dies with it. It exists because every read is a real credential-store
-  /// lookup, and on macOS's login keychain each one can raise its own
-  /// authorisation prompt: offering two keys to a host meant four lookups per
-  /// attempt, and a reconnect meant four more. The material is in memory
-  /// throughout the connection regardless — this changes how often it is
-  /// fetched, not how long it is held.
+  /// Shared across connections when one is supplied — see [KeyMaterialCache]
+  /// for why, and for what that costs. Private to this source otherwise, which
+  /// is what tests and one-off connections get.
   ///
-  /// Passwords are deliberately NOT cached here. A key is a file the user
-  /// already stored; a password is something they typed, and it should not
-  /// outlive the attempt it was typed for.
-  final Map<String, SshPrivateKey> _keyCache = {};
+  /// Passwords are deliberately never cached. A key is a file the user already
+  /// stored; a password is something they typed, and it should not outlive the
+  /// attempt it was typed for.
+  final KeyMaterialCache _keyCache;
 
   static Future<List<AvailableIdentity>> _noIdentities() async => const [];
 

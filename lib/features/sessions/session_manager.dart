@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
 import '../../core/ssh/host_key_verifier.dart';
+import '../../core/ssh/key_material_cache.dart';
 import '../../core/ssh/ssh_connection.dart';
 import '../../core/ssh/ssh_credentials.dart';
 import '../../core/ssh/vault_credential_source.dart';
@@ -174,6 +175,9 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       ),
       credentials: VaultCredentialSource(
         vault: ref.read(secretVaultProvider),
+        // Shared, so opening a second session does not re-read every key —
+        // and on macOS, does not raise the same authorisation prompts again.
+        keyCache: ref.read(keyMaterialCacheProvider),
         // Read lazily, at connect time: a key imported since the app started
         // should be offered without a restart.
         catalog: () async => [

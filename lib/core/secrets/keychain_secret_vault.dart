@@ -134,8 +134,22 @@ class KeychainSecretVault implements SecretVault {
   Future<void> deleteAll(Iterable<SecretRef> refs) async {
     // Deliberately not FlutterSecureStorage.deleteAll(), which empties the
     // entire store: this must remove one owner's secrets, not everyone's.
+    //
+    // Every ref is attempted even after one fails. Stopping at the first
+    // refusal left the rest behind — a key the store would not erase also
+    // stranded its passphrase, which nothing would ever come back for. The
+    // first failure is still reported, so the caller can say the material may
+    // remain; it is just no longer a reason to abandon the others.
+    Object? failure;
+    StackTrace? failureStack;
     for (final ref in refs) {
-      await delete(ref);
+      try {
+        await delete(ref);
+      } on Object catch (error, stack) {
+        failure ??= error;
+        failureStack ??= stack;
+      }
     }
+    if (failure != null) Error.throwWithStackTrace(failure, failureStack!);
   }
 }
