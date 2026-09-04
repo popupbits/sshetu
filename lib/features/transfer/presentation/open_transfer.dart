@@ -2,11 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../../core/router/navigation.dart';
 import '../../../core/router/routes.dart';
-import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../sessions/workspace_pages.dart';
+import '../../sessions/open_in_workspace.dart';
 import 'receive_screen.dart';
 import 'send_screen.dart';
 
@@ -18,7 +16,7 @@ import 'send_screen.dart';
 /// window away to show a QR code loses the session someone was working in.
 ///
 /// On a phone there is only ever one thing on screen, so it stays a page.
-void openTransferSend(BuildContext context, WidgetRef ref) => _open(
+void openTransferSend(BuildContext context, WidgetRef ref) => openInWorkspace(
   context,
   ref,
   id: 'transfer/send',
@@ -28,30 +26,13 @@ void openTransferSend(BuildContext context, WidgetRef ref) => _open(
   builder: (_) => const TransferSendScreen(embedded: true),
 );
 
-void openTransferReceive(BuildContext context, WidgetRef ref) => _open(
-  context,
-  ref,
-  id: 'transfer/receive',
-  title: AppLocalizations.of(context).transferReceive,
-  icon: PiconsRegular.downloadSimple,
-  route: Routes.transferReceive,
-  builder: (_) => const TransferReceiveScreen(embedded: true),
-);
-
-void _open(
-  BuildContext context,
-  WidgetRef ref, {
-  required String id,
-  required String title,
-  required IconData icon,
-  required String route,
-  required WidgetBuilder builder,
-}) {
-  if (!context.useRail) {
-    context.pushTo(route);
-    return;
-  }
-  ref
-      .read(workspacePagesProvider.notifier)
-      .open(WorkspacePage(id: id, title: title, icon: icon, builder: builder));
-}
+void openTransferReceive(BuildContext context, WidgetRef ref) =>
+    openInWorkspace(
+      context,
+      ref,
+      id: 'transfer/receive',
+      title: AppLocalizations.of(context).transferReceive,
+      icon: PiconsRegular.downloadSimple,
+      route: Routes.transferReceive,
+      builder: (_) => const TransferReceiveScreen(embedded: true),
+    );

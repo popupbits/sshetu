@@ -1200,4 +1200,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuDiagnostics => 'Diagnostics';
+
+  @override
+  String get transferFirewallNote =>
+      'macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.';
 }

@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../features/sessions/open_screens.dart';
+
 import '../../features/sessions/session_manager.dart';
 import '../../features/transfer/presentation/open_transfer.dart';
 import '../../l10n/app_localizations.dart';
@@ -48,11 +50,11 @@ class AppMenuBar extends ConsumerWidget {
             PlatformMenuItem(
               label: l10n.menuNewHost,
               shortcut: _primary(LogicalKeyboardKey.keyN),
-              onSelected: () => context.pushTo(Routes.hostNew),
+              onSelected: () => openHostEditor(context, ref),
             ),
             PlatformMenuItem(
               label: l10n.menuImport,
-              onSelected: () => context.pushTo(Routes.importOpenSsh),
+              onSelected: () => openImport(context, ref),
             ),
             PlatformMenuItemGroup(
               members: [

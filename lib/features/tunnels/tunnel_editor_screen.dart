@@ -14,7 +14,12 @@ import 'tunnels_controller.dart';
 
 /// Add or edit one port forward.
 class TunnelEditorScreen extends ConsumerStatefulWidget {
-  const TunnelEditorScreen({this.tunnelId, this.hostId, super.key});
+  const TunnelEditorScreen({
+    this.tunnelId,
+    this.hostId,
+    this.embedded = false,
+    super.key,
+  });
 
   /// Null for a new forward.
   final String? tunnelId;
@@ -22,6 +27,14 @@ class TunnelEditorScreen extends ConsumerStatefulWidget {
   /// Preselects the host when adding — the ordinary way in, since the list
   /// screen always offers "add" from inside one host's section.
   final String? hostId;
+
+  /// True when this is a tab in the desktop workspace.
+  ///
+  /// The tab supplies the title and the way out, so the app bar keeps its
+  /// actions — Save has nowhere else to go — and drops its leading control.
+  /// Without that, `automaticallyImplyLeading` finds the shell's route and
+  /// offers a back arrow that would pop the whole shell.
+  final bool embedded;
 
   @override
   ConsumerState<TunnelEditorScreen> createState() => _TunnelEditorScreenState();
@@ -153,6 +166,7 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.embedded,
         title: Text(isNew ? l10n.tunnelEditorNew : l10n.tunnelEditorEdit),
         actions: [
           TextButton(onPressed: _save, child: Text(l10n.hostEditorSave)),

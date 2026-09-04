@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../../core/router/navigation.dart';
-import '../../../core/router/routes.dart';
+import '../../sessions/open_screens.dart';
+
 import '../../../core/ssh/tunnel_runner.dart';
 import '../../../core/theme/terminal_theme.dart';
 import '../../../core/theme/tokens.dart';
@@ -36,7 +36,7 @@ class TunnelTile extends ConsumerWidget {
     );
 
     return ListTile(
-      onTap: () => context.pushTo(Routes.tunnelEditFor(tunnel.id)),
+      onTap: () => openTunnelEditor(context, ref, tunnelId: tunnel.id),
       visualDensity: VisualDensity.compact,
       minVerticalPadding: Spacing.sm,
       leading: Icon(_kindIcon(tunnel.kind), color: scheme.onSurfaceVariant),
@@ -183,7 +183,7 @@ class _TunnelMenu extends ConsumerWidget {
       menuChildren: [
         MenuItemButton(
           leadingIcon: const Icon(PiconsRegular.pencilSimple),
-          onPressed: () => context.pushTo(Routes.tunnelEditFor(tunnel.id)),
+          onPressed: () => openTunnelEditor(context, ref, tunnelId: tunnel.id),
           child: Text(l10n.tunnelsEdit),
         ),
         MenuItemButton(

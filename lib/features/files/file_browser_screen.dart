@@ -25,9 +25,17 @@ import 'widgets/transfer_tile.dart';
 /// there is no host picker here, because the whole point is reusing the
 /// session's already-authenticated connection rather than dialling in again.
 class FileBrowserScreen extends ConsumerStatefulWidget {
-  const FileBrowserScreen({required this.sessionId, super.key});
+  const FileBrowserScreen({
+    required this.sessionId,
+    this.embedded = false,
+    super.key,
+  });
 
   final String sessionId;
+
+  /// True when this is a tab in the desktop workspace, which supplies the
+  /// title and the way out.
+  final bool embedded;
 
   @override
   ConsumerState<FileBrowserScreen> createState() => _FileBrowserScreenState();
@@ -95,7 +103,10 @@ class _FileBrowserScreenState extends ConsumerState<FileBrowserScreen> {
 
     if (session == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.filesTitle)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(l10n.filesTitle),
+        ),
         body: EmptyView(
           icon: PiconsRegular.folderOpen,
           title: l10n.filesNoSessionTitle,
@@ -108,7 +119,10 @@ class _FileBrowserScreenState extends ConsumerState<FileBrowserScreen> {
     if (controller == null) {
       unawaited(_init(session));
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.filesTitle)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(l10n.filesTitle),
+        ),
         body: const LoadingView(),
       );
     }

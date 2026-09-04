@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../core/router/navigation.dart';
-import '../../core/router/routes.dart';
+import '../sessions/open_screens.dart';
+
 import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
@@ -68,13 +68,13 @@ class HostsScreen extends ConsumerWidget {
   }
 }
 
-class _Empty extends StatelessWidget {
+class _Empty extends ConsumerWidget {
   const _Empty({required this.hasQuery});
 
   final bool hasQuery;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
     // A search that found nothing is not the same as having no hosts, and
@@ -97,13 +97,13 @@ class _Empty extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           FilledButton.icon(
-            onPressed: () => context.pushTo(Routes.importOpenSsh),
+            onPressed: () => openImport(context, ref),
             icon: const Icon(PiconsRegular.downloadSimple),
             label: Text(l10n.hostsImport),
           ),
           const SizedBox(height: Spacing.sm),
           TextButton.icon(
-            onPressed: () => context.pushTo(Routes.hostNew),
+            onPressed: () => openHostEditor(context, ref),
             icon: const Icon(PiconsRegular.plus),
             label: Text(l10n.hostsAdd),
           ),

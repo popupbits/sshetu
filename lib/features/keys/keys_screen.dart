@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../core/router/navigation.dart';
-import '../../core/router/routes.dart';
+import '../import/import_screen.dart';
+
+import '../sessions/open_screens.dart';
+
 import '../../core/theme/tokens.dart';
 import '../../core/ui/feedback.dart';
 import '../../core/ui/views.dart';
@@ -47,7 +49,8 @@ class KeysScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: Spacing.sm),
                 TextButton.icon(
-                  onPressed: () => context.pushTo(Routes.importFocused('keys')),
+                  onPressed: () =>
+                      openImport(context, ref, focus: ImportFocus.keys),
                   icon: const Icon(PiconsRegular.downloadSimple),
                   label: Text(l10n.keysImport),
                 ),

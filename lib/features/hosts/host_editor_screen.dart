@@ -16,10 +16,18 @@ import 'hosts_controller.dart';
 
 /// Add or edit one host.
 class HostEditorScreen extends ConsumerStatefulWidget {
-  const HostEditorScreen({this.hostId, super.key});
+  const HostEditorScreen({this.hostId, this.embedded = false, super.key});
 
   /// Null for a new host.
   final String? hostId;
+
+  /// True when this is a tab in the desktop workspace.
+  ///
+  /// The tab supplies the title and the way out, so the app bar keeps its
+  /// actions — Save has nowhere else to go — and drops its leading control.
+  /// Without that, `automaticallyImplyLeading` finds the shell's route and
+  /// offers a back arrow that would pop the whole shell.
+  final bool embedded;
 
   @override
   ConsumerState<HostEditorScreen> createState() => _HostEditorScreenState();
@@ -126,6 +134,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.embedded,
         title: Text(
           widget.hostId == null ? l10n.hostEditorNew : l10n.hostEditorEdit,
         ),

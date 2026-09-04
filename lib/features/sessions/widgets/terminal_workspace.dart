@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../../core/router/navigation.dart';
-import '../../../core/router/routes.dart';
+import '../open_screens.dart';
+
 import '../../../core/theme/tokens.dart';
 import '../../../core/ui/views.dart';
 import '../../../l10n/app_localizations.dart';
@@ -55,7 +55,7 @@ class TerminalWorkspace extends ConsumerWidget {
                   width: 30,
                   height: 30,
                 ),
-                onPressed: () => context.pushTo(Routes.filesFor(active.id)),
+                onPressed: () => openFiles(context, ref, active.id),
               ),
             const SizedBox(width: Spacing.xs),
           ],

@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../../core/router/navigation.dart';
-import '../../../core/router/routes.dart';
+import '../../sessions/open_screens.dart';
+
 import '../../../core/ssh/ssh_target.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/ui/context_menu.dart';
@@ -43,7 +43,7 @@ class HostTile extends ConsumerWidget {
         MenuAction(
           label: l10n.hostsEdit,
           icon: PiconsRegular.pencilSimple,
-          onSelected: () => context.pushTo(Routes.hostEditFor(host.id)),
+          onSelected: () => openHostEditor(context, ref, hostId: host.id),
         ),
         MenuAction(
           label: l10n.hostsDelete,
@@ -249,7 +249,7 @@ class _HostMenu extends ConsumerWidget {
       menuChildren: [
         MenuItemButton(
           leadingIcon: const Icon(PiconsRegular.pencilSimple),
-          onPressed: () => context.pushTo(Routes.hostEditFor(host.id)),
+          onPressed: () => openHostEditor(context, ref, hostId: host.id),
           child: Text(l10n.hostsEdit),
         ),
         MenuItemButton(

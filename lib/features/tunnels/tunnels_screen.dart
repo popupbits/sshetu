@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
-import '../../core/router/navigation.dart';
-import '../../core/router/routes.dart';
+import '../sessions/open_screens.dart';
+
 import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
@@ -53,13 +53,13 @@ class TunnelsScreen extends ConsumerWidget {
   }
 }
 
-class _Empty extends StatelessWidget {
+class _Empty extends ConsumerWidget {
   const _Empty({required this.hasHosts});
 
   final bool hasHosts;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return EmptyView(
       icon: PiconsRegular.plugs,
@@ -70,12 +70,12 @@ class _Empty extends StatelessWidget {
       // would have nothing in it.
       action: hasHosts
           ? FilledButton.icon(
-              onPressed: () => context.pushTo(Routes.tunnelNew),
+              onPressed: () => openTunnelEditor(context, ref),
               icon: const Icon(PiconsRegular.plus),
               label: Text(l10n.tunnelsAdd),
             )
           : FilledButton.icon(
-              onPressed: () => context.pushTo(Routes.hostNew),
+              onPressed: () => openHostEditor(context, ref),
               icon: const Icon(PiconsRegular.plus),
               label: Text(l10n.hostsAdd),
             ),
@@ -83,14 +83,14 @@ class _Empty extends StatelessWidget {
   }
 }
 
-class _TunnelList extends StatelessWidget {
+class _TunnelList extends ConsumerWidget {
   const _TunnelList({required this.tunnels, required this.hosts});
 
   final List<Tunnel> tunnels;
   final List<SshHost> hosts;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final byHost = <String, List<Tunnel>>{};
     for (final tunnel in tunnels) {
       (byHost[tunnel.hostId] ??= []).add(tunnel);
@@ -118,7 +118,7 @@ class _TunnelList extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
                 tooltip: AppLocalizations.of(context).tunnelsAdd,
                 onPressed: () =>
-                    context.pushTo(Routes.tunnelNewFor(section.host.id)),
+                    openTunnelEditor(context, ref, hostId: section.host.id),
               ),
             ),
             for (final tunnel in section.forwards) TunnelTile(tunnel: tunnel),

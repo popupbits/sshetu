@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
+import '../sessions/open_screens.dart';
+
 import '../../core/error/error_logger.dart';
 import '../../core/error/error_record.dart';
 import '../../core/router/navigation.dart';
@@ -54,7 +56,7 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
                 : l10n.importNoteBodyMobile,
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.pushTo(Routes.importOpenSsh),
+          onTap: () => openImport(context, ref),
         ),
       ],
     ),

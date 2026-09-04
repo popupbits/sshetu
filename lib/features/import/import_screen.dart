@@ -38,10 +38,22 @@ enum ImportFocus {
 /// user can *deselect* the two hosts they no longer use — not so they have to
 /// tick forty boxes to get what they asked for.
 class ImportScreen extends ConsumerStatefulWidget {
-  const ImportScreen({this.focus = ImportFocus.all, super.key});
+  const ImportScreen({
+    this.focus = ImportFocus.all,
+    this.embedded = false,
+    super.key,
+  });
 
   /// What this screen was opened to import.
   final ImportFocus focus;
+
+  /// True when this is a tab in the desktop workspace.
+  ///
+  /// The tab supplies the title and the way out, so the app bar keeps its
+  /// actions — Save has nowhere else to go — and drops its leading control.
+  /// Without that, `automaticallyImplyLeading` finds the shell's route and
+  /// offers a back arrow that would pop the whole shell.
+  final bool embedded;
 
   @override
   ConsumerState<ImportScreen> createState() => _ImportScreenState();
@@ -190,6 +202,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.embedded,
         title: Text(
           widget.focus == ImportFocus.keys ? l10n.keysImport : l10n.importTitle,
         ),

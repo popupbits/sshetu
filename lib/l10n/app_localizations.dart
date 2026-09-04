@@ -2187,6 +2187,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diagnostics'**
   String get menuDiagnostics;
+
+  /// No description provided for @transferFirewallNote.
+  ///
+  /// In en, this message translates to:
+  /// **'macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.'**
+  String get transferFirewallNote;
 }
 
 class _AppLocalizationsDelegate
