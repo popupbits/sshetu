@@ -2217,6 +2217,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sharing hasn\'t started.'**
   String get transferNotStarted;
+
+  /// No description provided for @menuCloseTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Tab'**
+  String get menuCloseTab;
+
+  /// No description provided for @menuWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Window'**
+  String get menuWindow;
+
+  /// No description provided for @menuMinimize.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize'**
+  String get menuMinimize;
+
+  /// No description provided for @menuZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom'**
+  String get menuZoom;
+
+  /// No description provided for @menuFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Full Screen'**
+  String get menuFullScreen;
+
+  /// No description provided for @menuBringAllToFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring All to Front'**
+  String get menuBringAllToFront;
+
+  /// No description provided for @menuHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide SSHetu'**
+  String get menuHide;
+
+  /// No description provided for @menuHideOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Others'**
+  String get menuHideOthers;
+
+  /// No description provided for @menuShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show All'**
+  String get menuShowAll;
+
+  /// No description provided for @menuServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get menuServices;
+
+  /// No description provided for @menuQuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit SSHetu'**
+  String get menuQuit;
+
+  /// No description provided for @menuAboutApp.
+  ///
+  /// In en, this message translates to:
+  /// **'About SSHetu'**
+  String get menuAboutApp;
 }
 
 class _AppLocalizationsDelegate

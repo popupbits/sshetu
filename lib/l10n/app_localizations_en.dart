@@ -1217,4 +1217,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transferNotStarted => 'Sharing hasn\'t started.';
+
+  @override
+  String get menuCloseTab => 'Close Tab';
+
+  @override
+  String get menuWindow => 'Window';
+
+  @override
+  String get menuMinimize => 'Minimize';
+
+  @override
+  String get menuZoom => 'Zoom';
+
+  @override
+  String get menuFullScreen => 'Enter Full Screen';
+
+  @override
+  String get menuBringAllToFront => 'Bring All to Front';
+
+  @override
+  String get menuHide => 'Hide SSHetu';
+
+  @override
+  String get menuHideOthers => 'Hide Others';
+
+  @override
+  String get menuShowAll => 'Show All';
+
+  @override
+  String get menuServices => 'Services';
+
+  @override
+  String get menuQuit => 'Quit SSHetu';
+
+  @override
+  String get menuAboutApp => 'About SSHetu';
 }

@@ -582,5 +582,17 @@
   "transferStepPermission": "Asking macOS for permission to accept connections…",
   "transferStepBinding": "Opening a port…",
   "transferCancel": "Cancel",
-  "transferNotStarted": "Sharing hasn't started."
+  "transferNotStarted": "Sharing hasn't started.",
+  "menuCloseTab": "Close Tab",
+  "menuWindow": "Window",
+  "menuMinimize": "Minimize",
+  "menuZoom": "Zoom",
+  "menuFullScreen": "Enter Full Screen",
+  "menuBringAllToFront": "Bring All to Front",
+  "menuHide": "Hide SSHetu",
+  "menuHideOthers": "Hide Others",
+  "menuShowAll": "Show All",
+  "menuServices": "Services",
+  "menuQuit": "Quit SSHetu",
+  "menuAboutApp": "About SSHetu"
 }

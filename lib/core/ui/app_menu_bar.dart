@@ -7,6 +7,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../features/sessions/open_screens.dart';
 
 import '../../features/sessions/session_manager.dart';
+import '../../features/sessions/session_shortcuts.dart';
+import '../../features/sessions/workspace_pages.dart';
 import '../../features/transfer/presentation/open_transfer.dart';
 import '../../l10n/app_localizations.dart';
 import '../router/navigation.dart';
@@ -44,6 +46,50 @@ class AppMenuBar extends ConsumerWidget {
 
     return PlatformMenuBar(
       menus: [
+        // The application menu. macOS puts About / Services / Hide / Quit
+        // here and gives them their standard shortcuts — but only if we ask
+        // for them: supplying any menus at all *replaces* the default bar, so
+        // leaving this out is what took Cmd-Q away.
+        if (_isMac)
+          PlatformMenu(
+            label: l10n.appTitle,
+            menus: [
+              PlatformMenuItem(
+                label: l10n.menuAboutApp,
+                // Ours, not the system panel: the app has a real About screen
+                // with versions and licences, and two different "about"s is
+                // one more than anyone wants.
+                onSelected: () => openAbout(context, ref),
+              ),
+              const PlatformMenuItemGroup(
+                members: [
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.servicesSubmenu,
+                  ),
+                ],
+              ),
+              const PlatformMenuItemGroup(
+                members: [
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.hide,
+                  ),
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.hideOtherApplications,
+                  ),
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.showAllApplications,
+                  ),
+                ],
+              ),
+              const PlatformMenuItemGroup(
+                members: [
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.quit,
+                  ),
+                ],
+              ),
+            ],
+          ),
         PlatformMenu(
           label: l10n.menuFile,
           menus: [
@@ -55,6 +101,18 @@ class AppMenuBar extends ConsumerWidget {
             PlatformMenuItem(
               label: l10n.menuImport,
               onSelected: () => openImport(context, ref),
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                // Close Tab, not Close Session: the workspace has terminals
+                // and pages side by side, and Cmd-W means "close the one in
+                // front" for both.
+                PlatformMenuItem(
+                  label: l10n.menuCloseTab,
+                  shortcut: _primary(LogicalKeyboardKey.keyW),
+                  onSelected: _hasTab(ref) ? () => closeCurrentTab(ref) : null,
+                ),
+              ],
             ),
             PlatformMenuItemGroup(
               members: [
@@ -77,7 +135,6 @@ class AppMenuBar extends ConsumerWidget {
             // come and go is a menu people stop reading.
             PlatformMenuItem(
               label: l10n.menuCloseSession,
-              shortcut: _primary(LogicalKeyboardKey.keyW),
               onSelected: _hasSessions(ref) ? () => _closeActive(ref) : null,
             ),
             PlatformMenuItemGroup(
@@ -123,6 +180,34 @@ class AppMenuBar extends ConsumerWidget {
             ),
           ],
         ),
+        // Minimise, Zoom and Full Screen come with their standard shortcuts
+        // attached. They are only absent because we replaced the default bar.
+        if (_isMac)
+          PlatformMenu(
+            label: l10n.menuWindow,
+            menus: const [
+              PlatformMenuItemGroup(
+                members: [
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.minimizeWindow,
+                  ),
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.zoomWindow,
+                  ),
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.toggleFullScreen,
+                  ),
+                ],
+              ),
+              PlatformMenuItemGroup(
+                members: [
+                  PlatformProvidedMenuItem(
+                    type: PlatformProvidedMenuItemType.arrangeWindowsInFront,
+                  ),
+                ],
+              ),
+            ],
+          ),
         PlatformMenu(
           label: l10n.menuHelp,
           menus: [
@@ -148,6 +233,13 @@ class AppMenuBar extends ConsumerWidget {
       child: child,
     );
   }
+
+  static bool get _isMac => defaultTargetPlatform == TargetPlatform.macOS;
+
+  /// Whether there is anything Cmd-W could close.
+  static bool _hasTab(WidgetRef ref) =>
+      ref.watch(sessionManagerProvider).isNotEmpty ||
+      ref.watch(workspacePagesProvider).isNotEmpty;
 
   /// Cmd on macOS, Ctrl elsewhere — the same rule the keyboard shortcuts use.
   static MenuSerializableShortcut _primary(LogicalKeyboardKey key) {

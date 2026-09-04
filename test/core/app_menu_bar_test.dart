@@ -123,7 +123,7 @@ void main() {
           return found;
         }
 
-        final close = shortcutFor('Close Session');
+        final close = shortcutFor('Close Tab');
         expect(close, isNotNull);
         expect(close!.meta, isTrue, reason: 'Command on macOS');
         expect(close.control, isFalse);
@@ -151,7 +151,53 @@ void main() {
         }
 
         expect(itemFor('Close Session')?.onSelected, isNull);
+        expect(itemFor('Close Tab')?.onSelected, isNull);
         expect(itemFor('New Server…')?.onSelected, isNotNull);
+      });
+    });
+
+    testWidgets('the standard macOS menus are still there', (tester) async {
+      await asPlatform(TargetPlatform.macOS, () async {
+        // Supplying any menus replaces the whole system bar, so everything
+        // macOS normally provides — Quit above all — has to be asked for.
+        // Without this the app had no Cmd-Q, no Cmd-M and no Cmd-H.
+        final bar = await pump(tester);
+
+        final provided = <PlatformProvidedMenuItemType>{};
+        void walk(List<PlatformMenuItem> items) {
+          for (final item in items) {
+            if (item is PlatformProvidedMenuItem) provided.add(item.type);
+            if (item is PlatformMenu) walk(item.menus);
+            if (item is PlatformMenuItemGroup) walk(item.members);
+          }
+        }
+
+        walk(bar!.menus);
+
+        expect(
+          provided,
+          containsAll([
+            PlatformProvidedMenuItemType.quit,
+            PlatformProvidedMenuItemType.hide,
+            PlatformProvidedMenuItemType.hideOtherApplications,
+            PlatformProvidedMenuItemType.servicesSubmenu,
+            PlatformProvidedMenuItemType.minimizeWindow,
+            PlatformProvidedMenuItemType.zoomWindow,
+            PlatformProvidedMenuItemType.toggleFullScreen,
+          ]),
+        );
+        expect(labelsOf(bar.menus), contains('Window'));
+      });
+    });
+
+    testWidgets('the app menu comes first, as macOS requires', (tester) async {
+      await asPlatform(TargetPlatform.macOS, () async {
+        final bar = await pump(tester);
+
+        // macOS takes the first menu as the application menu whatever it
+        // holds, so File in that slot would put New Server… under the app
+        // name and hide Quit somewhere it cannot be found.
+        expect(bar!.menus.first.label, 'SSHetu');
       });
     });
   });

@@ -64,7 +64,14 @@ class TerminalWorkspace extends ConsumerWidget {
           // A page covers the terminal rather than replacing the window: the
           // session keeps running, its tab stays put, and one click is back.
           child: page != null
-              ? ColoredBox(
+              // Material, not a ColoredBox. A page is a whole screen, and
+              // screens contain ListTiles, ink and switches — all of which
+              // paint onto the nearest Material ancestor. A bare ColoredBox
+              // gives them a background they cannot draw on, and ListTile
+              // asserts about it *on every frame*: with an animating spinner
+              // on the page that is sixty exceptions a second, each building
+              // a full diagnostic tree, which is what took the window down.
+              ? Material(
                   color: scheme.surface,
                   child: Builder(key: ValueKey(page.id), builder: page.builder),
                 )

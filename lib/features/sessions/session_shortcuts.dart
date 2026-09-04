@@ -5,10 +5,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'session_manager.dart';
+import 'workspace_pages.dart';
 
-/// Close the current session.
+/// Close whatever tab is showing.
+///
+/// The workspace has two kinds of tab — terminals and pages — and Cmd-W means
+/// "close this one" for both. A page is on top when one is selected, so it
+/// goes first; otherwise the active session does.
 class CloseSessionIntent extends Intent {
   const CloseSessionIntent();
+}
+
+/// Closes the front tab, whichever kind it is. Shared by the shortcut and the
+/// menu item so the two cannot mean different things.
+void closeCurrentTab(WidgetRef ref) {
+  final pages = ref.read(workspacePagesProvider.notifier);
+  final page = pages.selected;
+  if (page != null) {
+    pages.close(page.id);
+    return;
+  }
+  final manager = ref.read(sessionManagerProvider.notifier);
+  final id = manager.activeId;
+  if (id != null) manager.close(id);
 }
 
 /// Move to the next or previous session.
@@ -103,9 +122,7 @@ class SessionShortcuts extends ConsumerWidget {
         actions: <Type, Action<Intent>>{
           CloseSessionIntent: CallbackAction<CloseSessionIntent>(
             onInvoke: (_) {
-              final manager = ref.read(sessionManagerProvider.notifier);
-              final id = manager.activeId;
-              if (id != null) manager.close(id);
+              closeCurrentTab(ref);
               return null;
             },
           ),
