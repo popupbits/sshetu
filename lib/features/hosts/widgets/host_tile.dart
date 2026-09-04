@@ -57,7 +57,17 @@ class HostTile extends ConsumerWidget {
               isDestructive: true,
             );
             if (confirmed) {
-              await ref.read(hostsControllerProvider).delete(host.id);
+              try {
+                await ref.read(hostsControllerProvider).delete(host.id);
+              } on Object {
+                // The host is gone either way — the row was tombstoned before
+                // the vault was touched. What failed is erasing the saved
+                // password, and someone deleting a host deserves to know that
+                // it may still be in their keychain.
+                if (context.mounted) {
+                  context.toast(l10n.secretNotErased, isError: true);
+                }
+              }
             }
           },
         ),
@@ -262,7 +272,17 @@ class _HostMenu extends ConsumerWidget {
               isDestructive: true,
             );
             if (confirmed) {
-              await ref.read(hostsControllerProvider).delete(host.id);
+              try {
+                await ref.read(hostsControllerProvider).delete(host.id);
+              } on Object {
+                // The host is gone either way — the row was tombstoned before
+                // the vault was touched. What failed is erasing the saved
+                // password, and someone deleting a host deserves to know that
+                // it may still be in their keychain.
+                if (context.mounted) {
+                  context.toast(l10n.secretNotErased, isError: true);
+                }
+              }
             }
           },
           child: Text(l10n.hostsDelete),

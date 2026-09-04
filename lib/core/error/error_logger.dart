@@ -252,14 +252,39 @@ class ErrorLogger {
 
     for (final record in _records.value) {
       buffer
-        ..writeln('--- ${record.type} (${record.source}) x${record.count}')
-        ..writeln('first ${record.firstSeen.toIso8601String()}')
-        ..writeln('last  ${record.lastSeen.toIso8601String()}')
-        ..writeln(record.message);
-      if (record.stack.isNotEmpty) buffer.writeln(record.stack);
-      buffer.writeln();
+        ..writeln(exportOne(record))
+        ..writeln();
     }
     return buffer.toString();
+  }
+
+  /// One record, in the same shape [export] uses.
+  ///
+  /// The whole log is the wrong thing to paste into an issue about one error,
+  /// and a stack trace on screen is not something anyone retypes — so a single
+  /// record has to be copyable on its own.
+  static String exportOne(ErrorRecord record) {
+    final buffer = StringBuffer()
+      ..writeln('--- ${record.type} (${record.source}) x${record.count}')
+      ..writeln('first ${record.firstSeen.toIso8601String()}')
+      ..writeln('last  ${record.lastSeen.toIso8601String()}')
+      ..writeln(record.message);
+    if (record.stack.isNotEmpty) buffer.writeln(record.stack);
+    return buffer.toString().trimRight();
+  }
+
+  /// Forgets one record.
+  ///
+  /// Separate from [clear] because the two are different intentions: clearing
+  /// is "I have dealt with all of this", removing one is "I have dealt with
+  /// *this*, and want to see whether it comes back" — which is exactly how
+  /// someone checks whether a fix worked.
+  void remove(String fingerprint) {
+    _publish([
+      for (final record in _records.value)
+        if (record.fingerprint != fingerprint) record,
+    ]);
+    _scheduleSave();
   }
 
   /// Coalescing write. A burst of errors produces one save, not one per

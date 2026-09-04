@@ -648,5 +648,10 @@
   "keySetupServerNote": "This does not change the server's own settings. It still accepts passwords from other clients \u2014 only this app stops using one.",
   "keySetupNoKeys": "You have no keys yet. Generate one to continue.",
   "menuUseKeyInstead": "Use a Key Instead of a Password\u2026",
-  "keySetupUnavailable": "Connect to this server first \u2014 the key is installed over the session you already have."
+  "keySetupUnavailable": "Connect to this server first \u2014 the key is installed over the session you already have.",
+  "secretNotErased": "Removed from SSHetu, but the system keychain would not erase the stored secret.",
+  "diagnosticsCopyOne": "Copy this error",
+  "diagnosticsRemoveOne": "Remove this error",
+  "diagnosticsCopied": "Copied.",
+  "diagnosticsRemoved": "Removed."
 }

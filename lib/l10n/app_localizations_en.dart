@@ -1425,4 +1425,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get keySetupUnavailable =>
       'Connect to this server first — the key is installed over the session you already have.';
+
+  @override
+  String get secretNotErased =>
+      'Removed from SSHetu, but the system keychain would not erase the stored secret.';
+
+  @override
+  String get diagnosticsCopyOne => 'Copy this error';
+
+  @override
+  String get diagnosticsRemoveOne => 'Remove this error';
+
+  @override
+  String get diagnosticsCopied => 'Copied.';
+
+  @override
+  String get diagnosticsRemoved => 'Removed.';
 }

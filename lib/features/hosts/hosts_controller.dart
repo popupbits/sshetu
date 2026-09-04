@@ -48,11 +48,24 @@ class HostsController {
     _ref.invalidate(hostsProvider);
   }
 
+  /// Deletes the host, then refreshes the list **whatever happened**.
+  ///
+  /// The row is tombstoned before the vault is touched, so by the time a
+  /// credential store refuses to erase the material the deletion has already
+  /// happened. Letting that refusal skip the refresh left the host on screen
+  /// until the app was restarted — the user had deleted it, the database
+  /// agreed, and only the list disagreed.
+  ///
+  /// The error is still thrown, because "SSHetu has forgotten this host but
+  /// the keychain would not erase it" is something the person deleting a saved password deserves to be told.
   Future<void> delete(String id) async {
-    await _ref
-        .read(hostRepositoryProvider)
-        .delete(id, now: DateTime.now().toUtc());
-    _ref.invalidate(hostsProvider);
+    try {
+      await _ref
+          .read(hostRepositoryProvider)
+          .delete(id, now: DateTime.now().toUtc());
+    } finally {
+      _ref.invalidate(hostsProvider);
+    }
   }
 }
 

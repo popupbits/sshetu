@@ -2583,6 +2583,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect to this server first — the key is installed over the session you already have.'**
   String get keySetupUnavailable;
+
+  /// No description provided for @secretNotErased.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from SSHetu, but the system keychain would not erase the stored secret.'**
+  String get secretNotErased;
+
+  /// No description provided for @diagnosticsCopyOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy this error'**
+  String get diagnosticsCopyOne;
+
+  /// No description provided for @diagnosticsRemoveOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this error'**
+  String get diagnosticsRemoveOne;
+
+  /// No description provided for @diagnosticsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied.'**
+  String get diagnosticsCopied;
+
+  /// No description provided for @diagnosticsRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed.'**
+  String get diagnosticsRemoved;
 }
 
 class _AppLocalizationsDelegate

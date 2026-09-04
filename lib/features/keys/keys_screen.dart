@@ -108,9 +108,19 @@ class KeysScreen extends ConsumerWidget {
                           isDestructive: true,
                         );
                         if (confirmed) {
-                          await ref
-                              .read(identitiesControllerProvider)
-                              .delete(identity.id);
+                          try {
+                            await ref
+                                .read(identitiesControllerProvider)
+                                .delete(identity.id);
+                          } on Object {
+                            // The key is gone from SSHetu either way. What
+                            // failed is erasing the material itself, which is
+                            // exactly the part a person deleting a private key
+                            // cares about.
+                            if (context.mounted) {
+                              context.toast(l10n.secretNotErased, isError: true);
+                            }
+                          }
                         }
                       },
                       child: Text(l10n.keysDelete),

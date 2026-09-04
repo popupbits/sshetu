@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
@@ -151,11 +152,37 @@ class _ErrorTile extends StatelessWidget {
           ),
         ],
         const SizedBox(height: Spacing.sm),
-        Text(
-          '${record.source} · ${record.lastSeen.toLocal()}',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+        // The text above is selectable, but selecting a stack trace by hand
+        // inside a scrolling box is not something anyone should have to do.
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${record.source} · ${record.lastSeen.toLocal()}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () async {
+                await Clipboard.setData(
+                  ClipboardData(text: ErrorLogger.exportOne(record)),
+                );
+                if (context.mounted) context.toast(l10n.diagnosticsCopied);
+              },
+              icon: const Icon(PiconsRegular.copy, size: 16),
+              label: Text(l10n.diagnosticsCopyOne),
+            ),
+            IconButton(
+              tooltip: l10n.diagnosticsRemoveOne,
+              icon: const Icon(PiconsRegular.x, size: 16),
+              onPressed: () {
+                ErrorLogger.instance.remove(record.fingerprint);
+                context.toast(l10n.diagnosticsRemoved);
+              },
+            ),
+          ],
         ),
       ],
     );
