@@ -447,6 +447,26 @@ another country. This changes what the app uses and what it stores.
 If a backend is ever added, it belongs behind the same seams that made removing
 this one cheap: `SecretVault` for credentials, the repositories for rows.
 
+## 12a. Shipping a macOS build
+
+```
+flutter build macos --release
+tool/make_dmg.sh          # -> build/macos/SSHetu-<version>+<build>.dmg
+```
+
+`make_dmg.sh` is plain `hdiutil` — no `create-dmg`, no background image. The
+fewer moving parts between a green test run and a file someone can
+double-click, the more often it actually gets run.
+
+**Signing.** Without a *Developer ID Application* certificate the app is signed
+ad-hoc. It installs and runs, but Gatekeeper calls it an unidentified developer
+and the first launch needs a right-click → Open. A link that can be handed to
+strangers needs a Developer ID certificate and `xcrun notarytool submit`; the
+script says which of the two it produced rather than pretending.
+
+If `flutter build macos` reports "CocoaPods not installed", `pod` is at
+`/usr/local/bin` and not on the default PATH here.
+
 ## 13. Tooling — use it when it is there
 
 Prefer a real tool over shelling out by hand. Each of these is optional: check
