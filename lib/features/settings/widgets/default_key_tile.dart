@@ -35,28 +35,27 @@ class DefaultKeyTile extends ConsumerWidget {
     return ListTile(
       leading: const Icon(PiconsRegular.key),
       title: Text(l10n.settingsDefaultKey),
-      subtitle: Text(l10n.settingsDefaultKeyBody),
-      isThreeLine: true,
-      trailing: ConstrainedBox(
-        // Bounded, so a descriptively named key ellipsises rather than pushing
-        // the row wider than the panel it sits in.
-        constraints: const BoxConstraints(maxWidth: 180),
-        child: DropdownButton<String?>(
-          isExpanded: true,
-          value: valid,
-          underline: const SizedBox.shrink(),
-          items: [
-            DropdownMenuItem(child: Text(l10n.settingsDefaultKeyNone)),
-            for (final identity in identities)
-              DropdownMenuItem(
-                value: identity.id,
-                child: Text(identity.label, overflow: TextOverflow.ellipsis),
-              ),
-          ],
-          onChanged: (value) => ref
-              .read(settingsControllerProvider.notifier)
-              .setDefaultIdentity(value),
-        ),
+      // The value in the subtitle and a plain arrow at the end, matching the
+      // language picker beside it. A wide control in the trailing slot takes
+      // its width from the title, which on a phone squeezed the explanation
+      // into a three-line column next to a mostly empty dropdown.
+      subtitle: Text(
+        valid == null
+            ? l10n.settingsDefaultKeyBody
+            : identities.firstWhere((i) => i.id == valid).label,
+      ),
+      trailing: PopupMenuButton<String>(
+        // '' stands in for null: PopupMenuItem values cannot be null.
+        initialValue: valid ?? '',
+        onSelected: (value) => ref
+            .read(settingsControllerProvider.notifier)
+            .setDefaultIdentity(value.isEmpty ? null : value),
+        itemBuilder: (context) => [
+          PopupMenuItem(value: '', child: Text(l10n.settingsDefaultKeyNone)),
+          for (final identity in identities)
+            PopupMenuItem(value: identity.id, child: Text(identity.label)),
+        ],
+        icon: const Icon(Icons.arrow_drop_down),
       ),
     );
   }
