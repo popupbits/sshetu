@@ -1,4 +1,3 @@
-import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -6,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sshetu/core/app.dart';
 import 'package:sshetu/core/settings/settings_controller.dart';
 import 'package:sshetu/core/ui/views.dart';
-import 'package:sshetu/features/auth/auth_controller.dart';
 import 'package:sshetu/features/hosts/domain/ssh_host.dart';
 import 'package:sshetu/features/hosts/hosts_controller.dart';
 import 'package:sshetu/features/keys/domain/ssh_identity.dart';
@@ -100,7 +98,6 @@ void main() {
           // has none of, and the screen renders its error state — which tests
           // the error view rather than the screen.
           tunnelsProvider.overrideWith((ref) => tunnels),
-          authControllerProvider.overrideWith(_SignedOutAuthController.new),
         ],
         child: const SshetuApp(),
       ),
@@ -187,10 +184,4 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationRail), findsNothing);
   });
-}
-
-/// Reports "signed out" without touching the network.
-class _SignedOutAuthController extends AuthController {
-  @override
-  Future<models.User?> build() async => null;
 }

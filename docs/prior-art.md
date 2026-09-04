@@ -98,28 +98,52 @@ again is the reason an app gets abandoned in the first five minutes. Parsing
 `~/.ssh/config` (and `known_hosts`) is comparatively cheap and should be in v1,
 not "later".
 
-## Credential storage — decided, with the tradeoff stated
+## Credential storage — decided, then reversed
 
-Secrets sync through Appwrite using its **`encrypt` attribute**, which encrypts
-at rest with the *server's* key.
+**Secrets never leave the device.** A password or a private key is written to
+the OS keychain (`flutter_secure_storage`) and to nothing else. There is no
+account, no backend, and no remote copy.
 
-The tradeoff was raised and accepted deliberately: Appwrite can decrypt these,
-so anyone with the instance's `_APP_OPENSSL_KEY_V1` and database access — an
-operator, a backup, a breach — can read stored SSH credentials. The alternative
-considered was a client-sealed vault (XChaCha20-Poly1305 under an
-Argon2id-derived key, as Termius does), which the server cannot open; it was
-declined for the recovery and first-device-login complexity it adds.
+This reverses an earlier decision, and the reversal is the interesting part.
 
-Two consequences, both binding:
+The first design synced secrets through Appwrite's **`encrypt` attribute**,
+which encrypts at rest with the *server's* key. That tradeoff was raised and
+accepted deliberately: Appwrite could decrypt them, so anyone with the
+instance's `_APP_OPENSSL_KEY_V1` and database access — an operator, a backup, a
+breach — could read stored SSH credentials. The alternative considered was a
+client-sealed vault (XChaCha20-Poly1305 under an Argon2id-derived key, as
+Termius does), declined for the recovery and first-device-login complexity it
+adds.
 
-1. **All secret access goes through a single `SecretVault` interface.** No
-   Appwrite call and no keystore call for a secret happens anywhere else. A
-   sealed vault can then be added as another implementation without touching
-   hosts, sessions or UI.
-2. **A device-local vault backed by the OS keychain** (`flutter_secure_storage`)
-   sits in front of the synced one, gated by biometrics or device PIN
-   (`local_auth`). Biometrics are never on by default and always have a PIN
-   fallback — a user in gloves must not be locked out of their own servers.
+What changed is the question. Both options answer "how do we hold someone's
+credentials on a server safely?", and for an SSH client the better answer is
+not to hold them at all. The data does not need continuous replication either:
+a host list is near-static, so what people actually want is "get my servers
+onto my phone" — a transfer, not a sync. Termius's cloud sync is the single
+most cited reason people choose Blink or Prompt instead, which is a market
+telling you something.
+
+So: hosts, keys and tunnels move device-to-device by a **direct one-shot
+transfer** the user initiates — a QR code on the desktop, scanned by the phone,
+over the local network, with the channel sealed by a single-use secret carried
+in the QR itself. The relay is open only while the sheet is open. Nothing is
+stored anywhere but the two devices.
+
+Three consequences, all binding:
+
+1. **All secret access still goes through a single `SecretVault` interface.**
+   That seam was the right call even though the reason for it changed; it is
+   what made deleting the remote half a matter of removing one implementation
+   rather than unpicking call sites.
+2. **A device-local vault backed by the OS keychain**, gated by biometrics or
+   device PIN (`local_auth`). Biometrics are never on by default and always
+   have a PIN fallback — a user in gloves must not be locked out of their own
+   servers.
+3. **Backup is now the user's, so the app has to make it possible.** Losing a
+   laptop with no cloud copy loses the keys, which the synced design covered by
+   accident. An encrypted export — passphrase-derived key, AEAD, written
+   wherever the user likes — is the replacement, and it keeps the property that
+   no server ever holds anything readable.
 
 ## Sources
 

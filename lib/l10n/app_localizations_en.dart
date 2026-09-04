@@ -197,57 +197,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateOpenStore => 'Open Play Store';
 
   @override
-  String get authSignIn => 'Sign in';
-
-  @override
-  String get authSignUp => 'Create account';
-
-  @override
-  String get authEmail => 'Email';
-
-  @override
-  String get authPassword => 'Password';
-
-  @override
-  String get authName => 'Name';
-
-  @override
-  String get authForgotPassword => 'Forgot password?';
-
-  @override
-  String get authNoAccount => 'No account yet? Create one';
-
-  @override
-  String get authHaveAccount => 'Already have an account? Sign in';
-
-  @override
-  String get authSignOut => 'Sign out';
-
-  @override
-  String get authSignOutConfirm => 'Sign out of SSHetu?';
-
-  @override
-  String get authAccount => 'Account';
-
-  @override
-  String get authEmailRequired => 'Enter your email';
-
-  @override
-  String get authEmailInvalid => 'That doesn\'t look like an email address';
-
-  @override
-  String get authPasswordRequired => 'Enter your password';
-
-  @override
-  String get authPasswordTooShort => 'Passwords must be at least 8 characters';
-
-  @override
-  String get authNameRequired => 'Enter your name';
-
-  @override
-  String get authRecoverySent => 'Check your email for a reset link';
-
-  @override
   String get settingsDiagnostics => 'Diagnostics';
 
   @override
@@ -562,16 +511,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tunnelsEmptyBody =>
       'Add a forward to reach a port on a host through its SSH connection.';
-
-  @override
-  String get settingsSync => 'Sync';
-
-  @override
-  String get settingsSyncSignIn => 'Sign in to sync';
-
-  @override
-  String get settingsSyncBody =>
-      'Optional. Everything works on this device without an account.';
 
   @override
   String get importChooseFolder => 'Choose folder';
@@ -928,37 +867,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sessionCloseOthers => 'Close other tabs';
-
-  @override
-  String get settingsSyncNow => 'Sync now';
-
-  @override
-  String get settingsSyncSyncing => 'Syncing…';
-
-  @override
-  String get settingsSyncNeverSynced => 'Not synced yet';
-
-  @override
-  String settingsSyncLastSyncedAt(String time) {
-    return 'Synced $time';
-  }
-
-  @override
-  String settingsSyncPendingCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count changes waiting to sync',
-      one: '1 change waiting to sync',
-      zero: 'Up to date',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String settingsSyncFailed(String error) {
-    return 'Sync failed: $error';
-  }
 
   @override
   String get filesTransferCancelled => 'Cancelled';

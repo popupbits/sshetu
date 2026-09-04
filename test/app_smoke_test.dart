@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sshetu/core/app.dart';
 import 'package:sshetu/core/settings/settings_controller.dart';
-import 'package:appwrite/models.dart' as models;
-import 'package:sshetu/features/auth/auth_controller.dart';
 import 'package:sshetu/features/hosts/hosts_controller.dart';
 import 'package:sshetu/features/keys/keys_controller.dart';
 
@@ -29,7 +27,6 @@ void main() {
           // startup and layout, not data.
           hostsProvider.overrideWith((ref) => []),
           identitiesProvider.overrideWith((ref) => []),
-          authControllerProvider.overrideWith(_SignedOutAuthController.new),
         ],
         child: const SshetuApp(),
       ),
@@ -42,10 +39,3 @@ void main() {
 
 /// Reports "signed out" without touching the network.
 ///
-/// The real controller calls `account.get()` from `build()`, and Flutter's
-/// test HTTP client answers every request with a 400. Without this override
-/// the test would be asserting on a network failure rather than on the app.
-class _SignedOutAuthController extends AuthController {
-  @override
-  Future<models.User?> build() async => null;
-}

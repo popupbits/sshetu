@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sshetu/core/app.dart';
 import 'package:sshetu/core/util/responsive.dart';
 import 'package:sshetu/core/settings/settings_controller.dart';
-import 'package:appwrite/models.dart' as models;
-import 'package:sshetu/features/auth/auth_controller.dart';
 import 'package:sshetu/features/hosts/hosts_controller.dart';
 import 'package:sshetu/features/keys/keys_controller.dart';
 
@@ -42,7 +40,6 @@ void main() {
           // startup and layout, not data.
           hostsProvider.overrideWith((ref) => []),
           identitiesProvider.overrideWith((ref) => []),
-          authControllerProvider.overrideWith(_SignedInAuthController.new),
         ],
         child: const SshetuApp(),
       ),
@@ -81,27 +78,4 @@ void main() {
       );
     }
   });
-}
-
-/// Signed in, without touching the network — the shell only exists past auth.
-class _SignedInAuthController extends AuthController {
-  @override
-  Future<models.User?> build() async => models.User(
-    $id: 'test',
-    $createdAt: '',
-    $updatedAt: '',
-    name: 'Test',
-    registration: '',
-    status: true,
-    labels: const [],
-    passwordUpdate: '',
-    email: 'test@example.com',
-    phone: '',
-    emailVerification: true,
-    phoneVerification: false,
-    mfa: false,
-    prefs: models.Preferences(data: const {}),
-    targets: const [],
-    accessedAt: '',
-  );
 }

@@ -17,21 +17,4 @@ abstract final class AppConfig {
       'https://play.google.com/store/apps/details?id=com.popupbits.sshetu';
 
   static const String legalese = '© 2026 SSHetu';
-
-  // --- Appwrite ---
-
-  static const String appwriteEndpoint = String.fromEnvironment(
-    'APPWRITE_ENDPOINT',
-    defaultValue: 'https://cloud.appwrite.io/v1',
-  );
-
-  static const String appwriteProjectId = String.fromEnvironment(
-    'APPWRITE_PROJECT',
-    defaultValue: 'sshetu',
-  );
-
-  static const String appwriteDatabaseId = String.fromEnvironment(
-    'APPWRITE_DATABASE',
-    defaultValue: 'sshetu',
-  );
 }

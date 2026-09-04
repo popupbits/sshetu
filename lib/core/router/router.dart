@@ -16,9 +16,6 @@ import '../../features/settings/diagnostics_screen.dart';
 import '../../features/settings/known_hosts_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/shell/app_shell.dart';
-import '../../features/auth/auth_controller.dart';
-import '../../features/auth/sign_in_screen.dart';
-import '../../features/auth/sign_up_screen.dart';
 import '../ui/views.dart';
 import 'routes.dart';
 
@@ -27,21 +24,14 @@ import 'routes.dart';
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final refresh = _AuthRefresh(ref);
-  ref.onDispose(refresh.dispose);
-
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: Routes.initial,
-    refreshListenable: refresh,
-    // No auth gate. An SSH client has to work on a plane, on a locked-down
-    // network, and for someone who will never make an account — the servers
-    // and keys are on the device, and nothing about connecting to them needs a
-    // backend. Signing in is offered in Settings and buys exactly one thing:
-    // syncing this configuration to another device.
-    //
-    // The sign-in and sign-up screens remain routable for when the user asks
-    // for them; they are simply never forced.
+    // No auth gate, and no account at all. An SSH client has to work on a
+    // plane, on a locked-down network, and for someone who would never make
+    // an account — the servers and keys are on the device, and nothing about
+    // connecting to them needs a backend. Moving them to another device is a
+    // direct, one-shot transfer between the two; see `features/transfer`.
     redirect: (context, state) {
       if (state.matchedLocation == Routes.splash) return Routes.initial;
       return null;
@@ -51,8 +41,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.splash,
         builder: (_, _) => const Scaffold(body: LoadingView()),
       ),
-      GoRoute(path: Routes.signIn, builder: (_, _) => const SignInScreen()),
-      GoRoute(path: Routes.signUp, builder: (_, _) => const SignUpScreen()),
       GoRoute(
         path: Routes.hostNew,
         parentNavigatorKey: rootNavigatorKey,
@@ -160,22 +148,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-
-/// Re-runs the router's redirect whenever auth state changes.
-class _AuthRefresh extends ChangeNotifier {
-  _AuthRefresh(this._ref) {
-    _subscription = _ref.listen(
-      authControllerProvider,
-      (_, _) => notifyListeners(),
-    );
-  }
-
-  final Ref _ref;
-  late final ProviderSubscription<Object?> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.close();
-    super.dispose();
-  }
-}

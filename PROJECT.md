@@ -43,7 +43,7 @@ passing unless you ran it and saw it pass.
 | Routing | `go_router` with a `StatefulShellRoute` |
 | Localization | `flutter gen-l10n` from `lib/l10n/*.arb` (en) |
 | Icons | `picons` (`PiconsRegular.*`) |
-| Backend | Appwrite |
+| Backend | none — device-local, with device-to-device transfer |
 | Local storage | `sqflite` with numbered SQL migrations |
 | Theme | tokens owned by this project |
 | Platforms | Android iOS macOS Windows Linux |
@@ -396,19 +396,24 @@ installed**. The Play listing itself is in the repo under
 
 **Never print, rewrite or commit signing credentials.**
 
-## 12. Appwrite
+## 12. No backend
 
-- Endpoint, project and database ids live in `core/config/app_config.dart` and
-  are overridable with `--dart-define`.
-- `core/appwrite/client.dart` wraps the SDK clients. The 1.8+ data API is
-  `TablesDB`, so collection ids are passed as `tableId` and document ids as
-  `rowId`.
-- `core/appwrite/base_repository.dart` gives `list`, `get`, `create`,
-  `update`, `delete` over one table.
-- `core/appwrite/failures.dart` maps SDK errors to typed failures. Wrap every
-  SDK call in `runAppwrite`. UI surfaces failures as a snackbar with a retry.
-- Auth state is derived from `account.get()`; the SDK owns the session cookie,
-  so nothing persists it by hand.
+There is no Appwrite project, no account and no server of any kind. Hosts,
+keys, tunnels and known-host pins live in this device's SQLite database;
+credentials live in this device's keychain and are written nowhere else.
+
+This is a decision, not a gap — an app holding the keys to someone's production
+infrastructure has no business keeping a copy of them on a server it operates.
+The reasoning, including the earlier synced design and why it was reversed, is
+in `docs/prior-art.md` § "Credential storage — decided, then reversed".
+
+Getting a configuration onto a second device is a **direct one-shot transfer**:
+the desktop shows a QR code carrying a single-use secret, the phone scans it,
+and the two talk over the local network on a channel sealed with that secret.
+The listener is open only while that sheet is open. See `features/transfer`.
+
+If a backend is ever added, it belongs behind the same seams that made removing
+this one cheap: `SecretVault` for credentials, the repositories for rows.
 
 ## 13. Tooling — use it when it is there
 

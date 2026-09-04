@@ -7,14 +7,11 @@ import '../../core/error/error_record.dart';
 import '../../core/router/navigation.dart';
 import '../../core/ssh/openssh_import.dart';
 import '../../core/router/routes.dart';
-import '../../core/ui/feedback.dart';
 import '../../core/util/launcher.dart';
 import '../../core/util/review_prompt.dart';
 import '../../l10n/app_localizations.dart';
-import '../auth/auth_controller.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/language_tile.dart';
-import 'widgets/sync_status_tile.dart';
 import 'widgets/text_scale_tile.dart';
 import 'widgets/theme_mode_tile.dart';
 
@@ -72,46 +69,10 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
         ),
       ],
     ),
-    // Signing in is offered, never required: everything in this app works on
-    // this device without an account, and an SSH client that demands one
-    // before it will open a shell is an SSH client people abandon. The only
-    // thing it buys is syncing this configuration to another device.
-    SettingsSection(
-      title: l10n.settingsSync,
-      tiles: [
-        if (ref.watch(currentUserProvider) case final user?) ...[
-          ListTile(
-            leading: const Icon(PiconsRegular.user),
-            title: Text(user.email),
-          ),
-          // Only built while signed in — see SyncStatusTile's own doc
-          // comment for why that matters beyond just "there is nothing to
-          // sync yet".
-          const SyncStatusTile(),
-          ListTile(
-            leading: const Icon(PiconsRegular.signOut),
-            title: Text(l10n.authSignOut),
-            onTap: () async {
-              final confirmed = await context.confirm(
-                title: l10n.authSignOutConfirm,
-                confirmLabel: l10n.authSignOut,
-                isDestructive: true,
-              );
-              if (confirmed) {
-                await ref.read(authControllerProvider.notifier).signOut();
-              }
-            },
-          ),
-        ] else
-          ListTile(
-            leading: const Icon(PiconsRegular.cloudArrowUp),
-            title: Text(l10n.settingsSyncSignIn),
-            subtitle: Text(l10n.settingsSyncBody),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.pushTo(Routes.signIn),
-          ),
-      ],
-    ),
+    // Where "get this onto my phone" will live. Not an account: a direct,
+    // one-shot transfer between two devices the user has in front of them.
+    // Wired up in the next step; the section is left out entirely until it
+    // does something rather than shipping a row that goes nowhere.
     SettingsSection(
       title: l10n.settingsAbout,
       tiles: [

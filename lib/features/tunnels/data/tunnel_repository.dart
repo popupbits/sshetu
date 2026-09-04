@@ -1,6 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../../../core/sync/sync_signal.dart';
 import '../domain/tunnel.dart';
 
 /// Reads and writes saved port forwards.
@@ -16,14 +15,9 @@ import '../domain/tunnel.dart';
 /// host that no longer exists cannot sync to anything meaningful; there is no
 /// tombstone worth keeping for it.
 class TunnelRepository {
-  TunnelRepository({required this.database, this.signal});
+  TunnelRepository({required this.database});
 
   final Database database;
-
-  /// Told after every committed write, so sync knows there is something to
-  /// push. Optional: a repository built without one — in a test, or by the
-  /// importer's dry run — simply reports nothing.
-  final SyncSignal? signal;
 
   static const _table = 'tunnels';
 
@@ -63,7 +57,6 @@ class TunnelRepository {
       _toRow(tunnel),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    signal?.localChange();
   }
 
   Future<void> delete(String id, {required DateTime now}) async {
@@ -77,7 +70,6 @@ class TunnelRepository {
       where: 'id = ?',
       whereArgs: [id],
     );
-    signal?.localChange();
   }
 
   static Map<String, Object?> _toRow(Tunnel tunnel) => {

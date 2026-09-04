@@ -79,23 +79,6 @@
   "updateRestart": "Restart",
   "updateStuck": "An update is waiting to finish",
   "updateOpenStore": "Open Play Store",
-  "authSignIn": "Sign in",
-  "authSignUp": "Create account",
-  "authEmail": "Email",
-  "authPassword": "Password",
-  "authName": "Name",
-  "authForgotPassword": "Forgot password?",
-  "authNoAccount": "No account yet? Create one",
-  "authHaveAccount": "Already have an account? Sign in",
-  "authSignOut": "Sign out",
-  "authSignOutConfirm": "Sign out of SSHetu?",
-  "authAccount": "Account",
-  "authEmailRequired": "Enter your email",
-  "authEmailInvalid": "That doesn't look like an email address",
-  "authPasswordRequired": "Enter your password",
-  "authPasswordTooShort": "Passwords must be at least 8 characters",
-  "authNameRequired": "Enter your name",
-  "authRecoverySent": "Check your email for a reset link",
   "settingsDiagnostics": "Diagnostics",
   "settingsDiagnosticsBody": "{count, plural, =1{1 recent error} other{{count} recent errors}}",
   "@settingsDiagnosticsBody": {
@@ -237,9 +220,6 @@
   "importNoteBody": "Your ~/.ssh files are read, never changed.",
   "tunnelsEmptyTitle": "No port forwards",
   "tunnelsEmptyBody": "Add a forward to reach a port on a host through its SSH connection.",
-  "settingsSync": "Sync",
-  "settingsSyncSignIn": "Sign in to sync",
-  "settingsSyncBody": "Optional. Everything works on this device without an account.",
   "importChooseFolder": "Choose folder",
   "importChooseFolderConfirm": "Read this folder",
   "importChooseFolderBody": "Choose your .ssh folder so it can be read. Nothing in it is changed.",
@@ -296,9 +276,12 @@
   },
   "filesUploadedName": "Uploaded {name}",
   "@filesUploadedName": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
-  "filesUpload": "Upload",
   "filesDelete": "Delete",
   "filesDeleteConfirm": "Delete this?",
   "filesDeleteBody": "{name} is deleted permanently. This cannot be undone.",
@@ -419,34 +402,6 @@
   "actionClear": "Clear scrollback",
   "sessionDisconnect": "Disconnect",
   "sessionCloseOthers": "Close other tabs",
-  "settingsSyncNow": "Sync now",
-  "settingsSyncSyncing": "Syncing…",
-  "settingsSyncNeverSynced": "Not synced yet",
-  "settingsSyncLastSyncedAt": "Synced {time}",
-  "@settingsSyncLastSyncedAt": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "settingsSyncPendingCount": "{count, plural, =0{Up to date} =1{1 change waiting to sync} other{{count} changes waiting to sync}}",
-  "@settingsSyncPendingCount": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "1"
-      }
-    }
-  },
-  "settingsSyncFailed": "Sync failed: {error}",
-  "@settingsSyncFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "filesTransferCancelled": "Cancelled",
   "filesPathEdit": "Edit path",
   "filesPathHint": "Enter an absolute path",

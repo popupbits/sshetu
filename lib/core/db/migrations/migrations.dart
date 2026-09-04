@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 /// Current schema version. Bump this when you add a migration.
-const int kSchemaVersion = 3;
+const int kSchemaVersion = 4;
 
 /// One migration step.
 ///
@@ -127,4 +127,5 @@ const List<Migration> migrations = <Migration>[
   SqlMigration('lib/core/db/migrations/v1_initial.sql'),
   SqlMigration('lib/core/db/migrations/v2_import_auth_method.sql'),
   SqlMigration('lib/core/db/migrations/v3_sync_cursors.sql'),
+  SqlMigration('lib/core/db/migrations/v4_drop_sync_cursors.sql'),
 ];

@@ -1,0 +1,17 @@
+-- v4 — remove the sync bookkeeping, now that there is no backend to sync with.
+--
+-- `sync_cursors` (v3) held one row per table naming the newest remote row that
+-- table had pulled. With hosts and keys moving between devices by a direct,
+-- one-shot transfer instead of a synced backend, there is no remote side, no
+-- pull, and nothing for a cursor to point at.
+--
+-- Dropped rather than left in place: a table that exists and is never written
+-- is a question every future reader has to answer for themselves, and the
+-- answer is not in the schema.
+--
+-- The `dirty` columns on hosts, identities, host_groups and tunnels are also
+-- vestigial, but they stay for now. SQLite cannot drop a column without
+-- rebuilding the table, and rebuilding four tables that hold the user's whole
+-- configuration — to reclaim one integer per row — is a poor trade. They are
+-- written by nothing and read by nothing; see this file for why.
+DROP TABLE IF EXISTS sync_cursors;

@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 
 import 'router/router.dart';
 import 'settings/settings_controller.dart';
-import 'sync/sync_scheduler.dart';
 import 'theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import 'update/update_listener.dart';
@@ -16,11 +15,6 @@ class SshetuApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
     final router = ref.watch(routerProvider);
-
-    // Constructed here so it lives as long as the app does. Sync is driven by
-    // signing in, by local changes and by resuming — none of which any screen
-    // should have to know about, and all of which would otherwise never fire.
-    ref.watch(syncSchedulerProvider);
 
     return MaterialApp.router(
       title: 'SSHetu',

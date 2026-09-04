@@ -454,108 +454,6 @@ abstract class AppLocalizations {
   /// **'Open Play Store'**
   String get updateOpenStore;
 
-  /// No description provided for @authSignIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in'**
-  String get authSignIn;
-
-  /// No description provided for @authSignUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Create account'**
-  String get authSignUp;
-
-  /// No description provided for @authEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Email'**
-  String get authEmail;
-
-  /// No description provided for @authPassword.
-  ///
-  /// In en, this message translates to:
-  /// **'Password'**
-  String get authPassword;
-
-  /// No description provided for @authName.
-  ///
-  /// In en, this message translates to:
-  /// **'Name'**
-  String get authName;
-
-  /// No description provided for @authForgotPassword.
-  ///
-  /// In en, this message translates to:
-  /// **'Forgot password?'**
-  String get authForgotPassword;
-
-  /// No description provided for @authNoAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'No account yet? Create one'**
-  String get authNoAccount;
-
-  /// No description provided for @authHaveAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Already have an account? Sign in'**
-  String get authHaveAccount;
-
-  /// No description provided for @authSignOut.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign out'**
-  String get authSignOut;
-
-  /// No description provided for @authSignOutConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign out of SSHetu?'**
-  String get authSignOutConfirm;
-
-  /// No description provided for @authAccount.
-  ///
-  /// In en, this message translates to:
-  /// **'Account'**
-  String get authAccount;
-
-  /// No description provided for @authEmailRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your email'**
-  String get authEmailRequired;
-
-  /// No description provided for @authEmailInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'That doesn\'t look like an email address'**
-  String get authEmailInvalid;
-
-  /// No description provided for @authPasswordRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your password'**
-  String get authPasswordRequired;
-
-  /// No description provided for @authPasswordTooShort.
-  ///
-  /// In en, this message translates to:
-  /// **'Passwords must be at least 8 characters'**
-  String get authPasswordTooShort;
-
-  /// No description provided for @authNameRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter your name'**
-  String get authNameRequired;
-
-  /// No description provided for @authRecoverySent.
-  ///
-  /// In en, this message translates to:
-  /// **'Check your email for a reset link'**
-  String get authRecoverySent;
-
   /// No description provided for @settingsDiagnostics.
   ///
   /// In en, this message translates to:
@@ -1119,24 +1017,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a forward to reach a port on a host through its SSH connection.'**
   String get tunnelsEmptyBody;
-
-  /// No description provided for @settingsSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync'**
-  String get settingsSync;
-
-  /// No description provided for @settingsSyncSignIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in to sync'**
-  String get settingsSyncSignIn;
-
-  /// No description provided for @settingsSyncBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Optional. Everything works on this device without an account.'**
-  String get settingsSyncBody;
 
   /// No description provided for @importChooseFolder.
   ///
@@ -1779,42 +1659,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close other tabs'**
   String get sessionCloseOthers;
-
-  /// No description provided for @settingsSyncNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync now'**
-  String get settingsSyncNow;
-
-  /// No description provided for @settingsSyncSyncing.
-  ///
-  /// In en, this message translates to:
-  /// **'Syncing…'**
-  String get settingsSyncSyncing;
-
-  /// No description provided for @settingsSyncNeverSynced.
-  ///
-  /// In en, this message translates to:
-  /// **'Not synced yet'**
-  String get settingsSyncNeverSynced;
-
-  /// No description provided for @settingsSyncLastSyncedAt.
-  ///
-  /// In en, this message translates to:
-  /// **'Synced {time}'**
-  String settingsSyncLastSyncedAt(String time);
-
-  /// No description provided for @settingsSyncPendingCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{Up to date} =1{1 change waiting to sync} other{{count} changes waiting to sync}}'**
-  String settingsSyncPendingCount(int count);
-
-  /// No description provided for @settingsSyncFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync failed: {error}'**
-  String settingsSyncFailed(String error);
 
   /// No description provided for @filesTransferCancelled.
   ///

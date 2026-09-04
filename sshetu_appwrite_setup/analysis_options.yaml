@@ -1,7 +1,0 @@
-# Its own profile, not the app's.
-#
-# The app's analysis_options.yaml includes flutter_lints, which this package
-# cannot resolve — there is no Flutter here, deliberately, because the point
-# of a separate package is that the server SDK and its API key never come
-# near the app.
-include: package:lints/recommended.yaml

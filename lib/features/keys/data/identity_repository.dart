@@ -2,7 +2,6 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../../core/secrets/secret_ref.dart';
 import '../../../core/secrets/secret_vault.dart';
-import '../../../core/sync/sync_signal.dart';
 import '../domain/ssh_identity.dart';
 
 /// Reads and writes SSH identities, and owns the one place private key
@@ -13,19 +12,10 @@ import '../domain/ssh_identity.dart';
 /// synced, and a model carrying key material would eventually end up in all
 /// four. The key goes straight to the vault and is never held on the object.
 class IdentityRepository {
-  IdentityRepository({
-    required this.database,
-    required this.vault,
-    this.signal,
-  });
+  IdentityRepository({required this.database, required this.vault});
 
   final Database database;
   final SecretVault vault;
-
-  /// Told after every committed write, so sync knows there is something to
-  /// push. Optional: a repository built without one — in a test, or by the
-  /// importer's dry run — simply reports nothing.
-  final SyncSignal? signal;
 
   static const _table = 'identities';
 
@@ -69,7 +59,6 @@ class IdentityRepository {
       _toRow(identity),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    signal?.localChange();
   }
 
   /// Whether the private key for [id] is actually present.
@@ -95,7 +84,6 @@ class IdentityRepository {
     // passphrase would leave half a secret behind after the user believed the
     // whole thing was gone.
     await vault.deleteAll(SecretRef.forIdentity(id));
-    signal?.localChange();
   }
 
   static Map<String, Object?> _toRow(SshIdentity identity) => {

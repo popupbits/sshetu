@@ -132,6 +132,18 @@ void main() {
       );
     });
 
+    test('the sync bookkeeping is gone', () async {
+      // v3 created `sync_cursors` for the Appwrite pull cursor; v4 drops it,
+      // because there is no backend to pull from any more. A migration that
+      // silently no-ops leaves the table behind on every device that already
+      // ran v3 — which is every developer machine.
+      final rows = await db.query(
+        'sqlite_master',
+        where: "type = 'table' AND name = 'sync_cursors'",
+      );
+      expect(rows, isEmpty);
+    });
+
     test('the placeholder table beej generated is gone', () async {
       final rows = await db.query(
         'sqlite_master',
