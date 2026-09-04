@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:sshetu/core/ssh/openssh_config.dart';
 import 'package:sshetu/core/ssh/openssh_import.dart';
 
@@ -175,9 +174,11 @@ Host db
       final hosts = scanner.parseHosts(
         'Host db\n  IdentityFile ~/.ssh/id_ed25519',
       );
+      // Canonical: p.join inserts one separator and leaves the rest alone,
+      // so on Windows the valid result is a mix of both.
       expect(
-        hosts.single.identityFile,
-        '/home/tester/.ssh/id_ed25519'.replaceAll('/', Platform.pathSeparator),
+        p.canonicalize(hosts.single.identityFile!),
+        p.canonicalize('/home/tester/.ssh/id_ed25519'),
       );
     });
 

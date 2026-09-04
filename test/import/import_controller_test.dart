@@ -100,6 +100,33 @@ Host web
     expect(host.authMethod, SshAuthMethod.publicKey);
   });
 
+  // `/./` stands in on every platform for the spelling difference Windows
+  // produces, so this fails on the dev machine too, not only where it was found.
+  test('an IdentityFile spelled differently still links to its key', () async {
+    await writeKey('id_ed25519');
+    await writeConfig('''
+Host web
+  HostName web.example.com
+  IdentityFile ${sshDir.path}/./id_ed25519
+''');
+
+    final result = await scan();
+    final outcome = await container
+        .read(importControllerProvider)
+        .import(
+          scan: result,
+          hostAliases: {'web'},
+          keyPaths: {'${sshDir.path}/id_ed25519'},
+        );
+
+    expect(outcome.keys, 1, reason: 'the selected key is the scanned key');
+
+    final identity =
+        (await container.read(identityRepositoryProvider).all()).single;
+    final host = (await container.read(hostRepositoryProvider).all()).single;
+    expect(host.identityId, identity.id);
+  });
+
   test('the private key lands in the vault, never in the database', () async {
     await writeKey('id_ed25519');
     await writeConfig('Host web\n  HostName web.example.com');

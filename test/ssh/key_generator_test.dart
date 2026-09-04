@@ -24,7 +24,8 @@ void main() {
 
   File write(String name, String contents, {int? mode}) {
     final file = File('${dir.path}/$name')..writeAsStringSync(contents);
-    if (mode != null) {
+    // Windows has no chmod, and ssh-keygen there gates on ACLs not mode bits.
+    if (mode != null && !Platform.isWindows) {
       Process.runSync('chmod', [mode.toRadixString(8), file.path]);
     }
     return file;

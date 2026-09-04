@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import '../../core/ssh/openssh_import.dart';
 import '../../core/ssh/ssh_target.dart';
@@ -63,11 +64,14 @@ class ImportController {
     final hosts = _ref.read(hostsControllerProvider);
 
     // Key file path → the identity id it became, so hosts can be linked.
+    // Canonical throughout: on Windows `listSync()` and a hand-written config
+    // spell the same file differently, and `==` then links no host to its key.
     final byPath = <String, String>{};
+    final selectedPaths = {for (final path in keyPaths) p.canonicalize(path)};
     var importedKeys = 0;
 
     for (final key in scan.keys) {
-      if (!keyPaths.contains(key.path)) continue;
+      if (!selectedPaths.contains(p.canonicalize(key.path))) continue;
 
       final String material;
       try {
@@ -93,7 +97,7 @@ class ImportController {
         ),
         privateKey: material,
       );
-      byPath[key.path] = id;
+      byPath[p.canonicalize(key.path)] = id;
       importedKeys++;
     }
 
@@ -111,7 +115,7 @@ class ImportController {
     for (final discovered in chosen) {
       final identityId = discovered.identityFile == null
           ? null
-          : byPath[discovered.identityFile!];
+          : byPath[p.canonicalize(discovered.identityFile!)];
 
       records.add(
         SshHost(

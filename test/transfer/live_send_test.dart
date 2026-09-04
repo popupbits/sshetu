@@ -26,6 +26,10 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
 
+    if (!Platform.isMacOS) {
+      markTestSkipped('a macOS fixture: it reads the app container database');
+      return;
+    }
     final home = Platform.environment['HOME']!;
     final live = File(
       '$home/Library/Containers/com.popupbits.sshetu/Data/Documents/sshetu.db',
