@@ -10,15 +10,15 @@ void main() {
   ({String? user, String host, int? port}) parse(String input) {
     final parsed = parseConnection(input);
     expect(parsed, isNotNull, reason: input);
-    return (
-      user: parsed!.username,
-      host: parsed.hostname,
-      port: parsed.port,
-    );
+    return (user: parsed!.username, host: parsed.hostname, port: parsed.port);
   }
 
   test('a bare address', () {
-    expect(parse('192.168.1.10'), (user: null, host: '192.168.1.10', port: null));
+    expect(parse('192.168.1.10'), (
+      user: null,
+      host: '192.168.1.10',
+      port: null,
+    ));
   });
 
   test('user@host, the commonest thing anyone types', () {
@@ -89,11 +89,7 @@ void main() {
       host: '2001:db8::1',
       port: 2222,
     ));
-    expect(parse('2001:db8::1'), (
-      user: null,
-      host: '2001:db8::1',
-      port: null,
-    ));
+    expect(parse('2001:db8::1'), (user: null, host: '2001:db8::1', port: null));
   });
 
   test('a username containing an @ still works', () {

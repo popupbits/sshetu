@@ -41,7 +41,10 @@ void main() {
     vault = InMemorySecretVault();
   });
 
-  RunRemote runner({String output = KeySetupScripts.addedMarker, int code = 0}) {
+  RunRemote runner({
+    String output = KeySetupScripts.addedMarker,
+    int code = 0,
+  }) {
     return (script, stdin) async {
       ran.add(script);
       stdins.add(stdin);
@@ -52,14 +55,12 @@ void main() {
     };
   }
 
-  KeySetupService service({
-    RunRemote? run,
-    VerifyConnection? verify,
-  }) => KeySetupService(
-    vault: vault,
-    run: run ?? runner(),
-    verify: verify ?? (_, _) async {},
-  );
+  KeySetupService service({RunRemote? run, VerifyConnection? verify}) =>
+      KeySetupService(
+        vault: vault,
+        run: run ?? runner(),
+        verify: verify ?? (_, _) async {},
+      );
 
   Future<KeySetupResult> setUpKey(KeySetupService s) => s.run_(
     target: target,

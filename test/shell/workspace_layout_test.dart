@@ -33,8 +33,7 @@ void main() {
   test('and never below the width a host list needs', () {
     // The tightest window that still shows both: the panel is squeezed to
     // exactly its floor and the terminal to exactly its own.
-    const tightest =
-        WorkspaceLayout.minPanel + 1 + WorkspaceLayout.minTerminal;
+    const tightest = WorkspaceLayout.minPanel + 1 + WorkspaceLayout.minTerminal;
 
     final layout = resolve(tightest, preferred: 500);
 
@@ -43,8 +42,7 @@ void main() {
   });
 
   test('one point narrower than that, and it is one pane', () {
-    const tightest =
-        WorkspaceLayout.minPanel + 1 + WorkspaceLayout.minTerminal;
+    const tightest = WorkspaceLayout.minPanel + 1 + WorkspaceLayout.minTerminal;
 
     expect(resolve(tightest - 1, preferred: 500).showTerminal, isFalse);
   });

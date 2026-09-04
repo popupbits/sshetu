@@ -148,7 +148,6 @@ void main() {
     await pumpAt(tester, const Size(1600, 1000), preferredPanel: 500);
     expect(panelWidthOf(tester), 500);
 
-
     tester.view.physicalSize = const Size(900, 1000);
     await tester.pumpAndSettle();
 

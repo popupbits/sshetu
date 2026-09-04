@@ -51,14 +51,16 @@ void main() {
       ),
     );
 
-    container.read(workspacePagesProvider.notifier).open(
-      WorkspacePage(
-        id: 'transfer/send',
-        title: 'Send',
-        icon: PiconsRegular.qrCode,
-        builder: (_) => const TransferSendScreen(embedded: true),
-      ),
-    );
+    container
+        .read(workspacePagesProvider.notifier)
+        .open(
+          WorkspacePage(
+            id: 'transfer/send',
+            title: 'Send',
+            icon: PiconsRegular.qrCode,
+            builder: (_) => const TransferSendScreen(embedded: true),
+          ),
+        );
 
     for (var i = 0; i < 15; i++) {
       await tester.runAsync(

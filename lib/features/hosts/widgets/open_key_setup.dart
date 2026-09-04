@@ -14,7 +14,8 @@ import 'key_setup_sheet.dart';
 /// is no way to install anything, and a host already on a key has nothing to
 /// swap.
 bool canSetUpKey(WidgetRef ref, String hostId) {
-  final connection = ref.read(sessionManagerProvider.notifier)
+  final connection = ref
+      .read(sessionManagerProvider.notifier)
       .connectionForHost(hostId);
   return connection != null &&
       connection.target.authMethod == SshAuthMethod.password;

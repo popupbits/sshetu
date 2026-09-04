@@ -105,11 +105,7 @@ class BackupService {
   Future<({TransferPayload payload, BackupContents contents})> decode({
     required Uint8List bytes,
     required String passphrase,
-  }) => BackupFile.read(
-    bytes: bytes,
-    passphrase: passphrase,
-    derive: derive,
-  );
+  }) => BackupFile.read(bytes: bytes, passphrase: passphrase, derive: derive);
 
   /// Asks for a backup file and returns its bytes, or null if none was picked.
   Future<({Uint8List bytes, String name})?> pick() async {

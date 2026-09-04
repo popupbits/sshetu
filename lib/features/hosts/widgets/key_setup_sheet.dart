@@ -122,13 +122,15 @@ class _KeySetupSheetState extends ConsumerState<_KeySetupSheet> {
       );
 
       // The row changes only once the key has actually logged in.
-      await ref.read(hostRepositoryProvider).save(
-        widget.host.copyWith(
-          authMethod: SshAuthMethod.publicKey,
-          identityId: identity.id,
-          updatedAt: DateTime.now().toUtc(),
-        ),
-      );
+      await ref
+          .read(hostRepositoryProvider)
+          .save(
+            widget.host.copyWith(
+              authMethod: SshAuthMethod.publicKey,
+              identityId: identity.id,
+              updatedAt: DateTime.now().toUtc(),
+            ),
+          );
       ref.invalidate(hostsProvider);
 
       if (!mounted) return;
@@ -143,9 +145,7 @@ class _KeySetupSheetState extends ConsumerState<_KeySetupSheet> {
       if (!mounted) return;
       setState(() {
         _step = null;
-        _error = error is KeySetupException
-            ? error.message
-            : '$error';
+        _error = error is KeySetupException ? error.message : '$error';
         _detail = error is KeySetupException ? error.detail : null;
       });
     }
@@ -253,24 +253,19 @@ class _KeySetupSheetState extends ConsumerState<_KeySetupSheet> {
                     ),
                     const SizedBox(width: Spacing.sm),
                     Expanded(
-                      child: Text(
-                        switch (step) {
-                          KeySetupStep.installing => l10n.keySetupInstalling,
-                          KeySetupStep.verifying => l10n.keySetupVerifying,
-                          KeySetupStep.finishing => l10n.keySetupFinishing,
-                          KeySetupStep.rollingBack => l10n.keySetupRollingBack,
-                        },
-                        style: theme.textTheme.bodySmall,
-                      ),
+                      child: Text(switch (step) {
+                        KeySetupStep.installing => l10n.keySetupInstalling,
+                        KeySetupStep.verifying => l10n.keySetupVerifying,
+                        KeySetupStep.finishing => l10n.keySetupFinishing,
+                        KeySetupStep.rollingBack => l10n.keySetupRollingBack,
+                      }, style: theme.textTheme.bodySmall),
                     ),
                   ] else
                     const Spacer(),
                   FilledButton.icon(
                     onPressed: _busy || _identityId == null
                         ? null
-                        : () => unawaited(
-                            _start(identities.value ?? const []),
-                          ),
+                        : () => unawaited(_start(identities.value ?? const [])),
                     icon: const Icon(PiconsRegular.key, size: 18),
                     label: Text(l10n.keySetupStart),
                   ),
@@ -305,7 +300,10 @@ class _KeyChoice extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.keySetupChooseKey, style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          l10n.keySetupChooseKey,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
         const SizedBox(height: Spacing.sm),
         ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 220),

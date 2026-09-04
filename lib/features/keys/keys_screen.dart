@@ -118,7 +118,10 @@ class KeysScreen extends ConsumerWidget {
                             // exactly the part a person deleting a private key
                             // cares about.
                             if (context.mounted) {
-                              context.toast(l10n.secretNotErased, isError: true);
+                              context.toast(
+                                l10n.secretNotErased,
+                                isError: true,
+                              );
                             }
                           }
                         }

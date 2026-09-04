@@ -124,16 +124,13 @@ class BackupFile {
       'payload': payload.toJson(),
     };
 
-    final sealed = SecretBox(key).encrypt(
-      Uint8List.fromList(utf8.encode(jsonEncode(body))),
-    );
+    final sealed = SecretBox(key)
+        .encrypt(Uint8List.fromList(utf8.encode(jsonEncode(body))));
 
     return Uint8List.fromList(
       utf8.encode(
-        const JsonEncoder.withIndent('  ').convert({
-          ...header,
-          'body': base64.encode(sealed),
-        }),
+        const JsonEncoder.withIndent('  ')
+            .convert({...header, 'body': base64.encode(sealed)}),
       ),
     );
   }
@@ -169,14 +166,11 @@ class BackupFile {
 
     final Map<String, Object?> body;
     try {
-      final opened = SecretBox(
-        key,
-      ).decrypt(EncryptedMessage.fromList(base64.decode(rawBody)));
+      final opened = SecretBox(key)
+          .decrypt(EncryptedMessage.fromList(base64.decode(rawBody)));
       body = jsonDecode(utf8.decode(opened)) as Map<String, Object?>;
     } on Object {
-      throw const BackupException(
-        'That passphrase does not open this backup.',
-      );
+      throw const BackupException('That passphrase does not open this backup.');
     }
 
     // The header is only trustworthy now. Anything read from it before this
@@ -257,7 +251,9 @@ class BackupFile {
             ? _sorted(header[key]! as Map<String, Object?>)
             : header[key],
     };
-    return base64.encode(sha256.convert(utf8.encode(jsonEncode(canonical))).bytes);
+    return base64.encode(
+      sha256.convert(utf8.encode(jsonEncode(canonical))).bytes,
+    );
   }
 
   static Map<String, Object?> _sorted(Map<String, Object?> map) {
@@ -276,8 +272,7 @@ class BackupFile {
 
   /// Rejects zero and negative costs rather than passing them to Argon2,
   /// which would throw something less explicable.
-  static int? _positiveInt(Object? raw) =>
-      raw is int && raw > 0 ? raw : null;
+  static int? _positiveInt(Object? raw) => raw is int && raw > 0 ? raw : null;
 
   static int _count(Object? counts, String key) =>
       counts is Map && counts[key] is int ? counts[key]! as int : 0;

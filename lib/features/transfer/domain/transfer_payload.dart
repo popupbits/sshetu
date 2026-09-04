@@ -228,12 +228,11 @@ class TransferPayload {
   static List<SecretRef> _secretsWorthReading(
     Map<String, List<Map<String, Object?>>> tables,
   ) => [
-    for (final row in tables['identities'] ?? const [])
-      ...[
-        SecretRef.identityPrivateKey(row['id']! as String),
-        if (row['has_passphrase'] == 1)
-          SecretRef.identityPassphrase(row['id']! as String),
-      ],
+    for (final row in tables['identities'] ?? const []) ...[
+      SecretRef.identityPrivateKey(row['id']! as String),
+      if (row['has_passphrase'] == 1)
+        SecretRef.identityPassphrase(row['id']! as String),
+    ],
     for (final row in tables['hosts'] ?? const [])
       SecretRef.hostPassword(row['id']! as String),
   ];

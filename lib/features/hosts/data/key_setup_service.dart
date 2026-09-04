@@ -42,15 +42,16 @@ class KeySetupResult {
 }
 
 /// Opens a connection that must authenticate with one specific key.
-typedef VerifyConnection =
-    Future<void> Function(SshTarget target, SshCredentialSource credentials);
+typedef VerifyConnection = Future<void> Function(
+  SshTarget target,
+  SshCredentialSource credentials,
+);
 
 /// Runs a command on the already-open, password-authenticated session.
-typedef RunRemote =
-    Future<({String output, int? exitCode})> Function(
-      String script,
-      String stdin,
-    );
+typedef RunRemote = Future<({String output, int? exitCode})> Function(
+  String script,
+  String stdin,
+);
 
 /// Credentials that offer exactly one key and no password at all.
 ///

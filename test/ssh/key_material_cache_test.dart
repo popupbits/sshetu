@@ -49,11 +49,8 @@ void main() {
     await vault.write(SecretRef.identityPrivateKey('k2'), 'KEY-TWO');
   });
 
-  VaultCredentialSource source() => VaultCredentialSource(
-    vault: vault,
-    catalog: catalog,
-    keyCache: cache,
-  );
+  VaultCredentialSource source() =>
+      VaultCredentialSource(vault: vault, catalog: catalog, keyCache: cache);
 
   test('a host naming no key is offered every key, read once each', () async {
     final keys = await source().privateKeys(target);
@@ -78,9 +75,7 @@ void main() {
   });
 
   test('a host that names its key costs one read, not two', () async {
-    await source().privateKeys(
-      target.copyWith(identityId: 'k1'),
-    );
+    await source().privateKeys(target.copyWith(identityId: 'k1'));
 
     expect(vault.reads, ['identity/k1/private']);
   });
@@ -94,10 +89,7 @@ void main() {
     final keys = await source().privateKeys(target);
 
     expect(vault.reads, ['identity/k1/private']);
-    expect(
-      keys.firstWhere((k) => k.identityId == 'k1').pem,
-      'REPLACED',
-    );
+    expect(keys.firstWhere((k) => k.identityId == 'k1').pem, 'REPLACED');
   });
 
   test('passwords are never cached', () async {

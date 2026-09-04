@@ -125,7 +125,6 @@ void main() {
       return result;
     }
 
-
     Future<void> pump(WidgetTester tester, Widget child) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -253,7 +252,10 @@ void main() {
       await settle(tester);
 
       expect(await io(tester, () => database.raw.query('hosts')), hasLength(1));
-      expect(await io(tester, () => database.raw.query('identities')), hasLength(1));
+      expect(
+        await io(tester, () => database.raw.query('identities')),
+        hasLength(1),
+      );
     }, timeout: const Timeout(Duration(seconds: 60)));
 
     testWidgets('a wrong passphrase says so and writes nothing', (

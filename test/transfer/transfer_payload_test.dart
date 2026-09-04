@@ -92,7 +92,10 @@ void main() {
   test('a whole configuration crosses intact', () async {
     await seed();
 
-    final payload = await (await TransferPayload.read(source.raw, includeSecrets: true)).withSecrets(sourceVault);
+    final payload = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: true,
+    )).withSecrets(sourceVault);
     await payload.apply(destination.raw, vault: destinationVault);
 
     final hosts = await destination.raw.query('hosts');
@@ -113,7 +116,10 @@ void main() {
     // than importing one that was verified at home.
     await seed();
 
-    final payload = await (await TransferPayload.read(source.raw, includeSecrets: false)).withSecrets(sourceVault);
+    final payload = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: false,
+    )).withSecrets(sourceVault);
     await payload.apply(destination.raw, vault: destinationVault);
 
     expect(payload.knownHostCount, 1);
@@ -123,10 +129,16 @@ void main() {
   test('secrets travel only when asked for', () async {
     await seed();
 
-    final without = await (await TransferPayload.read(source.raw, includeSecrets: false)).withSecrets(sourceVault);
+    final without = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: false,
+    )).withSecrets(sourceVault);
     expect(without.secrets, isEmpty);
 
-    final with_ = await (await TransferPayload.read(source.raw, includeSecrets: true)).withSecrets(sourceVault);
+    final with_ = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: true,
+    )).withSecrets(sourceVault);
     expect(with_.secrets, hasLength(2));
   });
 
@@ -135,7 +147,10 @@ void main() {
     // somewhere nothing looks, and the host just asks for a password forever.
     await seed();
 
-    final payload = await (await TransferPayload.read(source.raw, includeSecrets: true)).withSecrets(sourceVault);
+    final payload = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: true,
+    )).withSecrets(sourceVault);
     await payload.apply(destination.raw, vault: destinationVault);
 
     expect(
@@ -157,14 +172,20 @@ void main() {
       whereArgs: ['h1'],
     );
 
-    final payload = await (await TransferPayload.read(source.raw, includeSecrets: false)).withSecrets(sourceVault);
+    final payload = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: false,
+    )).withSecrets(sourceVault);
 
     expect(payload.hostCount, 0);
   });
 
   test('sending twice is not sending double', () async {
     await seed();
-    final payload = await (await TransferPayload.read(source.raw, includeSecrets: true)).withSecrets(sourceVault);
+    final payload = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: true,
+    )).withSecrets(sourceVault);
 
     await payload.apply(destination.raw, vault: destinationVault);
     await payload.apply(destination.raw, vault: destinationVault);
@@ -175,7 +196,10 @@ void main() {
 
   test('a schema mismatch is refused with something actionable', () async {
     await seed();
-    final payload = await (await TransferPayload.read(source.raw, includeSecrets: false)).withSecrets(sourceVault);
+    final payload = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: false,
+    )).withSecrets(sourceVault);
     final fromTheFuture = TransferPayload(
       schemaVersion: payload.schemaVersion + 5,
       tables: payload.tables,
@@ -196,7 +220,10 @@ void main() {
 
   test('the payload survives JSON, which is how it travels', () async {
     await seed();
-    final original = await (await TransferPayload.read(source.raw, includeSecrets: true)).withSecrets(sourceVault);
+    final original = await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: true,
+    )).withSecrets(sourceVault);
 
     final restored = TransferPayload.fromJson(original.toJson());
     await restored.apply(destination.raw, vault: destinationVault);

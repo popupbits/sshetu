@@ -67,7 +67,10 @@ void main() {
     String passphrase = 'correct horse battery staple',
     bool includeSecrets = true,
   }) async => BackupFile.write(
-    payload: await (await TransferPayload.read(source.raw, includeSecrets: includeSecrets)).withSecrets(sourceVault),
+    payload: await (await TransferPayload.read(
+      source.raw,
+      includeSecrets: includeSecrets,
+    )).withSecrets(sourceVault),
     passphrase: passphrase,
     appVersion: '1.0.0+1',
   );
@@ -201,29 +204,32 @@ void main() {
     );
   });
 
-  test('a rewritten header is refused, even with the right passphrase', () async {
-    // The header is plaintext, so anyone can edit it. The fingerprint sealed
-    // inside the body is what makes that pointless.
-    await seed();
-    final header =
-        jsonDecode(utf8.decode(await backup())) as Map<String, Object?>;
+  test(
+    'a rewritten header is refused, even with the right passphrase',
+    () async {
+      // The header is plaintext, so anyone can edit it. The fingerprint sealed
+      // inside the body is what makes that pointless.
+      await seed();
+      final header =
+          jsonDecode(utf8.decode(await backup())) as Map<String, Object?>;
 
-    header['app'] = 'not the version that wrote this';
+      header['app'] = 'not the version that wrote this';
 
-    await expectLater(
-      BackupFile.read(
-        bytes: Uint8List.fromList(utf8.encode(jsonEncode(header))),
-        passphrase: 'correct horse battery staple',
-      ),
-      throwsA(
-        isA<BackupException>().having(
-          (e) => e.message,
-          'message',
-          contains('altered'),
+      await expectLater(
+        BackupFile.read(
+          bytes: Uint8List.fromList(utf8.encode(jsonEncode(header))),
+          passphrase: 'correct horse battery staple',
         ),
-      ),
-    );
-  });
+        throwsA(
+          isA<BackupException>().having(
+            (e) => e.message,
+            'message',
+            contains('altered'),
+          ),
+        ),
+      );
+    },
+  );
 
   test('two backups of the same data never look alike', () async {
     await seed();
@@ -235,8 +241,10 @@ void main() {
 
     // A fresh salt each time, so identical content does not betray itself by
     // producing an identical file.
-    expect((first['kdf']! as Map)['salt'],
-        isNot((second['kdf']! as Map)['salt']));
+    expect(
+      (first['kdf']! as Map)['salt'],
+      isNot((second['kdf']! as Map)['salt']),
+    );
     expect(first['body'], isNot(second['body']));
   });
 
@@ -261,31 +269,31 @@ void main() {
     );
   });
 
-  test('something else entirely is refused before a passphrase is used', () async {
-    for (final rubbish in <String>[
-      'not json at all',
-      '{}',
-      '{"format":"something.else","version":1}',
-      '[1,2,3]',
-      '',
-    ]) {
-      await expectLater(
-        BackupFile.read(
-          bytes: Uint8List.fromList(utf8.encode(rubbish)),
-          passphrase: 'anything',
-        ),
-        throwsA(isA<BackupException>()),
-        reason: rubbish,
-      );
-    }
-  });
+  test(
+    'something else entirely is refused before a passphrase is used',
+    () async {
+      for (final rubbish in <String>[
+        'not json at all',
+        '{}',
+        '{"format":"something.else","version":1}',
+        '[1,2,3]',
+        '',
+      ]) {
+        await expectLater(
+          BackupFile.read(
+            bytes: Uint8List.fromList(utf8.encode(rubbish)),
+            passphrase: 'anything',
+          ),
+          throwsA(isA<BackupException>()),
+          reason: rubbish,
+        );
+      }
+    },
+  );
 
   test('an empty passphrase is refused at the door', () async {
     await seed();
 
-    await expectLater(
-      backup(passphrase: ''),
-      throwsA(isA<BackupException>()),
-    );
+    await expectLater(backup(passphrase: ''), throwsA(isA<BackupException>()));
   });
 }

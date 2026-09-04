@@ -214,10 +214,7 @@ void main() {
 
     await expectLater(
       TransferSender.start(
-        payload: await TransferPayload.read(
-          sender.raw,
-          includeSecrets: false,
-        ),
+        payload: await TransferPayload.read(sender.raw, includeSecrets: false),
         vault: senderVault,
         deviceName: 'laptop',
         clearToListen: () async =>

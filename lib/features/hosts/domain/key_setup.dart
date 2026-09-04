@@ -126,8 +126,7 @@ class KeySetupException implements Exception {
   final String? detail;
 
   @override
-  String toString() =>
-      detail == null ? message : '$message\n${detail!}';
+  String toString() => detail == null ? message : '$message\n${detail!}';
 }
 
 /// Checks a public key looks like one before it is sent anywhere.

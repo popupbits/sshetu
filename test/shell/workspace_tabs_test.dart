@@ -116,14 +116,16 @@ void main() {
       ),
     );
 
-    container.read(workspacePagesProvider.notifier).open(
-      WorkspacePage(
-        id: id,
-        title: id,
-        icon: PiconsRegular.qrCode,
-        builder: builder,
-      ),
-    );
+    container
+        .read(workspacePagesProvider.notifier)
+        .open(
+          WorkspacePage(
+            id: id,
+            title: id,
+            icon: PiconsRegular.qrCode,
+            builder: builder,
+          ),
+        );
 
     for (var i = 0; i < 6; i++) {
       await tester.runAsync(

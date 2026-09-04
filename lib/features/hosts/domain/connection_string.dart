@@ -157,6 +157,21 @@ ParsedConnection? _build(
 
 /// `ssh` flags that take a value, so the value is not read as a hostname.
 const _flagsWithValues = {
-  '-b', '-c', '-D', '-E', '-e', '-F', '-I', '-J', '-L', '-m',
-  '-O', '-o', '-Q', '-R', '-S', '-W', '-w',
+  '-b',
+  '-c',
+  '-D',
+  '-E',
+  '-e',
+  '-F',
+  '-I',
+  '-J',
+  '-L',
+  '-m',
+  '-O',
+  '-o',
+  '-Q',
+  '-R',
+  '-S',
+  '-W',
+  '-w',
 };

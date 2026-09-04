@@ -22,14 +22,13 @@ import 'package:cryptography/cryptography.dart';
 /// The cost lives in the file, not in this constant: an old backup opens with
 /// the parameters it was written with, so these can rise as hardware does
 /// without stranding anything already saved.
-typedef KeyDerivation =
-    Future<Uint8List> Function({
-      required String passphrase,
-      required Uint8List salt,
-      int memoryKib,
-      int iterations,
-      int parallelism,
-    });
+typedef KeyDerivation = Future<Uint8List> Function({
+  required String passphrase,
+  required Uint8List salt,
+  int memoryKib,
+  int iterations,
+  int parallelism,
+});
 
 abstract final class PassphraseKey {
   /// 64 MiB. Comfortably above OWASP's 19 MiB floor, and still under a second.

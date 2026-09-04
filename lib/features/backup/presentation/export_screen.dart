@@ -145,7 +145,9 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
               prefixIcon: const Icon(PiconsRegular.lock),
               suffixIcon: IconButton(
                 tooltip: _obscure ? l10n.actionShow : l10n.actionHide,
-                icon: Icon(_obscure ? PiconsRegular.eye : PiconsRegular.eyeSlash),
+                icon: Icon(
+                  _obscure ? PiconsRegular.eye : PiconsRegular.eyeSlash,
+                ),
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),

@@ -600,9 +600,7 @@ class _KindChoices extends StatelessWidget {
     required this.onSelected,
   });
 
-  final List<
-    ({TunnelKind kind, IconData icon, String title, String body})
-  >
+  final List<({TunnelKind kind, IconData icon, String title, String body})>
   choices;
   final TunnelKind selected;
   final void Function(TunnelKind) onSelected;
@@ -648,4 +646,3 @@ class _KindChoices extends StatelessWidget {
     );
   }
 }
-

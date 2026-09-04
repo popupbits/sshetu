@@ -363,129 +363,130 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                       onChanged: (_) => setState(() {}),
                       validator: _required(l10n),
                     ),
-              SectionLabel(l10n.hostEditorAuth),
-              SegmentedButton<SshAuthMethod>(
-                segments: [
-                  ButtonSegment(
-                    value: SshAuthMethod.publicKey,
-                    label: Text(l10n.hostEditorAuthKey),
-                    icon: const Icon(PiconsRegular.key),
-                  ),
-                  ButtonSegment(
-                    value: SshAuthMethod.password,
-                    label: Text(l10n.hostEditorAuthPasswordOnly),
-                    icon: const Icon(PiconsRegular.lockSimple),
-                  ),
-                ],
-                selected: {_auth},
-                onSelectionChanged: (value) =>
-                    setState(() => _auth = value.first),
-              ),
-              const SizedBox(height: Spacing.sm),
-              // Says what each choice actually does. The pair of buttons on
-              // its own implies that naming a key and using a password are the
-              // only options, which leaves the commonest case of all — "use
-              // whichever of my keys this server accepts" — with no name, and
-              // is what sent nine of ten imported hosts to a password prompt.
-              Text(
-                _auth == SshAuthMethod.publicKey
-                    ? l10n.hostEditorAuthKeyHint
-                    : l10n.hostEditorAuthPasswordHint,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              if (_auth == SshAuthMethod.publicKey) ...[
-                const SizedBox(height: Spacing.lg),
-                DropdownButtonFormField<String?>(
-                  // isExpanded: a dropdown sizes itself to its selected item, and
-                  // a key or host with a descriptive name is wider than the pane
-                  // it sits in. Without it the row overflows rather than the
-                  // label ellipsising.
-                  isExpanded: true,
-                  // Only ever a value the list actually contains. A dropdown
-                  // asserts on an id it has no item for, and there are two
-                  // ordinary ways to get one: the default key from Settings
-                  // while the list is still loading, and a key deleted since
-                  // this host named it. Falling back to "any" is also what
-                  // both of those now behave as.
-                  initialValue:
-                      identities.any((i) => i.id == _identityId)
-                      ? _identityId
-                      : null,
-                  decoration: InputDecoration(
-                    labelText: l10n.hostEditorIdentity,
-                    border: const OutlineInputBorder(),
-                  ),
-                  items: [
-                    // Null means "any", not "none" — it is what an imported
-                    // host arrives with, and it works.
-                    DropdownMenuItem(child: Text(l10n.hostEditorIdentityAny)),
-                    for (final identity in identities)
-                      DropdownMenuItem(
-                        value: identity.id,
-                        child: Text(identity.label),
+                  SectionLabel(l10n.hostEditorAuth),
+                  SegmentedButton<SshAuthMethod>(
+                    segments: [
+                      ButtonSegment(
+                        value: SshAuthMethod.publicKey,
+                        label: Text(l10n.hostEditorAuthKey),
+                        icon: const Icon(PiconsRegular.key),
                       ),
+                      ButtonSegment(
+                        value: SshAuthMethod.password,
+                        label: Text(l10n.hostEditorAuthPasswordOnly),
+                        icon: const Icon(PiconsRegular.lockSimple),
+                      ),
+                    ],
+                    selected: {_auth},
+                    onSelectionChanged: (value) =>
+                        setState(() => _auth = value.first),
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                  // Says what each choice actually does. The pair of buttons on
+                  // its own implies that naming a key and using a password are the
+                  // only options, which leaves the commonest case of all — "use
+                  // whichever of my keys this server accepts" — with no name, and
+                  // is what sent nine of ten imported hosts to a password prompt.
+                  Text(
+                    _auth == SshAuthMethod.publicKey
+                        ? l10n.hostEditorAuthKeyHint
+                        : l10n.hostEditorAuthPasswordHint,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (_auth == SshAuthMethod.publicKey) ...[
+                    const SizedBox(height: Spacing.lg),
+                    DropdownButtonFormField<String?>(
+                      // isExpanded: a dropdown sizes itself to its selected item, and
+                      // a key or host with a descriptive name is wider than the pane
+                      // it sits in. Without it the row overflows rather than the
+                      // label ellipsising.
+                      isExpanded: true,
+                      // Only ever a value the list actually contains. A dropdown
+                      // asserts on an id it has no item for, and there are two
+                      // ordinary ways to get one: the default key from Settings
+                      // while the list is still loading, and a key deleted since
+                      // this host named it. Falling back to "any" is also what
+                      // both of those now behave as.
+                      initialValue: identities.any((i) => i.id == _identityId)
+                          ? _identityId
+                          : null,
+                      decoration: InputDecoration(
+                        labelText: l10n.hostEditorIdentity,
+                        border: const OutlineInputBorder(),
+                      ),
+                      items: [
+                        // Null means "any", not "none" — it is what an imported
+                        // host arrives with, and it works.
+                        DropdownMenuItem(
+                          child: Text(l10n.hostEditorIdentityAny),
+                        ),
+                        for (final identity in identities)
+                          DropdownMenuItem(
+                            value: identity.id,
+                            child: Text(identity.label),
+                          ),
+                      ],
+                      onChanged: (value) => setState(() => _identityId = value),
+                    ),
                   ],
-                  onChanged: (value) => setState(() => _identityId = value),
-                ),
-              ],
 
-              const SizedBox(height: Spacing.lg),
-              DropdownButtonFormField<String?>(
-                // isExpanded: a dropdown sizes itself to its selected item, and
-                // a key or host with a descriptive name is wider than the pane
-                // it sits in. Without it the row overflows rather than the
-                // label ellipsising.
-                isExpanded: true,
-                // Likewise: a jump host deleted since this one named it.
-                initialValue:
-                    allHosts.any(
-                      (h) => h.id == _jumpHostId && h.id != widget.hostId,
-                    )
-                    ? _jumpHostId
-                    : null,
-                decoration: InputDecoration(
-                  labelText: l10n.hostEditorJump,
-                  border: const OutlineInputBorder(),
-                ),
-                items: [
-                  DropdownMenuItem(child: Text(l10n.hostEditorJumpNone)),
-                  for (final other in allHosts)
-                    // A host cannot jump through itself. The repository breaks
-                    // the cycle anyway, but offering it in a picker invites a
-                    // mistake there is no reason to allow.
-                    if (other.id != widget.hostId)
-                      DropdownMenuItem(
-                        value: other.id,
-                        child: Text(other.label),
-                      ),
-                ],
-                onChanged: (value) => setState(() => _jumpHostId = value),
-              ),
-              const SizedBox(height: Spacing.lg),
-              TextFormField(
-                controller: _startup,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  labelText: l10n.hostEditorStartup,
-                  hintText: l10n.hostEditorStartupHint,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: Spacing.sm),
-              SwitchListTile(
-                value: _allowLegacy,
-                onChanged: (value) => setState(() => _allowLegacy = value),
-                title: Text(l10n.hostEditorLegacy),
-                // The full warning, not a shortened one: the user is agreeing
-                // to a real downgrade, and this is the moment they decide.
-                subtitle: Text(
-                  SshAlgorithmPolicy.legacyWarning,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  const SizedBox(height: Spacing.lg),
+                  DropdownButtonFormField<String?>(
+                    // isExpanded: a dropdown sizes itself to its selected item, and
+                    // a key or host with a descriptive name is wider than the pane
+                    // it sits in. Without it the row overflows rather than the
+                    // label ellipsising.
+                    isExpanded: true,
+                    // Likewise: a jump host deleted since this one named it.
+                    initialValue:
+                        allHosts.any(
+                          (h) => h.id == _jumpHostId && h.id != widget.hostId,
+                        )
+                        ? _jumpHostId
+                        : null,
+                    decoration: InputDecoration(
+                      labelText: l10n.hostEditorJump,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      DropdownMenuItem(child: Text(l10n.hostEditorJumpNone)),
+                      for (final other in allHosts)
+                        // A host cannot jump through itself. The repository breaks
+                        // the cycle anyway, but offering it in a picker invites a
+                        // mistake there is no reason to allow.
+                        if (other.id != widget.hostId)
+                          DropdownMenuItem(
+                            value: other.id,
+                            child: Text(other.label),
+                          ),
+                    ],
+                    onChanged: (value) => setState(() => _jumpHostId = value),
                   ),
-                ),
+                  const SizedBox(height: Spacing.lg),
+                  TextFormField(
+                    controller: _startup,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      labelText: l10n.hostEditorStartup,
+                      hintText: l10n.hostEditorStartupHint,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                  SwitchListTile(
+                    value: _allowLegacy,
+                    onChanged: (value) => setState(() => _allowLegacy = value),
+                    title: Text(l10n.hostEditorLegacy),
+                    // The full warning, not a shortened one: the user is agreeing
+                    // to a real downgrade, and this is the moment they decide.
+                    subtitle: Text(
+                      SshAlgorithmPolicy.legacyWarning,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     isThreeLine: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -550,9 +551,8 @@ class _ParsedSummary extends StatelessWidget {
         Expanded(
           child: Text(
             user.isEmpty ? target : '$user@$target',
-            style: Mono.apply(theme.textTheme.bodySmall).copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            style: Mono.apply(theme.textTheme.bodySmall)
+                .copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),
       ],
@@ -602,4 +602,3 @@ class _Advanced extends StatelessWidget {
     );
   }
 }
-
