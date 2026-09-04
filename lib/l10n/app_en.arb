@@ -632,5 +632,21 @@
   "@backupWrittenOn": {"placeholders": {"date": {"type": "String"}, "version": {"type": "String"}}},
   "backupRestored": "Restored.",
   "menuSaveBackup": "Save a Backup\u2026",
-  "menuRestoreBackup": "Restore from a Backup\u2026"
+  "menuRestoreBackup": "Restore from a Backup\u2026",
+  "keySetupTitle": "Use a key instead of a password",
+  "keySetupBody": "Adds a public key to this server's authorized_keys, checks it really logs you in, and then stops saving your password here.",
+  "keySetupChooseKey": "Which key?",
+  "keySetupGenerate": "Generate a new key",
+  "keySetupStart": "Set up",
+  "keySetupInstalling": "Adding the key to the server\u2026",
+  "keySetupVerifying": "Logging in with the key\u2026",
+  "keySetupFinishing": "Tidying up\u2026",
+  "keySetupRollingBack": "Putting the server back\u2026",
+  "keySetupDone": "Done \u2014 {host} now uses {key}, and the saved password has been removed.",
+  "@keySetupDone": {"placeholders": {"host": {"type": "String"}, "key": {"type": "String"}}},
+  "keySetupAlreadyPresent": "That key was already on the server.",
+  "keySetupServerNote": "This does not change the server's own settings. It still accepts passwords from other clients \u2014 only this app stops using one.",
+  "keySetupNoKeys": "You have no keys yet. Generate one to continue.",
+  "menuUseKeyInstead": "Use a Key Instead of a Password\u2026",
+  "keySetupUnavailable": "Connect to this server first \u2014 the key is installed over the session you already have."
 }

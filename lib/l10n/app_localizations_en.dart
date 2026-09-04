@@ -1374,4 +1374,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuRestoreBackup => 'Restore from a Backup…';
+
+  @override
+  String get keySetupTitle => 'Use a key instead of a password';
+
+  @override
+  String get keySetupBody =>
+      'Adds a public key to this server\'s authorized_keys, checks it really logs you in, and then stops saving your password here.';
+
+  @override
+  String get keySetupChooseKey => 'Which key?';
+
+  @override
+  String get keySetupGenerate => 'Generate a new key';
+
+  @override
+  String get keySetupStart => 'Set up';
+
+  @override
+  String get keySetupInstalling => 'Adding the key to the server…';
+
+  @override
+  String get keySetupVerifying => 'Logging in with the key…';
+
+  @override
+  String get keySetupFinishing => 'Tidying up…';
+
+  @override
+  String get keySetupRollingBack => 'Putting the server back…';
+
+  @override
+  String keySetupDone(String host, String key) {
+    return 'Done — $host now uses $key, and the saved password has been removed.';
+  }
+
+  @override
+  String get keySetupAlreadyPresent => 'That key was already on the server.';
+
+  @override
+  String get keySetupServerNote =>
+      'This does not change the server\'s own settings. It still accepts passwords from other clients — only this app stops using one.';
+
+  @override
+  String get keySetupNoKeys =>
+      'You have no keys yet. Generate one to continue.';
+
+  @override
+  String get menuUseKeyInstead => 'Use a Key Instead of a Password…';
+
+  @override
+  String get keySetupUnavailable =>
+      'Connect to this server first — the key is installed over the session you already have.';
 }

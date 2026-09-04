@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/services.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../features/backup/presentation/open_backup.dart';
+import '../../features/hosts/widgets/open_key_setup.dart';
 import '../../features/sessions/open_screens.dart';
 
 import '../../features/sessions/session_manager.dart';
@@ -154,6 +157,18 @@ class AppMenuBar extends ConsumerWidget {
             PlatformMenuItemGroup(
               members: [
                 PlatformMenuItem(
+                  label: l10n.menuUseKeyInstead,
+                  onSelected: switch (_keySetupTarget(ref)) {
+                    final hostId? => () =>
+                        unawaited(openKeySetup(context, ref, hostId)),
+                    null => null,
+                  },
+                ),
+              ],
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
                   label: l10n.menuNextSession,
                   shortcut: _primary(LogicalKeyboardKey.bracketRight),
                   onSelected: _hasSessions(ref) ? () => _cycle(ref, 1) : null,
@@ -259,6 +274,15 @@ class AppMenuBar extends ConsumerWidget {
   static MenuSerializableShortcut _primary(LogicalKeyboardKey key) {
     final usesMeta = defaultTargetPlatform == TargetPlatform.macOS;
     return SingleActivator(key, meta: usesMeta, control: !usesMeta);
+  }
+
+  /// The active session's host, when it is one a key could replace a password
+  /// on. Null disables the item rather than hiding it.
+  static String? _keySetupTarget(WidgetRef ref) {
+    final sessions = ref.watch(sessionManagerProvider);
+    final active = ref.read(sessionManagerProvider.notifier).active;
+    if (active == null || sessions.isEmpty) return null;
+    return canSetUpKey(ref, active.hostId) ? active.hostId : null;
   }
 
   static bool _hasSessions(WidgetRef ref) =>

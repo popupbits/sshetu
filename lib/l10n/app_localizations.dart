@@ -2493,6 +2493,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore from a Backup…'**
   String get menuRestoreBackup;
+
+  /// No description provided for @keySetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a key instead of a password'**
+  String get keySetupTitle;
+
+  /// No description provided for @keySetupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds a public key to this server\'s authorized_keys, checks it really logs you in, and then stops saving your password here.'**
+  String get keySetupBody;
+
+  /// No description provided for @keySetupChooseKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Which key?'**
+  String get keySetupChooseKey;
+
+  /// No description provided for @keySetupGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a new key'**
+  String get keySetupGenerate;
+
+  /// No description provided for @keySetupStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get keySetupStart;
+
+  /// No description provided for @keySetupInstalling.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding the key to the server…'**
+  String get keySetupInstalling;
+
+  /// No description provided for @keySetupVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging in with the key…'**
+  String get keySetupVerifying;
+
+  /// No description provided for @keySetupFinishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidying up…'**
+  String get keySetupFinishing;
+
+  /// No description provided for @keySetupRollingBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Putting the server back…'**
+  String get keySetupRollingBack;
+
+  /// No description provided for @keySetupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done — {host} now uses {key}, and the saved password has been removed.'**
+  String keySetupDone(String host, String key);
+
+  /// No description provided for @keySetupAlreadyPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'That key was already on the server.'**
+  String get keySetupAlreadyPresent;
+
+  /// No description provided for @keySetupServerNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This does not change the server\'s own settings. It still accepts passwords from other clients — only this app stops using one.'**
+  String get keySetupServerNote;
+
+  /// No description provided for @keySetupNoKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no keys yet. Generate one to continue.'**
+  String get keySetupNoKeys;
+
+  /// No description provided for @menuUseKeyInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a Key Instead of a Password…'**
+  String get menuUseKeyInstead;
+
+  /// No description provided for @keySetupUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to this server first — the key is installed over the session you already have.'**
+  String get keySetupUnavailable;
 }
 
 class _AppLocalizationsDelegate

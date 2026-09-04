@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
@@ -5,7 +7,9 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'open_screens.dart';
 
+import '../../core/ssh/ssh_target.dart';
 import '../../core/ui/views.dart';
+import '../hosts/widgets/open_key_setup.dart';
 import '../../l10n/app_localizations.dart';
 import 'session_manager.dart';
 import 'widgets/session_tab_strip.dart';
@@ -90,6 +94,15 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
             ],
           ),
           actions: [
+            // Offered only on a password session: this is the one screen
+            // where the means to install a key — a way in — is already open.
+            if (session.connection.target.authMethod == SshAuthMethod.password)
+              IconButton(
+                tooltip: l10n.keySetupTitle,
+                icon: const Icon(PiconsRegular.key),
+                onPressed: () =>
+                    unawaited(openKeySetup(context, ref, session.hostId)),
+              ),
             // Opens the SFTP browser over this session's *existing*
             // connection rather than dialling the host a second time.
             IconButton(

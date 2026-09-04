@@ -423,6 +423,27 @@ name itself and carry its own KDF parameters; a SHA-256 of it travels *inside*
 the sealed body so a rewritten header is refused. Counts live inside too: a
 backup should not advertise how many servers its owner runs.
 
+### Password to key, in one step
+
+A host you reach with a password can be upgraded to key authentication from a
+live session (`features/hosts`, `key_setup.dart`). The key is installed over
+the connection already open — the way in someone already has is the password we
+are trying to stop needing — then **verified over a second, independent
+connection whose credential source offers the key and refuses to supply a
+password**. That refusal is the feature: the ordinary source would satisfy the
+same connection with the saved password, the key would never be tested, and
+deleting the password afterwards would lock the user out.
+
+`authorized_keys` is copied before it is touched and restored if any later step
+fails. The public key is never interpolated into the script — it arrives on
+stdin and is matched with `grep -f`, so neither the key nor a label typed into
+it can become shell syntax, and it never appears in the server's process list.
+
+What it does **not** do is edit `sshd_config`. Disabling password
+authentication server-side applies to every user and every client and needs a
+service reload; a mistake locks everyone out of a machine that may be in
+another country. This changes what the app uses and what it stores.
+
 If a backend is ever added, it belongs behind the same seams that made removing
 this one cheap: `SecretVault` for credentials, the repositories for rows.
 
