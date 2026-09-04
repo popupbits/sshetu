@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 import 'package:xterm2/xterm.dart';
 
+import '../../../core/settings/settings_controller.dart';
 import '../../../core/terminal/terminal_session.dart';
 import '../../../core/theme/terminal_theme.dart';
 import '../../../core/ui/context_menu.dart';
@@ -92,6 +93,9 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
+    final fontSize = ref.watch(
+      settingsControllerProvider.select((s) => s.terminalFontSize),
+    );
 
     return ListenableBuilder(
       listenable: session,
@@ -113,8 +117,11 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
         textStyle: TerminalStyle(
           fontFamily: Mono.family,
           fontFamilyFallback: Mono.fallback,
-          fontSize: 13,
+          fontSize: fontSize,
         ),
+        // The grid has its own size setting; the app-wide text scale must not
+        // compound onto it and reflow the columns the remote program drew.
+        textScaler: TextScaler.noScaling,
       ),
       builder: (context, child) => Column(
         children: [

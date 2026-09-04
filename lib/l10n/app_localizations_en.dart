@@ -110,6 +110,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get textSizeLarger => 'Larger';
 
   @override
+  String get settingsTerminalTextSize => 'Terminal text size';
+
+  @override
+  String terminalTextSizePoints(int size) {
+    return '$size pt';
+  }
+
+  @override
+  String get terminalTextSizeSmaller => 'Smaller';
+
+  @override
+  String get terminalTextSizeLarger => 'Larger';
+
+  @override
+  String get menuZoomIn => 'Zoom In';
+
+  @override
+  String get menuZoomOut => 'Zoom Out';
+
+  @override
+  String get menuActualSize => 'Actual Size';
+
+  @override
   String get accentIndigo => 'Indigo';
 
   @override
@@ -1210,6 +1233,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transferFirewallNote =>
       'macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.';
+
+  @override
+  String get transferFirewallNoteWindows =>
+      'Windows may ask whether SSHetu can communicate on this network. Allow it on your private network — the other device connects to this one, so without it nothing can reach you.';
 
   @override
   String get transferStepPermission =>

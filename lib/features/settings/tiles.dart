@@ -15,6 +15,7 @@ import 'widgets/default_key_tile.dart';
 import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/language_tile.dart';
+import 'widgets/terminal_font_size_tile.dart';
 import 'widgets/text_scale_tile.dart';
 import 'widgets/theme_mode_tile.dart';
 
@@ -38,7 +39,12 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
   return [
     SettingsSection(
       title: l10n.settingsAppearance,
-      tiles: const [AccentTile(), ThemeModeTile(), TextScaleTile()],
+      tiles: const [
+        AccentTile(),
+        ThemeModeTile(),
+        TextScaleTile(),
+        TerminalFontSizeTile(),
+      ],
     ),
     SettingsSection(title: l10n.settingsGeneral, tiles: const [LanguageTile()]),
     SettingsSection(

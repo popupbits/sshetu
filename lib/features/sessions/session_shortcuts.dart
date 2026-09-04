@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/settings/settings_controller.dart';
 import 'session_manager.dart';
 import 'workspace_pages.dart';
 
@@ -36,6 +37,26 @@ class CycleSessionIntent extends Intent {
 
   /// +1 for the next tab, -1 for the previous.
   final int delta;
+}
+
+/// Applies a font-size step. Shared by the shortcut and the menu item so the
+/// two cannot drift into meaning different things.
+void applyTerminalFontSize(WidgetRef ref, double delta) {
+  final settings = ref.read(settingsControllerProvider.notifier);
+  delta == 0
+      ? settings.resetTerminalFontSize()
+      : settings.adjustTerminalFontSize(delta);
+}
+
+/// Grow, shrink, or reset the terminal grid's font size.
+class TerminalFontSizeIntent extends Intent {
+  const TerminalFontSizeIntent.increase() : delta = 1;
+  const TerminalFontSizeIntent.decrease() : delta = -1;
+
+  /// Zero means "back to the default" rather than "step by nothing".
+  const TerminalFontSizeIntent.reset() : delta = 0;
+
+  final double delta;
 }
 
 /// Select the session at a position, 1-based.
@@ -81,38 +102,46 @@ class SessionShortcuts extends ConsumerWidget {
   /// widget tree and synthesising key events — the thing worth checking is the
   /// map, and building it is the part that can be wrong.
   @visibleForTesting
-  static Map<ShortcutActivator, Intent> shortcutMap() =>
-      <ShortcutActivator, Intent>{
-        _primary(LogicalKeyboardKey.keyW): const CloseSessionIntent(),
-        // Both spellings of "next tab", because both are muscle memory:
-        // Ctrl/Cmd+Tab and the bracket pair every browser and editor uses.
-        _primary(LogicalKeyboardKey.bracketRight): const CycleSessionIntent(1),
-        _primary(LogicalKeyboardKey.bracketLeft): const CycleSessionIntent(-1),
-        const SingleActivator(LogicalKeyboardKey.tab, control: true):
-            const CycleSessionIntent(1),
-        const SingleActivator(
-          LogicalKeyboardKey.tab,
-          control: true,
-          shift: true,
-        ): const CycleSessionIntent(
-          -1,
-        ),
-        // Page Up/Down with the primary modifier: what every browser on
-        // Windows and Linux uses, and the binding people who live in tabs
-        // reach for first.
-        _primary(LogicalKeyboardKey.pageDown): const CycleSessionIntent(1),
-        _primary(LogicalKeyboardKey.pageUp): const CycleSessionIntent(-1),
-        // And the shifted brackets, which is the same gesture in Safari and
-        // Chrome on macOS. Costing nothing to support, and the alternative is
-        // a user concluding the app has no tab shortcuts at all because the
-        // one spelling they tried was not the one implemented.
-        _primary(LogicalKeyboardKey.bracketRight, shift: true):
-            const CycleSessionIntent(1),
-        _primary(LogicalKeyboardKey.bracketLeft, shift: true):
-            const CycleSessionIntent(-1),
-        for (var i = 1; i <= 9; i++)
-          _primary(_digits[i - 1]): SelectSessionIntent(i),
-      };
+  static Map<ShortcutActivator, Intent>
+  shortcutMap() => <ShortcutActivator, Intent>{
+    _primary(LogicalKeyboardKey.keyW): const CloseSessionIntent(),
+    // Both spellings of "next tab", because both are muscle memory:
+    // Ctrl/Cmd+Tab and the bracket pair every browser and editor uses.
+    _primary(LogicalKeyboardKey.bracketRight): const CycleSessionIntent(1),
+    _primary(LogicalKeyboardKey.bracketLeft): const CycleSessionIntent(-1),
+    const SingleActivator(LogicalKeyboardKey.tab, control: true):
+        const CycleSessionIntent(1),
+    const SingleActivator(LogicalKeyboardKey.tab, control: true, shift: true):
+        const CycleSessionIntent(-1),
+    // Page Up/Down with the primary modifier: what every browser on
+    // Windows and Linux uses, and the binding people who live in tabs
+    // reach for first.
+    _primary(LogicalKeyboardKey.pageDown): const CycleSessionIntent(1),
+    _primary(LogicalKeyboardKey.pageUp): const CycleSessionIntent(-1),
+    // And the shifted brackets, which is the same gesture in Safari and
+    // Chrome on macOS. Costing nothing to support, and the alternative is
+    // a user concluding the app has no tab shortcuts at all because the
+    // one spelling they tried was not the one implemented.
+    _primary(LogicalKeyboardKey.bracketRight, shift: true):
+        const CycleSessionIntent(1),
+    _primary(LogicalKeyboardKey.bracketLeft, shift: true):
+        const CycleSessionIntent(-1),
+    for (var i = 1; i <= 9; i++)
+      _primary(_digits[i - 1]): SelectSessionIntent(i),
+    // Zoom, in every spelling a browser accepts. `+` is a shifted `=` on
+    // most layouts, and a keypad has its own pair, so binding only `=`
+    // reads as "the shortcut does not work".
+    _primary(LogicalKeyboardKey.equal): const TerminalFontSizeIntent.increase(),
+    _primary(LogicalKeyboardKey.equal, shift: true):
+        const TerminalFontSizeIntent.increase(),
+    _primary(LogicalKeyboardKey.numpadAdd):
+        const TerminalFontSizeIntent.increase(),
+    _primary(LogicalKeyboardKey.minus): const TerminalFontSizeIntent.decrease(),
+    _primary(LogicalKeyboardKey.numpadSubtract):
+        const TerminalFontSizeIntent.decrease(),
+    // Digit 0 is free: 1-9 pick a tab, and no tenth tab wants it.
+    _primary(LogicalKeyboardKey.digit0): const TerminalFontSizeIntent.reset(),
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -131,6 +160,12 @@ class SessionShortcuts extends ConsumerWidget {
               // The menu bar calls the same method, so a shortcut and its
               // menu item cannot drift apart.
               ref.read(sessionManagerProvider.notifier).cycle(intent.delta);
+              return null;
+            },
+          ),
+          TerminalFontSizeIntent: CallbackAction<TerminalFontSizeIntent>(
+            onInvoke: (intent) {
+              applyTerminalFontSize(ref, intent.delta);
               return null;
             },
           ),

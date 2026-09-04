@@ -36,6 +36,21 @@
   "textSizeDefault": "Default",
   "textSizeLarge": "Large",
   "textSizeLarger": "Larger",
+  "settingsTerminalTextSize": "Terminal text size",
+  "terminalTextSizePoints": "{size} pt",
+  "@terminalTextSizePoints": {
+    "placeholders": {
+      "size": {
+        "type": "int",
+        "example": "13"
+      }
+    }
+  },
+  "terminalTextSizeSmaller": "Smaller",
+  "terminalTextSizeLarger": "Larger",
+  "menuZoomIn": "Zoom In",
+  "menuZoomOut": "Zoom Out",
+  "menuActualSize": "Actual Size",
   "accentIndigo": "Indigo",
   "accentTeal": "Teal",
   "accentForest": "Forest",
@@ -581,6 +596,7 @@
   "menuTrustedHostKeys": "Trusted Host Keys",
   "menuDiagnostics": "Diagnostics",
   "transferFirewallNote": "macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.",
+  "transferFirewallNoteWindows": "Windows may ask whether SSHetu can communicate on this network. Allow it on your private network — the other device connects to this one, so without it nothing can reach you.",
   "transferStepPermission": "Asking macOS for permission to accept connections…",
   "transferStepBinding": "Opening a port…",
   "transferCancel": "Cancel",

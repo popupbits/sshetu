@@ -120,4 +120,55 @@ void main() {
       }
     });
   });
+
+  group('the terminal zoom shortcuts', () {
+    Iterable<TerminalFontSizeIntent> zoomOn(TargetPlatform platform) =>
+        shortcutsFor(platform).values.whereType<TerminalFontSizeIntent>();
+
+    Iterable<SingleActivator> activatorsFor(
+      TargetPlatform platform,
+      double delta,
+    ) => shortcutsFor(platform).entries
+        .where((e) {
+          final intent = e.value;
+          return intent is TerminalFontSizeIntent && intent.delta == delta;
+        })
+        .map((e) => e.key as SingleActivator);
+
+    test('bind a step each way and a reset', () {
+      expect(zoomOn(TargetPlatform.windows).map((i) => i.delta).toSet(), {
+        1.0,
+        -1.0,
+        0.0,
+      });
+    });
+
+    test('reset sits on digit 0, which no tab claims', () {
+      final shortcuts = shortcutsFor(TargetPlatform.windows);
+      expect(
+        activatorsFor(TargetPlatform.windows, 0).single.trigger,
+        LogicalKeyboardKey.digit0,
+      );
+      expect(
+        shortcuts.values.whereType<SelectSessionIntent>().map(
+          (i) => i.position,
+        ),
+        isNot(contains(0)),
+        reason: 'digits 1-9 pick a tab; 0 is free for this',
+      );
+    });
+
+    test('`+` is bound as well as `=`, being a shifted `=`', () {
+      final increase = activatorsFor(TargetPlatform.windows, 1);
+      expect(
+        increase.any((a) => a.trigger == LogicalKeyboardKey.equal && !a.shift),
+        isTrue,
+      );
+      expect(
+        increase.any((a) => a.trigger == LogicalKeyboardKey.equal && a.shift),
+        isTrue,
+        reason: 'binding only `=` reads as "the shortcut does not work"',
+      );
+    });
+  });
 }

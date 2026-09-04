@@ -159,8 +159,9 @@ class AppMenuBar extends ConsumerWidget {
                 PlatformMenuItem(
                   label: l10n.menuUseKeyInstead,
                   onSelected: switch (_keySetupTarget(ref)) {
-                    final hostId? => () =>
-                        unawaited(openKeySetup(context, ref, hostId)),
+                    final hostId? => () => unawaited(
+                      openKeySetup(context, ref, hostId),
+                    ),
                     null => null,
                   },
                 ),
@@ -197,6 +198,25 @@ class AppMenuBar extends ConsumerWidget {
             PlatformMenuItem(
               label: l10n.menuTunnels,
               onSelected: () => context.goTo(Routes.tunnels),
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: l10n.menuZoomIn,
+                  shortcut: _primary(LogicalKeyboardKey.equal),
+                  onSelected: () => applyTerminalFontSize(ref, 1),
+                ),
+                PlatformMenuItem(
+                  label: l10n.menuZoomOut,
+                  shortcut: _primary(LogicalKeyboardKey.minus),
+                  onSelected: () => applyTerminalFontSize(ref, -1),
+                ),
+                PlatformMenuItem(
+                  label: l10n.menuActualSize,
+                  shortcut: _primary(LogicalKeyboardKey.digit0),
+                  onSelected: () => applyTerminalFontSize(ref, 0),
+                ),
+              ],
             ),
             PlatformMenuItemGroup(
               members: [

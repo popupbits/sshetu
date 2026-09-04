@@ -28,6 +28,7 @@ const _keyLocale = 'settings.locale';
 const _keyTextScale = 'settings.textScale';
 const _keyPanelWidth = 'settings.panelWidth';
 const _keyDefaultIdentity = 'settings.defaultIdentity';
+const _keyTerminalFontSize = 'settings.terminalFontSize';
 
 /// Read persisted settings, falling back to defaults for anything missing or
 /// corrupt. Called from bootstrap before the first frame.
@@ -44,8 +45,17 @@ AppSettings readSettings(SharedPreferences preferences) {
       preferences.getDouble(_keyPanelWidth) ?? WorkspaceLayout.defaultPanel,
     ),
     defaultIdentityId: preferences.getString(_keyDefaultIdentity),
+    terminalFontSize: _clampTerminalFontSize(
+      preferences.getDouble(_keyTerminalFontSize) ??
+          AppSettings.defaultTerminalFontSize,
+    ),
   );
 }
+
+double _clampTerminalFontSize(double size) => size.clamp(
+  AppSettings.minTerminalFontSize,
+  AppSettings.maxTerminalFontSize,
+);
 
 class SettingsController extends Notifier<AppSettings> {
   SettingsController({this.initial});
@@ -83,6 +93,23 @@ class SettingsController extends Notifier<AppSettings> {
     _keyDefaultIdentity,
     identityId,
   );
+
+  /// Sets the terminal grid's font size, clamped to the supported range.
+  void setTerminalFontSize(double size) {
+    final clamped = _clampTerminalFontSize(size);
+    _update(
+      state.copyWith(terminalFontSize: clamped),
+      _keyTerminalFontSize,
+      clamped,
+    );
+  }
+
+  /// Steps the terminal font size by [delta] points.
+  void adjustTerminalFontSize(double delta) =>
+      setTerminalFontSize(state.terminalFontSize + delta);
+
+  void resetTerminalFontSize() =>
+      setTerminalFontSize(AppSettings.defaultTerminalFontSize);
 
   /// Sets how wide the desktop list panel should be.
   ///

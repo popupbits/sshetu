@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:material_ui/material_ui.dart';
 import 'package:xterm2/xterm.dart';
 
@@ -8,10 +10,16 @@ import 'package:xterm2/xterm.dart';
 /// beside it. Anything that has to line up in a column — a fingerprint, a
 /// `listen → target` mapping, a stack trace — uses this.
 abstract final class Mono {
-  /// A generic family every platform resolves, with the usual per-platform
-  /// faces named ahead of it so the result is the one people expect rather
-  /// than whatever the system considers "monospace".
-  static const String family = 'monospace';
+  /// The platform's own terminal face. Naming a real one matters: only
+  /// Android resolves `monospace` to something monospaced, and Windows
+  /// resolves it to the proportional UI font, so [fallback] is never reached.
+  static String get family => switch (defaultTargetPlatform) {
+    TargetPlatform.windows => 'Cascadia Mono',
+    TargetPlatform.macOS || TargetPlatform.iOS => 'SF Mono',
+    TargetPlatform.linux => 'DejaVu Sans Mono',
+    TargetPlatform.android => 'Roboto Mono',
+    _ => 'monospace',
+  };
 
   static const List<String> fallback = [
     'SF Mono', // macOS

@@ -292,6 +292,48 @@ abstract class AppLocalizations {
   /// **'Larger'**
   String get textSizeLarger;
 
+  /// No description provided for @settingsTerminalTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal text size'**
+  String get settingsTerminalTextSize;
+
+  /// No description provided for @terminalTextSizePoints.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} pt'**
+  String terminalTextSizePoints(int size);
+
+  /// No description provided for @terminalTextSizeSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller'**
+  String get terminalTextSizeSmaller;
+
+  /// No description provided for @terminalTextSizeLarger.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger'**
+  String get terminalTextSizeLarger;
+
+  /// No description provided for @menuZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom In'**
+  String get menuZoomIn;
+
+  /// No description provided for @menuZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom Out'**
+  String get menuZoomOut;
+
+  /// No description provided for @menuActualSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual Size'**
+  String get menuActualSize;
+
   /// No description provided for @accentIndigo.
   ///
   /// In en, this message translates to:
@@ -2205,6 +2247,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'macOS may ask whether SSHetu can accept incoming connections. Allow it — the other device connects to this one, so without it nothing can reach you.'**
   String get transferFirewallNote;
+
+  /// No description provided for @transferFirewallNoteWindows.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows may ask whether SSHetu can communicate on this network. Allow it on your private network — the other device connects to this one, so without it nothing can reach you.'**
+  String get transferFirewallNoteWindows;
 
   /// No description provided for @transferStepPermission.
   ///

@@ -37,7 +37,13 @@ class AppSettings {
     this.textScale = 1.0,
     this.panelWidth = WorkspaceLayout.defaultPanel,
     this.defaultIdentityId,
+    this.terminalFontSize = defaultTerminalFontSize,
   });
+
+  /// The terminal grid's own size, in logical pixels.
+  static const double defaultTerminalFontSize = 13;
+  static const double minTerminalFontSize = 8;
+  static const double maxTerminalFontSize = 28;
 
   /// Id of the chosen [AccentOption]; see [Accents.byId].
   final String accentId;
@@ -65,6 +71,11 @@ class AppSettings {
   /// fresh install is in, and the state someone returns to by choosing it.
   final String? defaultIdentityId;
 
+  /// Set apart from [textScale] on purpose: that one sizes the interface, this
+  /// one sizes the grid, and a dense display needs the second without the
+  /// first.
+  final double terminalFontSize;
+
   AccentOption get accent => Accents.byId(accentId);
 
   Locale? get locale => localeCode == null ? null : Locale(localeCode!);
@@ -78,6 +89,7 @@ class AppSettings {
     double? panelWidth,
     String? defaultIdentityId,
     bool clearDefaultIdentity = false,
+    double? terminalFontSize,
   }) {
     return AppSettings(
       accentId: accentId ?? this.accentId,
@@ -88,6 +100,7 @@ class AppSettings {
       defaultIdentityId: clearDefaultIdentity
           ? null
           : (defaultIdentityId ?? this.defaultIdentityId),
+      terminalFontSize: terminalFontSize ?? this.terminalFontSize,
     );
   }
 
@@ -99,7 +112,8 @@ class AppSettings {
       other.localeCode == localeCode &&
       other.textScale == textScale &&
       other.panelWidth == panelWidth &&
-      other.defaultIdentityId == defaultIdentityId;
+      other.defaultIdentityId == defaultIdentityId &&
+      other.terminalFontSize == terminalFontSize;
 
   @override
   int get hashCode => Object.hash(
@@ -109,6 +123,7 @@ class AppSettings {
     textScale,
     panelWidth,
     defaultIdentityId,
+    terminalFontSize,
   );
 }
 
