@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'router/router.dart';
 import 'settings/settings_controller.dart';
 import 'theme/app_theme.dart';
+import 'ui/app_menu_bar.dart';
 import '../l10n/app_localizations.dart';
 import 'update/update_listener.dart';
 
@@ -46,7 +47,10 @@ class SshetuApp extends ConsumerWidget {
         // importing frozen Material. Drop it once they no longer do.
         // ignore: deprecated_member_use
         final bridged = MaterialUiCompatibilityBridge(child: child!);
-        final wrapped = UpdateListener(child: bridged);
+        // The desktop menu bar wraps everything, so its items can reach the
+        // router and the session list from anywhere in the app. It renders
+        // nothing on a phone.
+        final wrapped = AppMenuBar(child: UpdateListener(child: bridged));
         // The user's text-size preference multiplies the platform scale
         // rather than replacing it, so device accessibility settings still
         // apply on top.

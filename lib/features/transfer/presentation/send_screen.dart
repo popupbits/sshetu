@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
@@ -10,6 +11,7 @@ import '../../../core/db/database.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/terminal_theme.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/ui/feedback.dart';
 import '../../../core/ui/views.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
@@ -22,7 +24,12 @@ import '../transfer_session.dart';
 /// with a port open and nothing on screen saying so, which is the property
 /// that makes this safe to offer at all.
 class TransferSendScreen extends ConsumerStatefulWidget {
-  const TransferSendScreen({super.key});
+  const TransferSendScreen({this.embedded = false, super.key});
+
+  /// True when this is a tab in the desktop workspace, which draws its own
+  /// tab and close button — a second app bar inside it would be chrome
+  /// repeating itself.
+  final bool embedded;
 
   @override
   ConsumerState<TransferSendScreen> createState() => _TransferSendScreenState();
@@ -38,6 +45,15 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
   /// least resistance.
   var _includeSecrets = false;
   var _starting = true;
+
+  /// Which restart is current.
+  ///
+  /// Toggling the switch closes the previous sender, and closing it completes
+  /// that sender's `handOver` with "cancelled" — correct for a real cancel,
+  /// and wrong to show here, because by then a new session is already on
+  /// screen. Without this, flipping the switch replaced the fresh QR code with
+  /// the previous session's cancellation.
+  var _generation = 0;
 
   @override
   void initState() {
@@ -57,8 +73,9 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
   /// device sees has to match what it will actually get — and a code already
   /// scanned under the old answer must not deliver the new one.
   Future<void> _restart() async {
+    final generation = ++_generation;
     await _sender?.close();
-    if (!mounted) return;
+    if (!mounted || generation != _generation) return;
     setState(() {
       _starting = true;
       _error = null;
@@ -77,7 +94,7 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
         payload: payload,
         deviceName: await _deviceName(),
       );
-      if (!mounted) {
+      if (!mounted || generation != _generation) {
         await sender.close();
         return;
       }
@@ -87,14 +104,15 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
       });
 
       final receiver = await sender.handOver();
-      if (mounted) setState(() => _sentTo = receiver);
+      if (!mounted || generation != _generation) return;
+      setState(() => _sentTo = receiver);
     } on Object catch (error) {
-      if (mounted) {
-        setState(() {
-          _error = error is TransferException ? error.message : '$error';
-          _starting = false;
-        });
-      }
+      // A superseded session's failure is not this session's news.
+      if (!mounted || generation != _generation) return;
+      setState(() {
+        _error = error is TransferException ? error.message : '$error';
+        _starting = false;
+      });
     }
   }
 
@@ -107,49 +125,55 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
+    final body = ContentWidth(
+      child: ListView(
+        padding: const EdgeInsets.all(Spacing.xl),
+        children: [
+          Text(l10n.transferSendTitle, style: theme.textTheme.titleMedium),
+          const SizedBox(height: Spacing.sm),
+          Text(
+            l10n.transferSendBody,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: Spacing.xl),
+          _Code(
+            sender: _sender,
+            starting: _starting,
+            error: _error,
+            sentTo: _sentTo,
+            onRetry: _restart,
+          ),
+          const SizedBox(height: Spacing.xl),
+          SwitchListTile(
+            value: _includeSecrets,
+            // Locked once a device has taken the payload: the switch would
+            // otherwise look like it still governed something.
+            onChanged: _sentTo != null
+                ? null
+                : (value) {
+                    setState(() => _includeSecrets = value);
+                    unawaited(_restart());
+                  },
+            title: Text(l10n.transferIncludeSecrets),
+            subtitle: Text(l10n.transferIncludeSecretsBody),
+            secondary: Icon(
+              _includeSecrets ? PiconsRegular.key : PiconsRegular.keyhole,
+              color: _includeSecrets ? theme.colorScheme.primary : null,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Embedded in the workspace, the tab is the title and the tab's close
+    // button is the way out; a Scaffold here would stack a second app bar
+    // inside a pane that already has one above it.
+    if (widget.embedded) return body;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.transferSend)),
-      body: ContentWidth(
-        child: ListView(
-          padding: const EdgeInsets.all(Spacing.xl),
-          children: [
-            Text(l10n.transferSendTitle, style: theme.textTheme.titleMedium),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              l10n.transferSendBody,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: Spacing.xl),
-            _Code(
-              sender: _sender,
-              starting: _starting,
-              error: _error,
-              sentTo: _sentTo,
-              onRetry: _restart,
-            ),
-            const SizedBox(height: Spacing.xl),
-            SwitchListTile(
-              value: _includeSecrets,
-              // Locked once a device has taken the payload: the switch would
-              // otherwise look like it still governed something.
-              onChanged: _sentTo != null
-                  ? null
-                  : (value) {
-                      setState(() => _includeSecrets = value);
-                      unawaited(_restart());
-                    },
-              title: Text(l10n.transferIncludeSecrets),
-              subtitle: Text(l10n.transferIncludeSecretsBody),
-              secondary: Icon(
-                _includeSecrets ? PiconsRegular.key : PiconsRegular.keyhole,
-                color: _includeSecrets ? theme.colorScheme.primary : null,
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: body,
     );
   }
 }
@@ -249,6 +273,21 @@ class _Code extends StatelessWidget {
           '${sender!.code.addresses.first}:${sender!.code.port}',
           style: Mono.apply(theme.textTheme.labelSmall)
               .copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: Spacing.md),
+        // Desktop to desktop has no camera on either end. The same code as
+        // text covers that, and covers a phone whose camera permission was
+        // declined — the receiving screen already takes a pasted code.
+        //
+        // It carries the secret, so it goes to the clipboard on a deliberate
+        // tap and is never rendered on screen.
+        TextButton.icon(
+          onPressed: () async {
+            await Clipboard.setData(ClipboardData(text: sender!.code.encode()));
+            if (context.mounted) context.toast(l10n.transferCodeCopied);
+          },
+          icon: const Icon(PiconsRegular.copy, size: 16),
+          label: Text(l10n.transferCopyCode),
         ),
       ],
     );

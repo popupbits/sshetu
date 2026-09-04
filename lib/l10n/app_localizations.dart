@@ -2061,6 +2061,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SSHetu needs the camera to scan a code. You can paste the code as text instead.'**
   String get transferCameraDenied;
+
+  /// No description provided for @transferCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get transferCopyCode;
+
+  /// No description provided for @transferCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied. Paste it on the other device.'**
+  String get transferCodeCopied;
+
+  /// No description provided for @transferScanCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a code'**
+  String get transferScanCode;
+
+  /// No description provided for @menuFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get menuFile;
+
+  /// No description provided for @menuView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get menuView;
+
+  /// No description provided for @menuSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get menuSession;
+
+  /// No description provided for @menuHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get menuHelp;
+
+  /// No description provided for @menuNewHost.
+  ///
+  /// In en, this message translates to:
+  /// **'New Server…'**
+  String get menuNewHost;
+
+  /// No description provided for @menuImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from OpenSSH…'**
+  String get menuImport;
+
+  /// No description provided for @menuGenerateKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Key…'**
+  String get menuGenerateKey;
+
+  /// No description provided for @menuSendToDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to a Device…'**
+  String get menuSendToDevice;
+
+  /// No description provided for @menuReceiveFromDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive from a Device…'**
+  String get menuReceiveFromDevice;
+
+  /// No description provided for @menuCloseSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Session'**
+  String get menuCloseSession;
+
+  /// No description provided for @menuNextSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Session'**
+  String get menuNextSession;
+
+  /// No description provided for @menuPreviousSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Session'**
+  String get menuPreviousSession;
+
+  /// No description provided for @menuHosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Servers'**
+  String get menuHosts;
+
+  /// No description provided for @menuKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys'**
+  String get menuKeys;
+
+  /// No description provided for @menuTunnels.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnels'**
+  String get menuTunnels;
+
+  /// No description provided for @menuSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get menuSettings;
+
+  /// No description provided for @menuTrustedHostKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted Host Keys'**
+  String get menuTrustedHostKeys;
+
+  /// No description provided for @menuDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get menuDiagnostics;
 }
 
 class _AppLocalizationsDelegate

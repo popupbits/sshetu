@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=SSHetu
+GenericName=SSH Client
+Comment=SSH client, terminal, SFTP browser and port forwarding
+Exec=sshetu
+Icon=sshetu
+Terminal=false
+Categories=Development;Network;RemoteAccess;
+Keywords=ssh;terminal;sftp;tunnel;server;
+StartupWMClass=sshetu

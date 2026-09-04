@@ -556,5 +556,26 @@
     }
   },
   "transferScanAgain": "Scan again",
-  "transferCameraDenied": "SSHetu needs the camera to scan a code. You can paste the code as text instead."
+  "transferCameraDenied": "SSHetu needs the camera to scan a code. You can paste the code as text instead.",
+  "transferCopyCode": "Copy code",
+  "transferCodeCopied": "Code copied. Paste it on the other device.",
+  "transferScanCode": "Scan a code",
+  "menuFile": "File",
+  "menuView": "View",
+  "menuSession": "Session",
+  "menuHelp": "Help",
+  "menuNewHost": "New Server…",
+  "menuImport": "Import from OpenSSH…",
+  "menuGenerateKey": "Generate Key…",
+  "menuSendToDevice": "Send to a Device…",
+  "menuReceiveFromDevice": "Receive from a Device…",
+  "menuCloseSession": "Close Session",
+  "menuNextSession": "Next Session",
+  "menuPreviousSession": "Previous Session",
+  "menuHosts": "Servers",
+  "menuKeys": "Keys",
+  "menuTunnels": "Tunnels",
+  "menuSettings": "Settings",
+  "menuTrustedHostKeys": "Trusted Host Keys",
+  "menuDiagnostics": "Diagnostics"
 }

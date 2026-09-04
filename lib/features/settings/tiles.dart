@@ -10,6 +10,7 @@ import '../../core/router/routes.dart';
 import '../../core/util/launcher.dart';
 import '../../core/util/review_prompt.dart';
 import '../../l10n/app_localizations.dart';
+import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/language_tile.dart';
 import 'widgets/text_scale_tile.dart';
@@ -80,13 +81,13 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
           subtitle: Text(l10n.transferBody),
           isThreeLine: true,
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.pushTo(Routes.transferSend),
+          onTap: () => openTransferSend(context, ref),
         ),
         ListTile(
           leading: const Icon(PiconsRegular.downloadSimple),
           title: Text(l10n.transferReceive),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.pushTo(Routes.transferReceive),
+          onTap: () => openTransferReceive(context, ref),
         ),
       ],
     ),

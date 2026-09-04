@@ -198,6 +198,21 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   /// nothing would show it and nothing could end it. Navigating away from a
   /// terminal does not come through here, so backing out of a session keeps it
   /// running, which is the difference the user actually cares about.
+  /// Moves [delta] tabs from the active one, wrapping.
+  ///
+  /// Lives here rather than in the shortcut handler because the menu bar
+  /// needs the same behaviour, and two copies of "wrap past the last tab" is
+  /// two chances to disagree about what Cmd-] does.
+  void cycle(int delta) {
+    if (_sessions.length < 2) return;
+    final current = _sessions.indexWhere((session) => session.id == activeId);
+    if (current < 0) return;
+    // Wraps, the way every tabbed application does: past the last tab is the
+    // first one, not a dead end.
+    final next = (current + delta + _sessions.length) % _sessions.length;
+    select(_sessions[next].id);
+  }
+
   void close(String id) {
     final index = _sessions.indexWhere((s) => s.id == id);
     if (index < 0) return;

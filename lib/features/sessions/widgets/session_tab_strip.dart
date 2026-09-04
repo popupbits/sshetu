@@ -7,6 +7,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/ui/context_menu.dart';
 import '../../../l10n/app_localizations.dart';
 import '../session_manager.dart';
+import '../workspace_pages.dart';
 
 /// The row of open sessions.
 ///
@@ -40,11 +41,18 @@ class SessionTabStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(sessionManagerProvider);
     final manager = ref.read(sessionManagerProvider.notifier);
-    final activeId = manager.activeId;
+    final pages = ref.watch(workspacePagesProvider);
+    final workspace = ref.read(workspacePagesProvider.notifier);
+    // A page covers the terminal while it is selected, so no session tab is
+    // the selected one then.
+    final selectedPageId = workspace.selected?.id;
+    final activeId = selectedPageId == null ? manager.activeId : null;
     final scheme = Theme.of(context).colorScheme;
 
-    if (sessions.isEmpty) return const SizedBox.shrink();
-    if (sessions.length < 2 && !alwaysShow) return const SizedBox.shrink();
+    if (sessions.isEmpty && pages.isEmpty) return const SizedBox.shrink();
+    if (sessions.length + pages.length < 2 && !alwaysShow) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       height: Chrome.tabStrip,
@@ -54,8 +62,19 @@ class SessionTabStrip extends ConsumerWidget {
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: sessions.length,
+              itemCount: sessions.length + pages.length,
               itemBuilder: (context, index) {
+                // Pages sit after the sessions, so opening one never reorders
+                // the tabs someone is already working in.
+                if (index >= sessions.length) {
+                  final page = pages[index - sessions.length];
+                  return _PageTab(
+                    page: page,
+                    selected: page.id == selectedPageId,
+                    onTap: () => workspace.select(page.id),
+                    onClose: () => workspace.close(page.id),
+                  );
+                }
                 final session = sessions[index];
                 return ContextMenuRegion(
                   title: session.title,
@@ -95,7 +114,10 @@ class SessionTabStrip extends ConsumerWidget {
                   child: _SessionTab(
                     session: session,
                     selected: session.id == activeId,
-                    onTap: () => manager.select(session.id),
+                    onTap: () {
+                      workspace.deselect();
+                      manager.select(session.id);
+                    },
                     onClose: () => manager.close(session.id),
                   ),
                 );
@@ -230,6 +252,84 @@ class _LivenessDot extends StatelessWidget {
                 color: failed ? scheme.error : scheme.outline,
                 width: 1.5,
               ),
+      ),
+    );
+  }
+}
+
+/// A non-terminal tab. Same shape as a session's, without the liveness dot —
+/// a page has no connection to be alive or dead.
+class _PageTab extends StatelessWidget {
+  const _PageTab({
+    required this.page,
+    required this.selected,
+    required this.onTap,
+    required this.onClose,
+  });
+
+  final WorkspacePage page;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
+
+    return Material(
+      color: selected ? scheme.surface : Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: Chrome.tabStrip,
+          constraints: const BoxConstraints(maxWidth: 220),
+          padding: const EdgeInsets.only(left: Spacing.md, right: Spacing.xs),
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: selected ? scheme.primary : Colors.transparent,
+                width: Chrome.selectionRule,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                page.icon,
+                size: 12,
+                color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: Spacing.sm),
+              Flexible(
+                child: Text(
+                  page.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: selected
+                        ? scheme.onSurface
+                        : scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              const SizedBox(width: Spacing.xs),
+              IconButton(
+                tooltip: l10n.terminalCloseTab,
+                onPressed: onClose,
+                icon: const Icon(PiconsRegular.x, size: 12),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 22,
+                  height: 22,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

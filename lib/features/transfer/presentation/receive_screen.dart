@@ -23,7 +23,12 @@ import '../transfer_session.dart';
 /// text instead. That is what makes this work on a desktop with no camera, on
 /// a device where the permission was refused, and in a test.
 class TransferReceiveScreen extends ConsumerStatefulWidget {
-  const TransferReceiveScreen({super.key});
+  const TransferReceiveScreen({this.embedded = false, super.key});
+
+  /// True when this is a tab in the desktop workspace, which draws its own
+  /// tab and close button — a second app bar inside it would be chrome
+  /// repeating itself.
+  final bool embedded;
 
   @override
   ConsumerState<TransferReceiveScreen> createState() =>
@@ -31,9 +36,14 @@ class TransferReceiveScreen extends ConsumerStatefulWidget {
 }
 
 class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
-  final _controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-  );
+  /// Created when the user asks to scan, not before.
+  ///
+  /// Constructing it starts the camera, which on Android means the permission
+  /// sheet appears the instant this screen opens — before the user has done
+  /// anything, with no explanation, over a black rectangle. A permission
+  /// request has to follow a request *from the user*, or it reads as the app
+  /// grabbing for the camera.
+  MobileScannerController? _controller;
   final _pasted = TextEditingController();
 
   /// True from the first accepted code until the screen is done with it, so a
@@ -44,9 +54,22 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
 
   @override
   void dispose() {
-    unawaited(_controller.dispose());
+    unawaited(_controller?.dispose());
     _pasted.dispose();
     super.dispose();
+  }
+
+  void _startScanning() => setState(() {
+    _error = null;
+    _controller = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+    );
+  });
+
+  Future<void> _stopScanning() async {
+    final controller = _controller;
+    setState(() => _controller = null);
+    await controller?.dispose();
   }
 
   Future<void> _onCode(String raw) async {
@@ -59,7 +82,7 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
     TransferReceiver? session;
     try {
       final code = PairingCode.decode(raw);
-      await _controller.stop();
+      await _controller?.stop();
 
       session = await TransferReceiver.connect(
         code,
@@ -75,7 +98,7 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
       if (!accepted) {
         await session.close();
         if (mounted) setState(() => _busy = false);
-        unawaited(_controller.start());
+        unawaited(_controller?.start());
         return;
       }
 
@@ -105,7 +128,7 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
           };
         });
       }
-      unawaited(_controller.start());
+      unawaited(_controller?.start());
     }
   }
 
@@ -189,45 +212,44 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.transferReceive)),
-      body: ContentWidth(
-        child: ListView(
-          padding: const EdgeInsets.all(Spacing.xl),
-          children: [
-            if (_received case final count?) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: Spacing.xxl),
-                child: Column(
-                  children: [
-                    Icon(
-                      PiconsRegular.checkCircle,
-                      size: 40,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(height: Spacing.lg),
-                    Text(
-                      l10n.transferReceived(count),
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                  ],
-                ),
+    final body = ContentWidth(
+      child: ListView(
+        padding: const EdgeInsets.all(Spacing.xl),
+        children: [
+          if (_received case final count?) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: Spacing.xxl),
+              child: Column(
+                children: [
+                  Icon(
+                    PiconsRegular.checkCircle,
+                    size: 40,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(height: Spacing.lg),
+                  Text(
+                    l10n.transferReceived(count),
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                ],
               ),
-            ] else ...[
-              Text(
-                l10n.transferReceiveBody,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+            ),
+          ] else ...[
+            Text(
+              l10n.transferReceiveBody,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(height: Spacing.lg),
-              if (_supportsCamera)
+            ),
+            const SizedBox(height: Spacing.lg),
+            if (_supportsCamera)
+              if (_controller case final controller?) ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(Radii.md),
                   child: SizedBox(
                     height: 280,
                     child: MobileScanner(
-                      controller: _controller,
+                      controller: controller,
                       onDetect: (capture) {
                         final value = capture.barcodes.firstOrNull?.rawValue;
                         if (value != null) unawaited(_onCode(value));
@@ -238,50 +260,72 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
                     ),
                   ),
                 ),
-              if (_error case final message?) ...[
-                const SizedBox(height: Spacing.lg),
-                Text(
-                  message,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+                const SizedBox(height: Spacing.sm),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => unawaited(_stopScanning()),
+                    child: Text(l10n.actionCancel),
                   ),
                 ),
-              ],
-              const SizedBox(height: Spacing.xl),
-              // Always present, not a fallback behind a failure: it is the
-              // only way in on a desktop with no camera, and hiding it until
-              // something goes wrong helps nobody.
+              ] else
+                // The camera opens on a tap, never on arrival: a permission
+                // sheet the user did not ask for, over a black rectangle,
+                // reads as the app grabbing for their camera.
+                FilledButton.icon(
+                  onPressed: _startScanning,
+                  icon: const Icon(PiconsRegular.qrCode),
+                  label: Text(l10n.transferScanCode),
+                ),
+            if (_error case final message?) ...[
+              const SizedBox(height: Spacing.lg),
               Text(
-                l10n.transferPasteInstead,
-                style: theme.textTheme.labelLarge,
-              ),
-              const SizedBox(height: Spacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _pasted,
-                      autocorrect: false,
-                      decoration: InputDecoration(
-                        hintText: l10n.transferPasteHint,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onSubmitted: (value) => unawaited(_onCode(value)),
-                    ),
-                  ),
-                  const SizedBox(width: Spacing.sm),
-                  FilledButton(
-                    onPressed: _busy
-                        ? null
-                        : () => unawaited(_onCode(_pasted.text)),
-                    child: Text(l10n.transferReceive),
-                  ),
-                ],
+                message,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
               ),
             ],
+            const SizedBox(height: Spacing.xl),
+            // Always present, not a fallback behind a failure: it is the
+            // only way in on a desktop with no camera, and hiding it until
+            // something goes wrong helps nobody.
+            Text(l10n.transferPasteInstead, style: theme.textTheme.labelLarge),
+            const SizedBox(height: Spacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _pasted,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      hintText: l10n.transferPasteHint,
+                      border: const OutlineInputBorder(),
+                    ),
+                    onSubmitted: (value) => unawaited(_onCode(value)),
+                  ),
+                ),
+                const SizedBox(width: Spacing.sm),
+                FilledButton(
+                  onPressed: _busy
+                      ? null
+                      : () => unawaited(_onCode(_pasted.text)),
+                  child: Text(l10n.transferReceive),
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
       ),
+    );
+
+    // Embedded in the workspace, the tab is the title and the tab's close
+    // button is the way out; a Scaffold here would stack a second app bar
+    // inside a pane that already has one above it.
+    if (widget.embedded) return body;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.transferReceive)),
+      body: body,
     );
   }
 

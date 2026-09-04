@@ -8,6 +8,7 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/ui/views.dart';
 import '../../../l10n/app_localizations.dart';
 import '../session_manager.dart';
+import '../workspace_pages.dart';
 import 'session_tab_strip.dart';
 import 'terminal_pane.dart';
 
@@ -25,9 +26,11 @@ class TerminalWorkspace extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final sessions = ref.watch(sessionManagerProvider);
     final active = ref.read(sessionManagerProvider.notifier).active;
+    ref.watch(workspacePagesProvider);
+    final page = ref.read(workspacePagesProvider.notifier).selected;
     final scheme = Theme.of(context).colorScheme;
 
-    if (sessions.isEmpty) {
+    if (sessions.isEmpty && page == null) {
       return ColoredBox(
         color: scheme.surface,
         child: EmptyView(
@@ -58,7 +61,14 @@ class TerminalWorkspace extends ConsumerWidget {
           ],
         ),
         Expanded(
-          child: active == null
+          // A page covers the terminal rather than replacing the window: the
+          // session keeps running, its tab stays put, and one click is back.
+          child: page != null
+              ? ColoredBox(
+                  color: scheme.surface,
+                  child: Builder(key: ValueKey(page.id), builder: page.builder),
+                )
+              : active == null
               ? const SizedBox.shrink()
               // Keyed by session, so switching tabs builds a new pane rather
               // than re-pointing the old one at a different terminal — which

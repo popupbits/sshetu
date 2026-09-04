@@ -111,18 +111,9 @@ class SessionShortcuts extends ConsumerWidget {
           ),
           CycleSessionIntent: CallbackAction<CycleSessionIntent>(
             onInvoke: (intent) {
-              final manager = ref.read(sessionManagerProvider.notifier);
-              final sessions = ref.read(sessionManagerProvider);
-              if (sessions.length < 2) return null;
-              final current = sessions.indexWhere(
-                (s) => s.id == manager.activeId,
-              );
-              if (current < 0) return null;
-              // Wraps, the way every tabbed application does: past the last
-              // tab is the first one, not a dead end.
-              final next =
-                  (current + intent.delta + sessions.length) % sessions.length;
-              manager.select(sessions[next].id);
+              // The menu bar calls the same method, so a shortcut and its
+              // menu item cannot drift apart.
+              ref.read(sessionManagerProvider.notifier).cycle(intent.delta);
               return null;
             },
           ),

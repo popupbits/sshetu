@@ -13,9 +13,11 @@ abstract final class Routes {
   static const String knownHosts = '/settings/known-hosts';
 
   /// Moving a configuration to another device, and the two halves of it.
-  static const String transfer = '/transfer';
-  static const String transferSend = '/transfer/send';
-  static const String transferReceive = '/transfer/receive';
+  /// Children of Settings, so their paths carry that prefix — the router
+  /// declares them under the settings branch and a constant that disagrees
+  /// resolves to nothing at all.
+  static const String transferSend = '/settings/transfer/send';
+  static const String transferReceive = '/settings/transfer/receive';
   static const String diagnostics = '/settings/diagnostics';
   static const String splash = '/splash';
 

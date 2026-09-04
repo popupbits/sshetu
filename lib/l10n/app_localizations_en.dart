@@ -1137,4 +1137,67 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transferCameraDenied =>
       'SSHetu needs the camera to scan a code. You can paste the code as text instead.';
+
+  @override
+  String get transferCopyCode => 'Copy code';
+
+  @override
+  String get transferCodeCopied => 'Code copied. Paste it on the other device.';
+
+  @override
+  String get transferScanCode => 'Scan a code';
+
+  @override
+  String get menuFile => 'File';
+
+  @override
+  String get menuView => 'View';
+
+  @override
+  String get menuSession => 'Session';
+
+  @override
+  String get menuHelp => 'Help';
+
+  @override
+  String get menuNewHost => 'New Server…';
+
+  @override
+  String get menuImport => 'Import from OpenSSH…';
+
+  @override
+  String get menuGenerateKey => 'Generate Key…';
+
+  @override
+  String get menuSendToDevice => 'Send to a Device…';
+
+  @override
+  String get menuReceiveFromDevice => 'Receive from a Device…';
+
+  @override
+  String get menuCloseSession => 'Close Session';
+
+  @override
+  String get menuNextSession => 'Next Session';
+
+  @override
+  String get menuPreviousSession => 'Previous Session';
+
+  @override
+  String get menuHosts => 'Servers';
+
+  @override
+  String get menuKeys => 'Keys';
+
+  @override
+  String get menuTunnels => 'Tunnels';
+
+  @override
+  String get menuSettings => 'Settings';
+
+  @override
+  String get menuTrustedHostKeys => 'Trusted Host Keys';
+
+  @override
+  String get menuDiagnostics => 'Diagnostics';
 }
