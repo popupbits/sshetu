@@ -58,14 +58,15 @@ compiled is a platform on trust:
 | Android | built, installed and connected to a live server on an emulator |
 | iOS | built, installed and connected on a simulator, with a key generated on the device |
 | Linux | compiles green on CI (`ci.yml`); not yet run by a person |
-| Windows | compiles green on CI (`ci.yml`); not yet run by a person |
+| Windows | built and driven on Windows 11; SSH, SFTP and the terminal exercised against a live server |
 
 Linux and Windows cannot be built on a Mac, which is where this app is
 developed, so CI is not a formality for them — it is the only thing that
 compiles them at all. Every CI run uploads a bundle per platform, so testing
 one is a download rather than a toolchain: **Actions → the run → Artifacts →
 `sshetu-windows` / `sshetu-linux`**. If you run one, update this table;
-"compiles" and "works" are different claims.
+"compiles" and "works" are different claims. Windows has now been run — see
+§12b for what that took and what it found.
 
 **Dependencies.** Prefer what is already here. Add with
 `flutter pub add <package>` rather than hand-editing constraints. Do not add a
@@ -466,6 +467,46 @@ script says which of the two it produced rather than pretending.
 
 If `flutter build macos` reports "CocoaPods not installed", `pod` is at
 `/usr/local/bin` and not on the default PATH here.
+
+## 12b. Building and running on Windows
+
+```
+flutter build windows --release      # -> build\windows\x64\runner\Release
+```
+
+**Visual Studio needs the ATL component.** Without it the build stops at
+
+```
+flutter_secure_storage_windows_plugin.cpp: fatal error C1083:
+Cannot open include file: 'atlstr.h'
+```
+
+`flutter_secure_storage_windows` uses ATL's `CA2W`/`CW2A` for its string
+conversions, and 4.2.2 is the latest — no version drops the dependency. It is
+not part of the "Desktop development with C++" workload by default, and
+`flutter doctor` does not check for it, so the first Windows build on a fresh
+machine fails on a header nobody mentioned:
+
+```
+"C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" modify ^
+  --installPath "C:\Program Files\Microsoft Visual Studio\18\Community" ^
+  --add Microsoft.VisualStudio.Component.VC.ATL --passive --norestart
+```
+
+CI never hit this because GitHub's `windows-latest` image ships ATL already —
+a good example of a green build saying less than it appears to.
+
+**What running it found.** Two bugs analysis could not have caught, both fixed:
+an OpenSSH import that linked no host to its key, because `listSync()` and a
+config file spell the same path differently and the two were compared with
+`==`; and a terminal drawn in a proportional font, because `monospace` is not
+a family Windows resolves. Both are now guarded by tests that fail on macOS
+too — see `test/import/` and `test/core/terminal_font_test.dart`.
+
+**The firewall.** `Send to a device` opens a listening socket, so Windows
+Defender prompts on first use. Declining it leaves the QR code on screen with
+nothing able to reach the machine, which looks like the phone's fault; the
+send screen says so before it happens.
 
 ## 13. Tooling — use it when it is there
 

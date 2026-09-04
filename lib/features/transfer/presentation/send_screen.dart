@@ -171,7 +171,7 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
           // window or on another Space, and until it is answered nothing can
           // reach this device — which reads as the app having frozen. Say so
           // before it happens rather than leaving someone guessing.
-          if (Platform.isMacOS) ...[
+          if (Platform.isMacOS || Platform.isWindows) ...[
             const SizedBox(height: Spacing.md),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +184,9 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
                 const SizedBox(width: Spacing.sm),
                 Expanded(
                   child: Text(
-                    l10n.transferFirewallNote,
+                    Platform.isWindows
+                        ? l10n.transferFirewallNoteWindows
+                        : l10n.transferFirewallNote,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),

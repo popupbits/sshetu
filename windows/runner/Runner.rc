@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.popupbits" "\0"
-            VALUE "FileDescription", "sshetu" "\0"
+            VALUE "CompanyName", "PopupBits" "\0"
+            VALUE "FileDescription", "SSHetu" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "sshetu" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.popupbits. All rights reserved." "\0"
+            VALUE "InternalName", "SSHetu" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 PopupBits. All rights reserved." "\0"
             VALUE "OriginalFilename", "sshetu.exe" "\0"
-            VALUE "ProductName", "sshetu" "\0"
+            VALUE "ProductName", "SSHetu" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
