@@ -506,7 +506,38 @@ too — see `test/import/` and `test/core/terminal_font_test.dart`.
 **The firewall.** `Send to a device` opens a listening socket, so Windows
 Defender prompts on first use. Declining it leaves the QR code on screen with
 nothing able to reach the machine, which looks like the phone's fault; the
-send screen says so before it happens.
+send screen says so before it happens. The installer below adds the rule
+instead, which is the real fix — an app cannot grant itself one.
+
+### The installer
+
+```
+powershell -ExecutionPolicy Bypass -File tool\make_installer.ps1 -Build
+# -> windows/installer/output/SSHetu-Setup-<version>.exe
+```
+
+Inno Setup, from `windows/installer/sshetu.iss` — the Windows counterpart to
+`tool/make_dmg.sh`, and plain for the same reason. Drop `-Build` to package a
+release bundle that is already there. Install it with
+`winget install JRSoftware.InnoSetup`; note it lands in `%LOCALAPPDATA%`, not
+Program Files, so `ISCC.exe` is on neither PATH nor the usual path — the
+script checks both.
+
+Two things in that script are load-bearing:
+
+- **`AppId` must never change.** It is what makes the next version install
+  over this one instead of beside it, and what keeps a single entry in
+  Add/Remove Programs.
+- **The `netsh` rule** is scoped to the program rather than a port, because
+  the transfer listener takes whatever port it is given, and to `LocalSubnet`,
+  because two devices on one network is the whole design. The uninstaller
+  removes it; a rule naming a deleted executable is exactly the litter an
+  uninstall is for.
+
+It is **unsigned**, so SmartScreen shows "Windows protected your PC" on first
+run until someone clicks *More info → Run anyway*. Fixing that needs an OV or
+EV code-signing certificate, the same shape of problem as notarising the dmg,
+and the script says so rather than pretending otherwise.
 
 ## 13. Tooling — use it when it is there
 
