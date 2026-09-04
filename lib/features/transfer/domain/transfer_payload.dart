@@ -30,6 +30,7 @@ class TransferPayload {
     required this.schemaVersion,
     required this.tables,
     required this.secrets,
+    this.includesSecrets = false,
   });
 
   /// The tables that travel, in dependency order — a host may name a group and
@@ -54,8 +55,17 @@ class TransferPayload {
   /// Table name to its rows, as read from SQLite.
   final Map<String, List<Map<String, Object?>>> tables;
 
-  /// `SecretRef.storageKey` to its value. Empty unless the sender opted in.
+  /// `SecretRef.storageKey` to its value.
+  ///
+  /// Empty until [withSecrets] has run, even when [includesSecrets] is true.
   final Map<String, String> secrets;
+
+  /// Whether this payload is *meant* to carry keys and passwords.
+  ///
+  /// Separate from `secrets.isNotEmpty` because the two are true at different
+  /// times: the offer has to say what is coming before anything has been read
+  /// out of the vault. See [read].
+  final bool includesSecrets;
 
   int get hostCount => tables['hosts']?.length ?? 0;
   int get identityCount => tables['identities']?.length ?? 0;
@@ -67,9 +77,20 @@ class TransferPayload {
   /// Tombstoned rows are left behind: a deleted host is not something the
   /// other device needs, and sending tombstones would mean the receiver has to
   /// reason about deletions it never saw.
+  /// Reads everything except the secrets.
+  ///
+  /// **The vault is not touched here.** Reading a secret can raise a system
+  /// authorisation prompt — on macOS, one per stored item — and this runs the
+  /// moment someone flips "include keys and passwords" to look at a QR code.
+  /// Being asked to release a private key in order to *display a code* is
+  /// both a surprise and a lie about what is happening: nothing has been sent
+  /// and nothing may ever be.
+  ///
+  /// So the intent is recorded and the reading waits for [withSecrets], which
+  /// the sender calls once a device has actually accepted. The prompt then
+  /// arrives at the only moment it makes sense — as the keys are handed over.
   static Future<TransferPayload> read(
     Database database, {
-    required SecretVault vault,
     required bool includeSecrets,
   }) async {
     final tables = <String, List<Map<String, Object?>>>{};
@@ -81,24 +102,29 @@ class TransferPayload {
       tables[table] = [for (final row in rows) Map<String, Object?>.from(row)];
     }
 
-    final secrets = <String, String>{};
-    if (includeSecrets) {
-      for (final row in tables['hosts']!) {
-        await _collect(vault, secrets, SecretRef.forHost(row['id']! as String));
-      }
-      for (final row in tables['identities']!) {
-        await _collect(
-          vault,
-          secrets,
-          SecretRef.forIdentity(row['id']! as String),
-        );
-      }
-    }
-
     return TransferPayload(
       schemaVersion: kSchemaVersion,
       tables: tables,
+      secrets: const {},
+      includesSecrets: includeSecrets,
+    );
+  }
+
+  /// The same payload with its secrets read out of [vault].
+  ///
+  /// A no-op when this payload was not meant to carry any, so a caller can
+  /// always call it and let the flag decide.
+  Future<TransferPayload> withSecrets(SecretVault vault) async {
+    if (!includesSecrets) return this;
+
+    final secrets = <String, String>{};
+    await _collect(vault, secrets, _secretsWorthReading(tables));
+
+    return TransferPayload(
+      schemaVersion: schemaVersion,
+      tables: tables,
       secrets: secrets,
+      includesSecrets: true,
     );
   }
 
@@ -174,12 +200,43 @@ class TransferPayload {
             if (entry.key is String && entry.value is String)
               entry.key as String: entry.value as String,
       },
+      includesSecrets: rawSecrets is Map && rawSecrets.isNotEmpty,
     );
   }
 
   /// `known_hosts` has no tombstone column — a forgotten pin is deleted
   /// outright, since there is no remote copy to tell about it.
   static bool _hasTombstone(String table) => table != 'known_hosts';
+
+  /// The secrets these rows say exist.
+  ///
+  /// Asking the vault for a secret is not free, and on macOS it is not even
+  /// quiet: reading an item from the login keychain can raise a system
+  /// authorisation prompt. Asking for one that was never stored — the
+  /// passphrase of a key that has none, the password of a host that
+  /// authenticates by key — buys a prompt and returns null.
+  ///
+  /// `has_passphrase` says so directly, and the connection path already
+  /// trusts it for exactly this reason — so a key recorded as having no
+  /// passphrase is not asked about.
+  ///
+  /// Host passwords are *not* filtered by `auth_method`, though it looks like
+  /// the same optimisation. Password authentication is wired as a fallback
+  /// for every host: a key-authenticated host whose server refused the key
+  /// can have a saved password, and skipping it would silently drop a real
+  /// secret from the transfer.
+  static List<SecretRef> _secretsWorthReading(
+    Map<String, List<Map<String, Object?>>> tables,
+  ) => [
+    for (final row in tables['identities'] ?? const [])
+      ...[
+        SecretRef.identityPrivateKey(row['id']! as String),
+        if (row['has_passphrase'] == 1)
+          SecretRef.identityPassphrase(row['id']! as String),
+      ],
+    for (final row in tables['hosts'] ?? const [])
+      SecretRef.hostPassword(row['id']! as String),
+  ];
 
   static Future<void> _collect(
     SecretVault vault,

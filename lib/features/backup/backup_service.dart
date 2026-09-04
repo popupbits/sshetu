@@ -57,11 +57,12 @@ class BackupService {
     required String passphrase,
     required bool includeSecrets,
   }) async {
-    final payload = await TransferPayload.read(
+    // Resolved straight away, unlike a transfer: a backup is written now, so
+    // this *is* the moment the keys are needed and a prompt makes sense.
+    final payload = await (await TransferPayload.read(
       database,
-      vault: vault,
       includeSecrets: includeSecrets,
-    );
+    )).withSecrets(vault);
     return BackupFile.write(
       payload: payload,
       passphrase: passphrase,

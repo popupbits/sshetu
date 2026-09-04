@@ -11,6 +11,8 @@ import '../../l10n/app_localizations.dart';
 import '../keys/widgets/generate_key_sheet.dart';
 import '../sessions/session_shortcuts.dart';
 import '../sessions/widgets/terminal_workspace.dart';
+import '../../core/settings/settings_controller.dart';
+import 'workspace_layout.dart';
 
 /// One navigation destination.
 class ShellDestination {
@@ -127,13 +129,17 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  /// Branch indices shown in the desktop rail.
+  /// Branch indices shown in the desktop rail when the terminal is beside the
+  /// panel.
   ///
-  /// Sessions is missing on purpose. On desktop the terminal is not a place
-  /// you navigate to — it is always on the right — so a rail entry leading to
-  /// it would be a button that goes where you already are. The phone keeps it,
-  /// because there the terminal really is a separate screen.
-  static const List<int> _desktopBranches = [0, 2, 3, 4];
+  /// Sessions is missing on purpose. When the terminal is always on the right
+  /// it is not a place you navigate to, so a rail entry leading to it would be
+  /// a button that goes where you already are.
+  static const List<int> _wideBranches = [0, 2, 3, 4];
+
+  /// And when the window is too narrow to hold both, Sessions comes back —
+  /// the terminal is a separate pane again, so it needs a way to be reached.
+  static const List<int> _narrowBranches = [0, 1, 2, 3, 4];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -169,50 +175,107 @@ class AppShell extends ConsumerWidget {
     int index,
   ) {
     final scheme = Theme.of(context).colorScheme;
-    // Settings is a page, not a list; it does not read in a 300px column.
-    final panelIndex = _desktopBranches.contains(index) ? index : 0;
+    final preferred = ref.watch(
+      settingsControllerProvider.select((settings) => settings.panelWidth),
+    );
 
     return Scaffold(
       // No AppBar. Its title said the name of the destination, which the panel
       // header now says in a third of the height — and a terminal's scarcest
       // resource is vertical space.
       body: SafeArea(
-        child: Row(
-          children: [
-            NavigationRail(
-              selectedIndex: _desktopBranches.indexOf(panelIndex),
-              onDestinationSelected: (i) => _go(_desktopBranches[i]),
-              labelType: NavigationRailLabelType.all,
-              backgroundColor: scheme.surfaceContainerLow,
-              destinations: [
-                for (final branch in _desktopBranches)
-                  NavigationRailDestination(
-                    icon: Icon(destinations[branch].icon),
-                    label: Text(destinations[branch].label),
+        // Measured *after* the rail rather than guessing its width: the rail
+        // sizes itself from its labels and the text scale, so a constant here
+        // would be wrong for anyone who has touched either.
+        child: LayoutBuilder(
+          builder: (context, outer) {
+            final roomy = WorkspaceLayout.showsTerminalAt(outer.maxWidth);
+            final branches = roomy ? _wideBranches : _narrowBranches;
+            final selected = branches.contains(index) ? index : branches.first;
+
+            return Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: branches.indexOf(selected),
+                  onDestinationSelected: (i) => _go(branches[i]),
+                  // Labels always. Dropping them to `selected` when the
+                  // window is tight saves about eight points and costs every
+                  // destination its name — a bad trade, and the responsive
+                  // behaviour that matters happens to the right of here.
+                  labelType: NavigationRailLabelType.all,
+                  backgroundColor: scheme.surfaceContainerLow,
+                  destinations: [
+                    for (final branch in branches)
+                      NavigationRailDestination(
+                        icon: Icon(destinations[branch].icon),
+                        label: Text(destinations[branch].label),
+                      ),
+                  ],
+                ),
+                VerticalDivider(width: 1, color: scheme.outlineVariant),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, inner) {
+                      final layout = WorkspaceLayout.resolve(
+                        available: inner.maxWidth,
+                        preferred: preferred,
+                        showTerminal: roomy,
+                      );
+                      return _workspace(
+                        context,
+                        ref,
+                        destinations,
+                        selected,
+                        layout,
+                      );
+                    },
                   ),
+                ),
               ],
-            ),
-            VerticalDivider(width: 1, color: scheme.outlineVariant),
-            SizedBox(
-              // 320 rather than 300: an IPv4 address plus a monogram is
-              // almost exactly 300, and the difference decides whether a
-              // host list of addresses is readable or a column of ellipses.
-              width: 320,
-              child: Column(
-                children: [
-                  PanelHeader(
-                    title: destinations[panelIndex].label,
-                    actions: _actionsFor(context, ref, panelIndex, dense: true),
-                  ),
-                  Expanded(child: navigationShell),
-                ],
-              ),
-            ),
-            VerticalDivider(width: 1, color: scheme.outlineVariant),
-            const Expanded(child: TerminalWorkspace()),
-          ],
+            );
+          },
         ),
       ),
+    );
+  }
+
+  /// The panel and, when it fits, the terminal beside it.
+  Widget _workspace(
+    BuildContext context,
+    WidgetRef ref,
+    List<ShellDestination> destinations,
+    int index,
+    WorkspaceLayout layout,
+  ) {
+    // Sessions selected in a narrow window means the terminal *is* the pane.
+    if (!layout.showTerminal && index == 1) {
+      return const TerminalWorkspace();
+    }
+
+    final panel = Column(
+      children: [
+        PanelHeader(
+          title: destinations[index].label,
+          actions: _actionsFor(context, ref, index, dense: true),
+        ),
+        Expanded(child: navigationShell),
+      ],
+    );
+
+    if (!layout.showTerminal) return panel;
+
+    return Row(
+      children: [
+        SizedBox(width: layout.panelWidth, child: panel),
+        _ResizeHandle(
+          key: const Key('workspace.resizeHandle'),
+          width: layout.panelWidth,
+          onChanged: (width, {required done}) => ref
+              .read(settingsControllerProvider.notifier)
+              .setPanelWidth(width, persist: done),
+        ),
+        const Expanded(child: TerminalWorkspace()),
+      ],
     );
   }
 
@@ -243,6 +306,80 @@ class AppShell extends ConsumerWidget {
               label: destination.label,
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// The divider between the panel and the terminal, made draggable.
+///
+/// A one-pixel line is not a hit target, so the handle is a wider transparent
+/// strip with the line drawn down its middle — the pointer changes shape a few
+/// pixels before the seam, which is what tells someone it can be dragged at
+/// all. Double-clicking restores the default, because a divider dragged
+/// somewhere silly otherwise has no obvious way back.
+class _ResizeHandle extends StatefulWidget {
+  const _ResizeHandle({
+    required this.width,
+    required this.onChanged,
+    super.key,
+  });
+
+  final double width;
+
+  /// Called throughout the drag; `done` is true only on the last call, which
+  /// is the one worth writing to disk.
+  final void Function(double width, {required bool done}) onChanged;
+
+  @override
+  State<_ResizeHandle> createState() => _ResizeHandleState();
+}
+
+class _ResizeHandleState extends State<_ResizeHandle> {
+  /// Where the panel edge started, so the drag tracks the pointer exactly.
+  ///
+  /// Accumulating deltas onto the *reported* width would drift: the reported
+  /// width is clamped, so every pixel dragged past a limit would be a pixel
+  /// the pointer never gets back on the way in.
+  double _origin = 0;
+  var _hovering = false;
+  var _dragging = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final active = _hovering || _dragging;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeLeftRight,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragStart: (_) => setState(() {
+          _dragging = true;
+          _origin = widget.width;
+        }),
+        onHorizontalDragUpdate: (details) {
+          _origin += details.delta.dx;
+          widget.onChanged(_origin, done: false);
+        },
+        onHorizontalDragEnd: (_) {
+          setState(() => _dragging = false);
+          widget.onChanged(_origin, done: true);
+        },
+        onDoubleTap: () =>
+            widget.onChanged(WorkspaceLayout.defaultPanel, done: true),
+        child: SizedBox(
+          width: 9,
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              width: active ? 3 : 1,
+              color: active ? scheme.primary : scheme.outlineVariant,
+            ),
+          ),
+        ),
       ),
     );
   }

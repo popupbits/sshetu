@@ -46,14 +46,14 @@ void main() {
 
     final payload = await TransferPayload.read(
       database.raw,
-      // The real keychain is not reachable from a test binding, so secrets are
-      // stubbed. The rows are the real ones.
-      vault: InMemorySecretVault(),
       includeSecrets: false,
     );
 
     final sender = await TransferSender.start(
       payload: payload,
+      // The real keychain is not reachable from a test binding, so secrets are
+      // stubbed. The rows are the real ones.
+      vault: InMemorySecretVault(),
       deviceName: Platform.localHostname,
       addresses: [Platform.environment['SSHETU_SEND_ADDRESS'] ?? '10.0.2.2'],
     );

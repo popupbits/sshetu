@@ -93,11 +93,14 @@ class _TransferSendScreenState extends ConsumerState<TransferSendScreen> {
       final database = ref.read(databaseProvider);
       final payload = await TransferPayload.read(
         database.raw,
-        vault: ref.read(secretVaultProvider),
         includeSecrets: _includeSecrets,
       );
       final sender = await TransferSender.start(
         payload: payload,
+        // Handed the vault rather than the secrets: nothing is read out of it
+        // until a device has accepted, so flipping the switch above costs no
+        // keychain prompts at all.
+        vault: ref.read(secretVaultProvider),
         deviceName: await _deviceName(),
         clearToListen: ref.read(listenPermissionProvider),
         onStep: (step) {

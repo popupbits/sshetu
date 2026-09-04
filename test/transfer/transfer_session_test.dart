@@ -70,11 +70,11 @@ void main() {
   Future<TransferSender> startSender({bool includeSecrets = true}) async {
     final payload = await TransferPayload.read(
       sender.raw,
-      vault: senderVault,
       includeSecrets: includeSecrets,
     );
     return TransferSender.start(
       payload: payload,
+      vault: senderVault,
       deviceName: "dlohani's MacBook",
       addresses: ['127.0.0.1'],
     );
@@ -216,9 +216,9 @@ void main() {
       TransferSender.start(
         payload: await TransferPayload.read(
           sender.raw,
-          vault: senderVault,
           includeSecrets: false,
         ),
+        vault: senderVault,
         deviceName: 'laptop',
         clearToListen: () async =>
             throw const TransferException('Firewall said no.'),

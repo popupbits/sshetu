@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:async/async.dart';
 
+import '../../core/secrets/secret_vault.dart';
 import 'crypto/key_schedule.dart';
 import 'crypto/sealed_channel.dart';
 import 'domain/pairing_code.dart';
@@ -134,7 +135,7 @@ Future<void> askToListen() async {
 /// exactly while a person is looking at the QR code, which is the smallest
 /// window the feature can work in.
 class TransferSender {
-  TransferSender._(this._server, this.code, this._payload);
+  TransferSender._(this._server, this.code, this._payload, this._vault);
 
   /// Binds an ephemeral port on every interface and prepares a code for it.
   ///
@@ -147,6 +148,7 @@ class TransferSender {
   /// thing is happening rather than showing one spinner for all of them.
   static Future<TransferSender> start({
     required TransferPayload payload,
+    required SecretVault vault,
     required String deviceName,
     List<String>? addresses,
     void Function(TransferStartStep)? onStep,
@@ -180,11 +182,16 @@ class TransferSender {
         deviceName: deviceName,
       ),
       payload,
+      vault,
     );
   }
 
   final ServerSocket _server;
   final TransferPayload _payload;
+
+  /// Where the secrets are, if this transfer carries any. Read from once, at
+  /// hand-over — see [TransferPayload.read].
+  final SecretVault _vault;
 
   /// The code to render as a QR. Contains the secret; never log or persist it.
   final PairingCode code;
@@ -254,7 +261,7 @@ class TransferSender {
             'identities': _payload.identityCount,
             'tunnels': _payload.tunnelCount,
             'knownHosts': _payload.knownHostCount,
-            'secrets': _payload.secrets.isNotEmpty,
+            'secrets': _payload.includesSecrets,
           }),
         ),
       );
@@ -265,11 +272,16 @@ class TransferSender {
         throw const TransferException('The other device declined.');
       }
 
+      // Only now are the keys read. The other device has said yes, and this
+      // is the moment a credential-store prompt is about something the person
+      // is watching happen.
+      final payload = await _payload.withSecrets(_vault);
+
       socket.add(
         encodeFrame(
           channel.seal({
             'type': TransferMessage.payload,
-            'payload': _payload.toJson(),
+            'payload': payload.toJson(),
           }),
         ),
       );

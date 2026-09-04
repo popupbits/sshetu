@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../features/shell/workspace_layout.dart';
 import '../theme/accent.dart';
 
 /// How the app resolves light vs dark.
@@ -34,6 +35,7 @@ class AppSettings {
     this.themeMode = AppThemeMode.system,
     this.localeCode,
     this.textScale = 1.0,
+    this.panelWidth = WorkspaceLayout.defaultPanel,
   });
 
   /// Id of the chosen [AccentOption]; see [Accents.byId].
@@ -48,6 +50,12 @@ class AppSettings {
   /// Multiplier applied on top of the platform text scale. Clamped on write.
   final double textScale;
 
+  /// How wide the desktop workspace's list panel should be.
+  ///
+  /// A preference, not the width used: a window too narrow to honour it
+  /// overrides it for as long as it is that narrow. See [WorkspaceLayout].
+  final double panelWidth;
+
   AccentOption get accent => Accents.byId(accentId);
 
   Locale? get locale => localeCode == null ? null : Locale(localeCode!);
@@ -58,12 +66,14 @@ class AppSettings {
     String? localeCode,
     bool clearLocale = false,
     double? textScale,
+    double? panelWidth,
   }) {
     return AppSettings(
       accentId: accentId ?? this.accentId,
       themeMode: themeMode ?? this.themeMode,
       localeCode: clearLocale ? null : (localeCode ?? this.localeCode),
       textScale: textScale ?? this.textScale,
+      panelWidth: panelWidth ?? this.panelWidth,
     );
   }
 
@@ -73,10 +83,12 @@ class AppSettings {
       other.accentId == accentId &&
       other.themeMode == themeMode &&
       other.localeCode == localeCode &&
-      other.textScale == textScale;
+      other.textScale == textScale &&
+      other.panelWidth == panelWidth;
 
   @override
-  int get hashCode => Object.hash(accentId, themeMode, localeCode, textScale);
+  int get hashCode =>
+      Object.hash(accentId, themeMode, localeCode, textScale, panelWidth);
 }
 
 /// The text-scale steps offered in Settings. A slider invites values that

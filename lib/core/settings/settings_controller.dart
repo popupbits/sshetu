@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../features/shell/workspace_layout.dart';
 import 'app_settings.dart';
 
 /// The preferences instance opened during bootstrap.
@@ -25,6 +26,7 @@ const _keyAccent = 'settings.accent';
 const _keyThemeMode = 'settings.themeMode';
 const _keyLocale = 'settings.locale';
 const _keyTextScale = 'settings.textScale';
+const _keyPanelWidth = 'settings.panelWidth';
 
 /// Read persisted settings, falling back to defaults for anything missing or
 /// corrupt. Called from bootstrap before the first frame.
@@ -34,6 +36,12 @@ AppSettings readSettings(SharedPreferences preferences) {
     themeMode: AppThemeMode.fromId(preferences.getString(_keyThemeMode)),
     localeCode: preferences.getString(_keyLocale),
     textScale: preferences.getDouble(_keyTextScale) ?? 1.0,
+    // Clamped on read as well as on write: a preferences file edited by hand,
+    // or written by a build whose limits differed, should not be able to
+    // produce a panel that swallows the window.
+    panelWidth: WorkspaceLayout.clampPreference(
+      preferences.getDouble(_keyPanelWidth) ?? WorkspaceLayout.defaultPanel,
+    ),
   );
 }
 
@@ -62,6 +70,18 @@ class SettingsController extends Notifier<AppSettings> {
   void setTextScale(double scale) {
     final clamped = scale.clamp(textScaleSteps.first, textScaleSteps.last);
     _update(state.copyWith(textScale: clamped), _keyTextScale, clamped);
+  }
+
+  /// Sets how wide the desktop list panel should be.
+  ///
+  /// Called continuously while a divider is dragged, so it writes to disk
+  /// only when [persist] says the drag has ended — a `setDouble` per frame
+  /// would be sixty writes a second for one gesture.
+  void setPanelWidth(double width, {bool persist = true}) {
+    final clamped = WorkspaceLayout.clampPreference(width);
+    if (clamped == state.panelWidth && !persist) return;
+    state = state.copyWith(panelWidth: clamped);
+    if (persist) unawaited(_persist(_keyPanelWidth, clamped));
   }
 
   /// Apply in memory first, then persist.

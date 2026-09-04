@@ -67,11 +67,7 @@ void main() {
     String passphrase = 'correct horse battery staple',
     bool includeSecrets = true,
   }) async => BackupFile.write(
-    payload: await TransferPayload.read(
-      source.raw,
-      vault: sourceVault,
-      includeSecrets: includeSecrets,
-    ),
+    payload: await (await TransferPayload.read(source.raw, includeSecrets: includeSecrets)).withSecrets(sourceVault),
     passphrase: passphrase,
     appVersion: '1.0.0+1',
   );
