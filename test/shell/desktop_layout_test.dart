@@ -232,4 +232,37 @@ void main() {
       }
     }
   });
+
+  testWidgets('the rail actually switches destination, from any of them', (
+    tester,
+  ) async {
+    // The sweep above only asserted that tapping a destination threw nothing.
+    // A rail that silently stays put satisfies that and is still broken —
+    // reported as "from Settings I cannot switch to Tunnels".
+    await pumpAt(tester, const Size(1600, 1000));
+
+    String panelTitle() =>
+        tester.widget<PanelHeader>(find.byType(PanelHeader)).title;
+
+    for (final width in [1600.0, 1100.0, 800.0, 700.0, 640.0]) {
+      tester.view.physicalSize = Size(width, 1000);
+      await tester.pumpAndSettle();
+
+      for (final from in const ['Settings', 'Keys', 'Tunnels', 'Hosts']) {
+        for (final to in const ['Tunnels', 'Hosts', 'Settings', 'Keys']) {
+          await tester.tap(find.text(from).first);
+          await tester.pumpAndSettle();
+          expect(panelTitle(), from, reason: 'could not reach $from @$width');
+
+          await tester.tap(find.text(to).first);
+          await tester.pumpAndSettle();
+          expect(
+            panelTitle(),
+            to,
+            reason: 'stuck on $from, could not reach $to @$width',
+          );
+        }
+      }
+    }
+  });
 }
