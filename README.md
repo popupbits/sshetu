@@ -11,8 +11,6 @@ flutter pub get
 flutter run
 ```
 
-On Windows, run `flutter` from PowerShell rather than WSL.
-
 ## What's in the box
 
 - **Material** via `package:material_ui` (decoupled from the Flutter SDK)
