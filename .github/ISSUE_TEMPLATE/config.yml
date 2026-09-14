@@ -1,0 +1,7 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/popupbits/sshetu/security/advisories/new
+    about: >-
+      Report it privately. SSHetu holds credentials to other people's servers,
+      so please do not open a public issue for a vulnerability.
