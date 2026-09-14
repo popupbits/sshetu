@@ -1,10 +1,9 @@
 /// Compile-time configuration.
 ///
-/// Values can be overridden per build with `--dart-define`, which is how a
-/// staging build points at a different backend without a code change:
+/// Values can be overridden per build with `--dart-define`:
 ///
 /// ```sh
-/// flutter build apk --dart-define=APPWRITE_ENDPOINT=https://staging/v1
+/// flutter build apk --dart-define=APP_NAME=SSHetu\ Nightly
 /// ```
 abstract final class AppConfig {
   static const String appName = 'SSHetu';

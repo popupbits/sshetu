@@ -17,11 +17,8 @@
 #   ANDROID_KEY_PASSWORD       key password
 #   APP_IDENTIFIER             com.popupbits.sshetu
 #
-# Optional, forwarded as --dart-define when set:
-#   APPWRITE_ENDPOINT, APPWRITE_PROJECT
-#
-# Organization secrets do NOT reach private repos on the free plan, so set
-# these per repository.
+# Organization secrets reach public repositories, but not private ones on the
+# free plan — so while this repository is private, set them per repository.
 #
 # Encode binaries with:  base64 -w0 file    (Linux)
 #                        base64 -i  file    (macOS)
@@ -77,8 +74,6 @@ jobs:
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
-      APPWRITE_PROJECT: ${{ secrets.APPWRITE_PROJECT }}
 
     steps:
       - uses: actions/checkout@v7

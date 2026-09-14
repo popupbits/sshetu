@@ -29,15 +29,11 @@ void main() {
       return;
     }
 
-    // Errors stay on this device. To also report them to the backend, add
-    //
-    //   ErrorLogger.instance.attachSink(AppwriteErrorSink(AppwriteService()));
-    //
-    // and create the `error_logs` table described in
-    // `core/error/appwrite_error_sink.dart`. It is left off by default because
-    // sending error data off the device is a privacy decision — stack traces
-    // carry more about a user's session than they appear to — and belongs in
-    // your privacy policy before it belongs in your code.
+    // Errors stay on this device, and there is nowhere for them to go: this
+    // app has no backend. `ErrorLogger.attachSink` exists if that ever
+    // changes, but sending error data off the device is a privacy decision —
+    // stack traces carry more about a session than they appear to — and
+    // belongs in a privacy policy before it belongs in code.
 
     runApp(
       ProviderScope(

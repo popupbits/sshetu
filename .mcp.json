@@ -2,11 +2,9 @@
   "mcpServers": {
     "dart": {
       "command": "dart",
-      "args": ["mcp-server"]
-    },
-    "appwrite": {
-      "type": "http",
-      "url": "https://mcp.appwrite.io/"
+      "args": [
+        "mcp-server"
+      ]
     }
   }
 }

@@ -19,15 +19,6 @@ transitions, and a theme silently falling back — pass `flutter analyze` and
 fail only when the app runs. Being able to launch it and read its runtime
 errors is what catches those.
 
-## appwrite
-
-`.mcp.json` declares the **hosted** server at `https://mcp.appwrite.io/`,
-authenticated in the browser the first time it is used. **No API key is stored
-in this repo**, which is why it is safe to commit that file.
-
-Exposes databases, users, functions, teams and storage, plus documentation
-search. In Claude Code: run `/mcp`, pick `appwrite`, approve the scopes.
-
 ## Android CLI (not MCP, but check for it)
 
 Google's `android` command, in the SDK's `cmdline-tools/latest/bin`. Not

@@ -130,8 +130,7 @@ lib/
     ui/                      shared widgets: views, async_view, feedback
     util/                    responsive, launcher
     db/                      database + numbered migrations
-    appwrite/                client, failures, base repository
-  l10n/                      app_en.arb, app_ne.arb, generated output
+  l10n/                      app_en.arb, generated output
   features/
     <feature>/               one folder per feature
     settings/
@@ -155,8 +154,8 @@ code. That is what lets two features be added without touching the same lines.
 - **No hardcoded values.** Spacing, radii, durations and border widths come
   from `core/theme/tokens.dart`. Colours come from `Theme.of(context).colorScheme`.
 - **No hardcoded strings.** Everything user-visible goes through
-  `AppLocalizations.of(context)`, with entries in **both** `app_en.arb` and
-  `app_ne.arb`.
+  `AppLocalizations.of(context)`, with an entry in `app_en.arb`. It is the
+  only locale so far; adding another means adding its `.arb` beside it.
 - **One widget per file** unless a widget is private to its parent and used
   nowhere else.
 - **Immutable models** with `copyWith`. Use an explicit `clearX` flag to set a
@@ -264,10 +263,6 @@ in a `material_ui` app — a lost route transition, a theme silently falling bac
   `ref.read(errorLoggerProvider)`) records something you caught yourself.
 - Catching an error and showing a message is still right. Record it as well
   when you would want to know it happened.
-- `core/error/appwrite_error_sink.dart` can forward errors to an `error_logs`
-  table. It is generated but **not wired up**: stack traces carry more about a
-  user's session than they appear to, so turning it on belongs in your privacy
-  policy before it belongs in `main.dart`.
 
 ## 10. Commands
 
@@ -333,7 +328,7 @@ flutter build appbundle --release
 
 ### Add a string
 
-Add the key to `lib/l10n/app_en.arb` **and** `lib/l10n/app_ne.arb`, then rebuild.
+Add the key to `lib/l10n/app_en.arb`, then rebuild.
 `generate: true` in `pubspec.yaml` regenerates `AppLocalizations` on the next
 `flutter run`/`build`; `flutter gen-l10n` does it on demand.
 
@@ -399,7 +394,7 @@ installed**. The Play listing itself is in the repo under
 
 ## 12. No backend
 
-There is no Appwrite project, no account and no server of any kind. Hosts,
+There is no backend, no account and no server of any kind. Hosts,
 keys, tunnels and known-host pins live in this device's SQLite database;
 credentials live in this device's keychain and are written nowhere else.
 
@@ -594,7 +589,7 @@ a task matches. See `docs/agent-tooling.md`.
       that you could not, and what is unverified as a result
 - [ ] Changed screens checked at compact *and* expanded widths
 - [ ] Loading, error and empty states handled
-- [ ] New strings in **both** `.arb` files
+- [ ] New strings in `app_en.arb`
 - [ ] No `package:flutter/material.dart` import
 - [ ] No hardcoded colours, sizes or strings
 - [ ] No unrelated refactor, no unnecessary dependency

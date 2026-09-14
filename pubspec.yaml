@@ -47,7 +47,6 @@ dependencies:
   url_launcher: ^6.3.2
   go_router: ^17.5.0
 
-  # Appwrite SDK. 1.8+ exposes the data API as TablesDB, so collection ids
   sqflite: ^2.4.3
 
   # Desktop ships no bundled SQLite; this supplies one over FFI. Registered
@@ -121,18 +120,6 @@ dev_dependencies:
   # Drives the store-screenshot capture. See PROJECT.md.
   integration_test:
     sdk: flutter
-
-# Overrides constraints declared by other packages. Each entry
-# explains why it is safe for the API surface actually used.
-dependency_overrides:
-  # Appwrite caps this below 10, which drags in the win32 ^5 cluster and
-  # conflicts with share_plus 13. Appwrite only calls the stable
-  # PackageInfo.fromPlatform(), so 10.x is safe.
-  package_info_plus: ^10.2.1
-
-  # Same win32 cluster. Appwrite only constructs DeviceInfoPlugin(),
-  # unchanged across these majors.
-  device_info_plus: ^13.2.0
 
 flutter:
   uses-material-design: true

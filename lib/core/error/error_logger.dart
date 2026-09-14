@@ -10,8 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import 'error_record.dart';
 
-/// Somewhere for errors to go beyond the device — an Appwrite table, an HTTP
-/// endpoint, whatever a project needs.
+/// Somewhere for errors to go beyond the device. Nothing implements this:
+/// the app has no backend, and reporting off-device is a privacy decision.
 ///
 /// Implementations must never throw and never block: a failure to report a
 /// failure has to stay invisible.

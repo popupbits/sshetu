@@ -37,12 +37,9 @@ class SecretVaultException implements Exception {
 ///
 /// **Nothing else in the app touches a credential store.** Not the host
 /// repository, not the connection layer, not the UI. That is the whole point
-/// of this interface: the app has decided, for now, to sync secrets through
-/// Appwrite's `encrypt` attribute — which the server can decrypt — and that
-/// decision needs to be reversible without a rewrite. A client-sealed vault
-/// (XChaCha20-Poly1305 under a passphrase-derived key, which the server cannot
-/// open) is another implementation of exactly this interface. See
-/// `docs/prior-art.md` § Credential storage.
+/// of this interface: secrets live in the OS credential store and nowhere
+/// else, and one choke point is what made removing an earlier synced design
+/// cheap. See `docs/prior-art.md` § Credential storage.
 ///
 /// Implementations must:
 ///
