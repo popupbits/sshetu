@@ -4990,13 +4990,13 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{lines} lines · applies to new tabs'**
-  String settingsScrollbackValue(int lines);
+  String settingsScrollbackValue(String lines);
 
   /// No description provided for @scrollbackLinesOption.
   ///
   /// In en, this message translates to:
   /// **'{lines} lines'**
-  String scrollbackLinesOption(int lines);
+  String scrollbackLinesOption(String lines);
 
   /// No description provided for @hostEditorTerminalTheme.
   ///

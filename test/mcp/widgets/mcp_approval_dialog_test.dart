@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:sshetu/features/mcp/domain/approval.dart';
@@ -116,4 +117,32 @@ void main() {
     );
     expect(deny.autofocus, isTrue);
   });
+
+  // Not just the flag: the button that actually holds keyboard focus, and
+  // what Enter does with it. Approve is the filled button, and looks like
+  // the default — it must not be the one Enter presses.
+  testWidgets(
+    'Enter denies: keyboard focus is on Deny, not the filled Approve',
+    (tester) async {
+      final decision = await open(tester, request(), 1280);
+      final focused = FocusManager.instance.primaryFocus!.context!;
+      bool within(Key key) =>
+          find
+              .ancestor(
+                of: find.byElementPredicate((e) => e == focused),
+                matching: find.byKey(key),
+              )
+              .evaluate()
+              .isNotEmpty ||
+          (focused.widget.key == key);
+      expect(within(const Key('mcp.approval.deny')), isTrue);
+      expect(within(const Key('mcp.approval.approve')), isFalse);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(await decision, ApprovalDecision.deny);
+      expect(find.byKey(const Key('mcp.approval')), findsNothing);
+    },
+    variant: TargetPlatformVariant.desktop(),
+  );
 }

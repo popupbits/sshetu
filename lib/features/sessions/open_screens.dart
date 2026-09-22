@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
 import '../../core/router/routes.dart';
-import '../../l10n/app_localizations.dart';
 import '../files/file_browser_screen.dart';
 import '../hosts/host_editor_screen.dart';
 import '../import/import_screen.dart';
@@ -31,9 +30,8 @@ void openHostEditor(BuildContext context, WidgetRef ref, {String? hostId}) =>
       // Keyed by host, so editing two servers gives two tabs, and editing the
       // same one twice returns to the tab already open.
       id: 'host/${hostId ?? 'new'}',
-      title: hostId == null
-          ? AppLocalizations.of(context).hostEditorNew
-          : AppLocalizations.of(context).hostEditorEdit,
+      title: (l10n) =>
+          hostId == null ? l10n.hostEditorNew : l10n.hostEditorEdit,
       icon: PiconsRegular.hardDrives,
       route: hostId == null ? Routes.hostNew : Routes.hostEditFor(hostId),
       builder: (_) => HostEditorScreen(hostId: hostId, embedded: true),
@@ -48,9 +46,8 @@ void openTunnelEditor(
   context,
   ref,
   id: 'tunnel/${tunnelId ?? 'new'}',
-  title: tunnelId == null
-      ? AppLocalizations.of(context).tunnelEditorNew
-      : AppLocalizations.of(context).tunnelEditorEdit,
+  title: (l10n) =>
+      tunnelId == null ? l10n.tunnelEditorNew : l10n.tunnelEditorEdit,
   icon: PiconsRegular.arrowsLeftRight,
   route: tunnelId == null
       ? (hostId == null ? Routes.tunnelNew : Routes.tunnelNewFor(hostId))
@@ -67,9 +64,8 @@ void openImport(
   context,
   ref,
   id: 'import/${focus.name}',
-  title: focus == ImportFocus.keys
-      ? AppLocalizations.of(context).keysImport
-      : AppLocalizations.of(context).importTitle,
+  title: (l10n) =>
+      focus == ImportFocus.keys ? l10n.keysImport : l10n.importTitle,
   icon: PiconsRegular.downloadSimple,
   route: focus == ImportFocus.all
       ? Routes.importOpenSsh
@@ -84,7 +80,7 @@ void openFiles(BuildContext context, WidgetRef ref, String sessionId) =>
       context,
       ref,
       id: 'files/$sessionId',
-      title: AppLocalizations.of(context).filesTitle,
+      title: (l10n) => l10n.filesTitle,
       icon: PiconsRegular.folderOpen,
       route: Routes.filesFor(sessionId),
       builder: (_) => FileBrowserScreen(sessionId: sessionId, embedded: true),
@@ -96,7 +92,7 @@ void openKnownHosts(BuildContext context, WidgetRef ref) => openInWorkspace(
   context,
   ref,
   id: 'known-hosts',
-  title: AppLocalizations.of(context).knownHostsTitle,
+  title: (l10n) => l10n.knownHostsTitle,
   icon: PiconsRegular.shieldCheck,
   route: Routes.knownHosts,
   builder: (_) => const KnownHostsScreen(embedded: true),
@@ -106,7 +102,7 @@ void openDiagnostics(BuildContext context, WidgetRef ref) => openInWorkspace(
   context,
   ref,
   id: 'diagnostics',
-  title: AppLocalizations.of(context).settingsDiagnostics,
+  title: (l10n) => l10n.settingsDiagnostics,
   icon: PiconsRegular.bug,
   route: Routes.diagnostics,
   builder: (_) => const DiagnosticsScreen(embedded: true),
@@ -116,7 +112,7 @@ void openAbout(BuildContext context, WidgetRef ref) => openInWorkspace(
   context,
   ref,
   id: 'about',
-  title: AppLocalizations.of(context).aboutTitle,
+  title: (l10n) => l10n.aboutTitle,
   icon: PiconsRegular.info,
   route: Routes.about,
   builder: (_) => const AboutScreen(embedded: true),

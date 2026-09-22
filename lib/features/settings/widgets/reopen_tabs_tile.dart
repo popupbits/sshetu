@@ -37,15 +37,15 @@ class ReopenTabsTile extends ConsumerWidget {
             segments: [
               ButtonSegment(
                 value: ReopenTabs.ask,
-                label: Text(l10n.settingsReopenTabsAsk),
+                label: _OneLine(l10n.settingsReopenTabsAsk),
               ),
               ButtonSegment(
                 value: ReopenTabs.always,
-                label: Text(l10n.settingsReopenTabsAlways),
+                label: _OneLine(l10n.settingsReopenTabsAlways),
               ),
               ButtonSegment(
                 value: ReopenTabs.never,
-                label: Text(l10n.settingsReopenTabsNever),
+                label: _OneLine(l10n.settingsReopenTabsNever),
               ),
             ],
             selected: {choice},
@@ -58,4 +58,23 @@ class ReopenTabsTile extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// A segment label that stays on one line.
+///
+/// The desktop settings panel is 320 wide, which leaves each of three
+/// segments under a hundred pixels, and a label that wrapped ("कहिल्यै होइन"
+/// did, in Nepali) made one segment twice as tall as its neighbours. Labels
+/// are kept short; this is the backstop for a language or a text scale that
+/// still does not fit — it shrinks rather than breaking the row.
+class _OneLine extends StatelessWidget {
+  const _OneLine(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    child: Text(text, maxLines: 1, softWrap: false),
+  );
 }

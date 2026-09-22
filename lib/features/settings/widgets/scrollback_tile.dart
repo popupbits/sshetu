@@ -4,6 +4,7 @@ import 'package:picons/picons.dart';
 
 import '../../../core/settings/app_settings.dart';
 import '../../../core/settings/settings_controller.dart';
+import '../../../core/util/count_format.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// How many lines of history a terminal tab keeps.
@@ -26,7 +27,7 @@ class ScrollbackTile extends ConsumerWidget {
     return ListTile(
       leading: const Icon(PiconsRegular.scroll),
       title: Text(l10n.settingsScrollback),
-      subtitle: Text(l10n.settingsScrollbackValue(lines)),
+      subtitle: Text(l10n.settingsScrollbackValue(formatCount(lines))),
       trailing: PopupMenuButton<int>(
         initialValue: lines,
         tooltip: l10n.settingsScrollback,
@@ -37,7 +38,7 @@ class ScrollbackTile extends ConsumerWidget {
           for (final step in AppSettings.scrollbackSteps)
             PopupMenuItem(
               value: step,
-              child: Text(l10n.scrollbackLinesOption(step)),
+              child: Text(l10n.scrollbackLinesOption(formatCount(step))),
             ),
         ],
         icon: const Icon(Icons.arrow_drop_down),

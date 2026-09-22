@@ -3015,21 +3015,13 @@ class AppLocalizationsNe extends AppLocalizations {
   String get settingsScrollback => 'स्क्रोलब्याक';
 
   @override
-  String settingsScrollbackValue(int lines) {
-    final intl.NumberFormat linesNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String linesString = linesNumberFormat.format(lines);
-
-    return '$linesString लाइन · नयाँ ट्याबहरूमा लागू हुन्छ';
+  String settingsScrollbackValue(String lines) {
+    return '$lines लाइन · नयाँ ट्याबहरूमा लागू हुन्छ';
   }
 
   @override
-  String scrollbackLinesOption(int lines) {
-    final intl.NumberFormat linesNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String linesString = linesNumberFormat.format(lines);
-
-    return '$linesString लाइन';
+  String scrollbackLinesOption(String lines) {
+    return '$lines लाइन';
   }
 
   @override
@@ -3367,7 +3359,7 @@ class AppLocalizationsNe extends AppLocalizations {
   String get settingsReopenTabsAlways => 'सधैँ';
 
   @override
-  String get settingsReopenTabsNever => 'कहिल्यै होइन';
+  String get settingsReopenTabsNever => 'नखोल्ने';
 
   @override
   String get restoreTabsTitle => 'तपाईंका ट्याबहरू फेरि खोल्ने?';

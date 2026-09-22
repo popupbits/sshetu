@@ -900,7 +900,7 @@
   "settingsReopenTabsBody": "SSHetu पछिल्लो पटक बन्द हुँदा खुला रहेका टर्मिनल ट्याबहरू फर्काउँछ, र सर्भरमा राखिएका सेसनहरूमा फेरि जोडिन्छ।",
   "settingsReopenTabsAsk": "सोध्नुहोस्",
   "settingsReopenTabsAlways": "सधैँ",
-  "settingsReopenTabsNever": "कहिल्यै होइन",
+  "settingsReopenTabsNever": "नखोल्ने",
   "restoreTabsTitle": "तपाईंका ट्याबहरू फेरि खोल्ने?",
   "restoreTabsBody": "{count, plural, =1{SSHetu पछिल्लो पटक बन्द हुँदा 1 टर्मिनल ट्याब खुला थियो: {hosts}।} other{SSHetu पछिल्लो पटक बन्द हुँदा {count} टर्मिनल ट्याब खुला थिए: {hosts}।}}",
   "restoreTabsRemember": "फेरि नसोध्नुहोस्",

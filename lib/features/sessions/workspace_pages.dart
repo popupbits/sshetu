@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// A workspace tab that is not a terminal.
 ///
 /// The desktop layout's right-hand side is where work happens, and until now
@@ -11,17 +13,34 @@ import 'package:material_ui/material_ui.dart';
 class WorkspacePage {
   const WorkspacePage({
     required this.id,
-    required this.title,
     required this.icon,
     required this.builder,
+    this.title,
+    this.localizedTitle,
     this.confirmClose,
-  });
+  }) : assert(
+         (title == null) != (localizedTitle == null),
+         'Give a page exactly one of title and localizedTitle',
+       );
 
   /// Stable, so opening the same page twice selects the existing tab rather
   /// than stacking a second copy of it.
   final String id;
 
-  final String title;
+  /// A title that is not a phrase of this app's — a file name. Shown as is.
+  final String? title;
+
+  /// A title in this app's words, looked up every time the tab is drawn.
+  ///
+  /// Not resolved once when the tab opens: a tab outlives the language it was
+  /// opened in, and a stored "Files" stayed English after switching to
+  /// Nepali while everything around it changed.
+  final String Function(AppLocalizations l10n)? localizedTitle;
+
+  /// The tab's title in the current language.
+  String titleIn(BuildContext context) =>
+      localizedTitle?.call(AppLocalizations.of(context)) ?? title!;
+
   final IconData icon;
   final WidgetBuilder builder;
 

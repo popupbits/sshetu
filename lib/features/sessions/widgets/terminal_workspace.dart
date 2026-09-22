@@ -27,20 +27,22 @@ class TerminalWorkspace extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final sessions = ref.watch(sessionManagerProvider);
     final active = ref.read(sessionManagerProvider.notifier).active;
-    ref.watch(workspacePagesProvider);
+    final pages = ref.watch(workspacePagesProvider);
     final page = ref.read(workspacePagesProvider.notifier).selected;
     final scheme = Theme.of(context).colorScheme;
 
-    if (sessions.isEmpty && page == null) {
-      return ColoredBox(
-        color: scheme.surface,
-        child: EmptyView(
-          icon: PiconsRegular.terminalWindow,
-          title: l10n.sessionsEmptyTitle,
-          message: l10n.sessionsEmptyPickHost,
-        ),
-      );
-    }
+    final empty = ColoredBox(
+      key: const ValueKey('workspace.empty'),
+      color: scheme.surface,
+      child: EmptyView(
+        icon: PiconsRegular.terminalWindow,
+        title: l10n.sessionsEmptyTitle,
+        message: l10n.sessionsEmptyPickHost,
+      ),
+    );
+    // Only with nothing open at all: a page with no session selected still
+    // needs its tab, and must stay built.
+    if (sessions.isEmpty && pages.isEmpty) return empty;
 
     return Column(
       children: [
@@ -77,32 +79,77 @@ class TerminalWorkspace extends ConsumerWidget {
         Expanded(
           // A page covers the terminal rather than replacing the window: the
           // session keeps running, its tab stays put, and one click is back.
-          child: page != null
-              // Material, not a ColoredBox. A page is a whole screen, and
-              // screens contain ListTiles, ink and switches — all of which
-              // paint onto the nearest Material ancestor. A bare ColoredBox
-              // gives them a background they cannot draw on, and ListTile
-              // asserts about it *on every frame*: with an animating spinner
-              // on the page that is sixty exceptions a second, each building
-              // a full diagnostic tree, which is what took the window down.
-              ? Material(
-                  color: scheme.surface,
-                  child: WorkspacePageScope(
-                    id: page.id,
-                    child: Builder(
-                      key: ValueKey(page.id),
-                      builder: page.builder,
-                    ),
-                  ),
-                )
-              : active == null
-              ? const SizedBox.shrink()
-              // The active session's tab: its one pane, or its split layout.
-              : TabPanes(active: active),
+          //
+          // Every open page stays built, not just the selected one. Building
+          // only the selected page disposed the others on every switch, so
+          // going to a terminal and back threw a page's state away — the
+          // file browser returned to / and to Documents. Hidden pages are
+          // offstage, their tickers are off and they cannot take focus; each
+          // is keyed by its id so switching never hands one page's state to
+          // another. Closing a tab removes it from this list, which is what
+          // disposes it.
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (page == null)
+                active == null
+                    ? empty
+                    // The active session's tab: its one pane, or its split
+                    // layout.
+                    : TabPanes(
+                        key: const ValueKey('workspace.terminal'),
+                        active: active,
+                      ),
+              for (final open in pages)
+                _KeptPage(
+                  key: ValueKey('page:${open.id}'),
+                  page: open,
+                  visible: open.id == page?.id,
+                ),
+            ],
+          ),
         ),
       ],
     );
   }
+}
+
+/// One open page, built whether or not it is the one showing.
+///
+/// Hidden, it keeps its state but does nothing a hidden page should not:
+/// offstage, so it neither paints nor takes pointers; tickers off, so an
+/// animation or a spinner stops costing frames; and focus excluded, so a key
+/// press can never land in a page nobody can see.
+class _KeptPage extends StatelessWidget {
+  const _KeptPage({required this.page, required this.visible, super.key});
+
+  final WorkspacePage page;
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) => Offstage(
+    offstage: !visible,
+    child: TickerMode(
+      enabled: visible,
+      child: ExcludeFocus(
+        excluding: !visible,
+        // Material, not a ColoredBox. A page is a whole screen, and screens
+        // contain ListTiles, ink and switches — all of which paint onto the
+        // nearest Material ancestor. A bare ColoredBox gives them a
+        // background they cannot draw on, and ListTile asserts about it *on
+        // every frame*: with an animating spinner on the page that is sixty
+        // exceptions a second, each building a full diagnostic tree, which is
+        // what took the window down.
+        child: Material(
+          color: Theme.of(context).colorScheme.surface,
+          child: WorkspacePageScope(
+            id: page.id,
+            child: Builder(builder: page.builder),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// The header above the side panel.

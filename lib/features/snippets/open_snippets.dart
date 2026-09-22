@@ -21,9 +21,8 @@ void openSnippetEditor(
   context,
   ref,
   id: 'snippet/${snippetId ?? 'new'}',
-  title: snippetId == null
-      ? AppLocalizations.of(context).snippetEditorNew
-      : AppLocalizations.of(context).snippetEditorEdit,
+  title: (l10n) =>
+      snippetId == null ? l10n.snippetEditorNew : l10n.snippetEditorEdit,
   icon: PiconsRegular.codeBlock,
   route: snippetId == null
       ? Routes.snippetNew

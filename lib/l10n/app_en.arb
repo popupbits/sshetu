@@ -1575,9 +1575,8 @@
   "@settingsScrollbackValue": {
     "placeholders": {
       "lines": {
-        "type": "int",
-        "format": "decimalPattern",
-        "example": "10000"
+        "type": "String",
+        "example": "10,000"
       }
     }
   },
@@ -1585,9 +1584,8 @@
   "@scrollbackLinesOption": {
     "placeholders": {
       "lines": {
-        "type": "int",
-        "format": "decimalPattern",
-        "example": "10000"
+        "type": "String",
+        "example": "10,000"
       }
     }
   },

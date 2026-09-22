@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
 import '../../../core/router/routes.dart';
-import '../../../l10n/app_localizations.dart';
 import '../../sessions/open_in_workspace.dart';
 import 'receive_screen.dart';
 import 'send_screen.dart';
@@ -20,7 +19,7 @@ void openTransferSend(BuildContext context, WidgetRef ref) => openInWorkspace(
   context,
   ref,
   id: 'transfer/send',
-  title: AppLocalizations.of(context).transferSend,
+  title: (l10n) => l10n.transferSend,
   icon: PiconsRegular.qrCode,
   route: Routes.transferSend,
   builder: (_) => const TransferSendScreen(embedded: true),
@@ -31,7 +30,7 @@ void openTransferReceive(BuildContext context, WidgetRef ref) =>
       context,
       ref,
       id: 'transfer/receive',
-      title: AppLocalizations.of(context).transferReceive,
+      title: (l10n) => l10n.transferReceive,
       icon: PiconsRegular.downloadSimple,
       route: Routes.transferReceive,
       builder: (_) => const TransferReceiveScreen(embedded: true),

@@ -18,6 +18,7 @@ import '../../export/portable_export_service.dart';
 import '../../hosts/hosts_controller.dart';
 import '../../tunnels/tunnels_controller.dart';
 import 'putty_import.dart';
+import 'putty_none_found_dialog.dart';
 import 'putty_sessions.dart';
 
 const XTypeGroup _regTypeGroup = XTypeGroup(
@@ -58,21 +59,7 @@ Future<void> importPutty(
       if (found.isEmpty) {
         final choose = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            icon: const Icon(PiconsRegular.terminalWindow),
-            title: Text(l10n.puttyNoneFoundTitle),
-            content: Text(l10n.puttyNoneFoundBody),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.actionCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.puttyChooseFile),
-              ),
-            ],
-          ),
+          builder: (_) => const PuttyNoneFoundDialog(),
         );
         if (choose != true) return;
         source = await pickFile();

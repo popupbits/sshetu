@@ -385,7 +385,7 @@ class _PageTab extends StatelessWidget {
               const SizedBox(width: Spacing.sm),
               Flexible(
                 child: Text(
-                  page.title,
+                  page.titleIn(context),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelMedium?.copyWith(

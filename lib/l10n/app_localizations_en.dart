@@ -3012,21 +3012,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsScrollback => 'Scrollback';
 
   @override
-  String settingsScrollbackValue(int lines) {
-    final intl.NumberFormat linesNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String linesString = linesNumberFormat.format(lines);
-
-    return '$linesString lines · applies to new tabs';
+  String settingsScrollbackValue(String lines) {
+    return '$lines lines · applies to new tabs';
   }
 
   @override
-  String scrollbackLinesOption(int lines) {
-    final intl.NumberFormat linesNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
-    final String linesString = linesNumberFormat.format(lines);
-
-    return '$linesString lines';
+  String scrollbackLinesOption(String lines) {
+    return '$lines lines';
   }
 
   @override

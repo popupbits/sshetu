@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/router/navigation.dart';
 import '../../core/util/responsive.dart';
+import '../../l10n/app_localizations.dart';
 import 'workspace_pages.dart';
 
 /// Opens a screen where it belongs on this form factor.
@@ -19,7 +20,7 @@ void openInWorkspace(
   BuildContext context,
   WidgetRef ref, {
   required String id,
-  required String title,
+  required String Function(AppLocalizations l10n) title,
   required IconData icon,
   required String route,
   required WidgetBuilder builder,
@@ -30,7 +31,15 @@ void openInWorkspace(
   }
   ref
       .read(workspacePagesProvider.notifier)
-      .open(WorkspacePage(id: id, title: title, icon: icon, builder: builder));
+      .open(
+        WorkspacePage(
+          id: id,
+          // Looked up when the tab is drawn, so it follows a language change.
+          localizedTitle: title,
+          icon: icon,
+          builder: builder,
+        ),
+      );
 }
 
 /// Leaves a screen opened with [openInWorkspace], whichever way it opened.
