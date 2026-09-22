@@ -113,41 +113,48 @@ class ContextMenuRegion extends StatelessWidget {
     final chosen = await showModalBottomSheet<MenuAction>(
       context: context,
       showDragHandle: true,
+      // Scrolls: a sheet is capped at part of the screen, and a long menu —
+      // a terminal tab's has nine entries — overflowed that cap on a phone,
+      // cutting off the last rows.
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (title != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Spacing.xl,
-                  0,
-                  Spacing.xl,
-                  Spacing.md,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (title != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Spacing.xl,
+                    0,
+                    Spacing.xl,
+                    Spacing.md,
+                  ),
+                  child: Text(
+                    title!,
+                    style: theme.textTheme.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                child: Text(
-                  title!,
-                  style: theme.textTheme.titleSmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              for (final action in items)
+                ListTile(
+                  leading: Icon(
+                    action.icon,
+                    color: action.isDestructive
+                        ? theme.colorScheme.error
+                        : null,
+                  ),
+                  title: Text(
+                    action.label,
+                    style: action.isDestructive
+                        ? TextStyle(color: theme.colorScheme.error)
+                        : null,
+                  ),
+                  onTap: () => Navigator.of(context).pop(action),
                 ),
-              ),
-            for (final action in items)
-              ListTile(
-                leading: Icon(
-                  action.icon,
-                  color: action.isDestructive ? theme.colorScheme.error : null,
-                ),
-                title: Text(
-                  action.label,
-                  style: action.isDestructive
-                      ? TextStyle(color: theme.colorScheme.error)
-                      : null,
-                ),
-                onTap: () => Navigator.of(context).pop(action),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -183,6 +183,16 @@ void main() {
       await pumpAt(tester, phone);
       expect(find.byType(SplitPaneView), findsNothing);
       expect(find.byKey(const Key('panes.switcher')), findsOneWidget);
+      // Every chip sits wholly inside the strip: a padded tap target taller
+      // than the strip clipped their bottoms on a phone.
+      final strip = tester.getRect(find.byKey(const Key('panes.switcher')));
+      for (final chip in tester.widgetList<ChoiceChip>(
+        find.byType(ChoiceChip),
+      )) {
+        final rect = tester.getRect(find.byWidget(chip));
+        expect(rect.top, greaterThanOrEqualTo(strip.top));
+        expect(rect.bottom, lessThanOrEqualTo(strip.bottom));
+      }
       expect(find.byType(TerminalView), findsOneWidget);
 
       await tester.tap(find.byKey(const ValueKey('panes.switch.a')));

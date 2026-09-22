@@ -5,6 +5,8 @@ import 'package:sshetu/core/ssh/ssh_credentials.dart';
 import 'package:sshetu/core/ssh/ssh_target.dart';
 import 'package:sshetu/core/ssh/vault_credential_source.dart';
 
+import 'fixtures/pasted_keys.dart';
+
 /// A vault that counts what it was asked for.
 ///
 /// Read counts are the point of several of these tests: every read is a real
@@ -370,6 +372,66 @@ void main() {
       );
 
       expect(await source.keyboardInteractive(target, codeRound), isNull);
+    });
+  });
+
+  // Regression: a mistyped passphrase was cached in the key cache every
+  // connection shares, so no later connect ever asked again and the key was
+  // unusable until the app restarted — and with "remember" ticked, the typo
+  // was written to the vault for good.
+  group('a typed passphrase', () {
+    final sealed = encryptedOpenSsh();
+    const chosen = SshTarget(
+      hostname: 'example.com',
+      username: 'deploy',
+      credentialId: 'host-1',
+      identityId: 'locked',
+    );
+
+    ({_CountingVault vault, VaultCredentialSource source, List<String> asked})
+    open(List<String> answers) {
+      final vault = _CountingVault({'identity/locked/private': sealed.pem});
+      final asked = <String>[];
+      final source = VaultCredentialSource(
+        vault: vault,
+        catalog: () async => [identity('locked', encrypted: true)],
+        prompt: (request) async {
+          final answer = answers[asked.length];
+          asked.add(answer);
+          return SecretResponse(answer, remember: true);
+        },
+      );
+      return (vault: vault, source: source, asked: asked);
+    }
+
+    test('that is wrong is neither cached nor remembered', () async {
+      final (:vault, :source, :asked) = open(['typo', fixturePassphrase]);
+
+      final first = await source.privateKeys(chosen);
+      // Still handed over, so the connection fails as a wrong passphrase.
+      expect(first.single.passphrase, 'typo');
+      expect(
+        await vault.contains(const SecretRef.identityPassphrase('locked')),
+        isFalse,
+      );
+
+      // And the next connect asks again, rather than reusing the typo.
+      final second = await source.privateKeys(chosen);
+      expect(asked, ['typo', fixturePassphrase]);
+      expect(second.single.passphrase, fixturePassphrase);
+    });
+
+    test('that is right is remembered, and not asked for again', () async {
+      final (:vault, :source, :asked) = open([fixturePassphrase]);
+
+      await source.privateKeys(chosen);
+      await source.privateKeys(chosen);
+
+      expect(asked, [fixturePassphrase]);
+      expect(
+        await vault.read(const SecretRef.identityPassphrase('locked')),
+        fixturePassphrase,
+      );
     });
   });
 }

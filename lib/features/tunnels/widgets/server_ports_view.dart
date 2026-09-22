@@ -273,7 +273,15 @@ class _PortRow extends ConsumerWidget {
       );
     }
     if (forward != null && forward.status.isRunning) {
-      return _ForwardedChip(forward: forward);
+      // Saving runs on this row's context and ref, not the chip's: the save
+      // stops the ad-hoc forward first, which swaps the chip for the Forward
+      // button and unmounts it — and a save carried out on the chip's context
+      // then stopped right there, leaving the new tunnel saved but stopped.
+      return _ForwardedChip(
+        forward: forward,
+        onSaveAsTunnel: () =>
+            unawaited(saveAdHocAsTunnel(context, ref, forward)),
+      );
     }
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -331,9 +339,12 @@ class _PortRow extends ConsumerWidget {
 
 /// What can be done with a running ad-hoc forward.
 class _ForwardedChip extends ConsumerWidget {
-  const _ForwardedChip({required this.forward});
+  const _ForwardedChip({required this.forward, required this.onSaveAsTunnel});
 
   final AdHocForward forward;
+
+  /// Owned by the row, which outlives this chip — see [_PortRow._trailing].
+  final VoidCallback onSaveAsTunnel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -364,8 +375,7 @@ class _ForwardedChip extends ConsumerWidget {
             MenuItemButton(
               key: const Key('ports.saveAsTunnel'),
               leadingIcon: const Icon(PiconsRegular.floppyDisk),
-              onPressed: () =>
-                  unawaited(saveAdHocAsTunnel(context, ref, forward)),
+              onPressed: onSaveAsTunnel,
               child: Text(l10n.portsSaveAsTunnel),
             ),
             MenuItemButton(

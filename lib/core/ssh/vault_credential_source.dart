@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:isolate';
+
+import 'package:dartssh2/dartssh2.dart' show SSHKeyPair;
 
 import '../secrets/secret_ref.dart';
 import '../secrets/secret_vault.dart';
@@ -91,6 +94,20 @@ typedef KeyboardInteractivePrompter =
       KeyboardInteractiveRequest request,
     );
 
+/// Whether [passphrase] opens the private key in [pem].
+typedef PassphraseCheck = Future<bool> Function(String pem, String passphrase);
+
+/// Decodes the key off the UI isolate — bcrypt_pbkdf takes long enough to
+/// freeze a spinner, the same reason `SshConnection` decodes it there.
+Future<bool> defaultPassphraseOpens(String pem, String passphrase) async {
+  try {
+    await Isolate.run(() => SSHKeyPair.fromPem(pem, passphrase));
+    return true;
+  } on Object {
+    return false;
+  }
+}
+
 /// Resolves credentials from the [SecretVault], falling back to asking.
 ///
 /// Where the two halves meet: the vault knows what was saved, the prompt knows
@@ -104,8 +121,13 @@ class VaultCredentialSource implements SshCredentialSource {
     this.catalog = _noIdentities,
     this.prompt,
     this.interactivePrompt,
+    this.passphraseOpens = defaultPassphraseOpens,
     KeyMaterialCache? keyCache,
   }) : _keyCache = keyCache ?? KeyMaterialCache();
+
+  /// Whether a typed passphrase opens a key, checked before it is cached or
+  /// remembered. A seam for tests, which would rather not run bcrypt.
+  final PassphraseCheck passphraseOpens;
 
   final SecretVault vault;
 
@@ -229,16 +251,32 @@ class VaultCredentialSource implements SshCredentialSource {
               ?.hasPassphrase ??
           false;
       if (known) {
-        passphrase = await _ask(
+        final response = await _prompt(
           SecretRequest(
             kind: SecretRequestKind.passphrase,
             address: target.address,
             subject: label,
             canRemember: true,
           ),
-          ref,
         );
-        if (passphrase == null) return null;
+        if (response == null) return null;
+        passphrase = response.value;
+        // A typed passphrase is checked before it is kept anywhere. The cache
+        // is shared by every connection, so a mistyped one held there was
+        // offered to every later connect without ever asking again — the key
+        // was unusable until the app restarted. And "remember" wrote the typo
+        // to the vault, where it would fail the same way for good. A wrong
+        // one is still returned, uncached, so this connect fails with the
+        // "wrong passphrase" message and the next one asks again.
+        if (!await passphraseOpens(pem, passphrase)) {
+          return SshPrivateKey(
+            identityId: identityId,
+            label: label ?? identityId,
+            pem: pem,
+            passphrase: passphrase,
+          );
+        }
+        if (response.remember) await vault.write(ref, passphrase);
       }
     }
 
@@ -316,15 +354,19 @@ class VaultCredentialSource implements SshCredentialSource {
     return KeyboardInteractiveAnswers(reply.answers);
   }
 
-  /// Asks, and saves the answer only if the user said to.
-  Future<String?> _ask(SecretRequest request, SecretRef? saveTo) async {
+  /// Asks, and returns the answer with whether to remember it.
+  Future<SecretResponse?> _prompt(SecretRequest request) async {
     final ask = prompt;
     // No prompt wired means nobody is watching — an unattended reconnect.
     // Failing is correct: blocking forever on a dialog no one will see is how
     // a background reconnect turns into a hung session.
     if (ask == null) return null;
+    return ask(request);
+  }
 
-    final response = await ask(request);
+  /// Asks, and saves the answer only if the user said to.
+  Future<String?> _ask(SecretRequest request, SecretRef? saveTo) async {
+    final response = await _prompt(request);
     if (response == null) return null;
 
     if (response.remember && saveTo != null) {

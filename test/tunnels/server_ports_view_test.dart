@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:sshetu/core/providers.dart';
 import 'package:sshetu/core/ssh/tunnel_runner.dart';
+import 'package:sshetu/features/hosts/data/host_repository.dart';
+import 'package:sshetu/features/hosts/domain/ssh_host.dart';
 import 'package:sshetu/features/server_info/data/server_exec.dart';
 import 'package:sshetu/features/server_info/server_info_panel.dart';
 import 'package:sshetu/features/tunnels/ad_hoc_forwards.dart';
+import 'package:sshetu/features/tunnels/data/tunnel_repository.dart';
 import 'package:sshetu/features/tunnels/domain/far_end.dart';
 import 'package:sshetu/features/tunnels/domain/listening_ports.dart';
 import 'package:sshetu/features/tunnels/domain/tunnel.dart';
@@ -46,6 +50,40 @@ class _FarEnds extends FarEndMonitor {
   Map<String, FarEndStatus> build() => initial;
 }
 
+/// Records saves; no database, which a widget test's fake clock cannot drive.
+class _FakeTunnels implements TunnelRepository {
+  final saved = <Tunnel>[];
+
+  /// Takes time, as a real write does: long enough for a frame to land
+  /// between stopping the ad-hoc forward and the save completing, which is
+  /// when the menu chip unmounts.
+  @override
+  Future<void> save(Tunnel tunnel) async {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    saved.add(tunnel);
+  }
+
+  @override
+  Future<List<Tunnel>> all() async => saved;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Knows no hosts, and records who asked.
+class _FakeHosts implements HostRepository {
+  final lookedUp = <String>[];
+
+  @override
+  Future<SshHost?> byId(String id) async {
+    lookedUp.add(id);
+    return null;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Widget _app(Widget child, List overrides) => ProviderScope(
   overrides: [...overrides],
   child: MaterialApp(
@@ -60,6 +98,8 @@ Widget _app(Widget child, List overrides) => ProviderScope(
 void main() {
   final runners = <FakeTunnelRunner>[];
 
+  var extraOverrides = <Object>[];
+
   List overrides() => [
     adHocRunnerFactoryProvider.overrideWithValue((tunnel, _) {
       final runner = FakeTunnelRunner(tunnel);
@@ -67,9 +107,13 @@ void main() {
       return runner;
     }),
     adHocPortPickerProvider.overrideWithValue((port) async => port),
+    ...extraOverrides,
   ];
 
-  setUp(runners.clear);
+  setUp(() {
+    runners.clear();
+    extraOverrides = [];
+  });
 
   Future<FakeServerExec> pumpPorts(
     WidgetTester tester, {
@@ -162,6 +206,42 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('ports.forward.3000')), findsOneWidget);
       expect(runners.single.disposed, isTrue);
+      expect(tester.takeException(), isNull);
+    });
+
+    // Regression: the save ran on the menu chip's context, and the save
+    // itself unmounts that chip (stopping the ad-hoc forward swaps it for
+    // the Forward button). It returned right there: saved, never started.
+    testWidgets('at $name: save as tunnel saves it, then starts it', (
+      tester,
+    ) async {
+      final tunnels = _FakeTunnels();
+      final hosts = _FakeHosts();
+      extraOverrides = [
+        tunnelRepositoryProvider.overrideWithValue(tunnels),
+        hostRepositoryProvider.overrideWithValue(hosts),
+      ];
+      await pumpPorts(tester, size: size, panelWidth: width);
+
+      await tester.tap(find.byKey(const Key('ports.forward.8000')));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('ports.menu.8000')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('ports.saveAsTunnel')));
+      // Frames first (the chip goes), then the write finishes.
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+
+      expect(runners.single.disposed, isTrue);
+      expect(tunnels.saved.single.label, 'python3 (8000)');
+      expect(tunnels.saved.single.hostId, 'h1');
+      // startTunnel was reached (it looks the host up), and the save got as
+      // far as saying so.
+      expect(hosts.lookedUp, ['h1']);
+      expect(find.text('Saved as tunnel "python3 (8000)"'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

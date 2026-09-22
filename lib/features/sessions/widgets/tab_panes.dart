@@ -184,21 +184,26 @@ class PaneSwitcherView extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.xxs,
-                      vertical: Spacing.xs,
                     ),
-                    child: ChoiceChip(
-                      key: ValueKey('panes.switch.${session.id}'),
-                      visualDensity: VisualDensity.compact,
-                      selected: session.id == active.id,
-                      avatar: tree.receivesBroadcast(session.id)
-                          ? Icon(
-                              PiconsRegular.broadcast,
-                              size: 14,
-                              color: scheme.error,
-                            )
-                          : null,
-                      label: Text('${index + 1} · ${session.title}'),
-                      onSelected: (_) => manager.select(session.id),
+                    // Centred and shrink-wrapped: a chip's default padded
+                    // tap target is taller than the strip, which clipped the
+                    // bottom of every chip on a phone.
+                    child: Center(
+                      child: ChoiceChip(
+                        key: ValueKey('panes.switch.${session.id}'),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        selected: session.id == active.id,
+                        avatar: tree.receivesBroadcast(session.id)
+                            ? Icon(
+                                PiconsRegular.broadcast,
+                                size: 14,
+                                color: scheme.error,
+                              )
+                            : null,
+                        label: Text('${index + 1} · ${session.title}'),
+                        onSelected: (_) => manager.select(session.id),
+                      ),
                     ),
                   ),
               ],
