@@ -14,6 +14,14 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+// A debug build is its own app, "SSHetu Debug", with its own application id
+// and data (see the top-level CMakeLists.txt); the title says so.
+#ifdef SSHETU_DEBUG_IDENTITY
+static const gchar* kWindowTitle = "SSHetu Debug";
+#else
+static const gchar* kWindowTitle = "SSHetu";
+#endif
+
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
@@ -45,11 +53,11 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "SSHetu");
+    gtk_header_bar_set_title(header_bar, kWindowTitle);
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "SSHetu");
+    gtk_window_set_title(window, kWindowTitle);
   }
 
   gtk_window_set_default_size(window, 1280, 720);

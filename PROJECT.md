@@ -604,6 +604,60 @@ server, switching to another app, the notification, returning to the still-live
 session, and tapping *Disconnect all*. Store submission is the owner's; this is
 the text, not a submission.
 
+## 12d. Debug builds have their own identity
+
+A debug build (`flutter run`, `flutter build --debug`) is a **separate app,
+"SSHetu Debug"**, with its own id on every platform. It never opens the real
+install's database, settings or keychain, and it installs beside it — so
+anyone, automated QA included, can run a debug build on a machine holding
+someone's real hosts and keys without touching them. Profile and release
+builds are the real app.
+
+**Release is unchanged, byte for byte, in everything that locates data:** the
+applicationId / bundle id `com.popupbits.sshetu`, the Windows product name
+`SSHetu` (and so `%APPDATA%\PopupBits\SSHetu`), the GTK application id, the
+database at `<documents>/sshetu.db`, and the keychain keys. Changing any of
+them strands every existing install's data on the next update.
+`test/core/app_identity_test.dart`, `test/native_identity_test.dart` and
+`test/secrets/keychain_secret_vault_identity_test.dart` pin them.
+
+| Platform | Debug identity | Where debug data lives |
+|---|---|---|
+| Android | `applicationIdSuffix ".debug"` on the debug build type, label from `manifestPlaceholders` | its own package: `/data/data/com.popupbits.sshetu.debug` |
+| iOS | Debug configuration's bundle id `com.popupbits.sshetu.debug`; `APP_DISPLAY_NAME` from `ios/Flutter/Debug.xcconfig` | its own container and keychain access group |
+| macOS | Runner Debug configuration's bundle id and `APP_DISPLAY_NAME`; window title under `#if DEBUG` | its own sandbox container and preferences domain |
+| Windows | `ProductName "SSHetu Debug"` via `windows/runner/app_identity.h`, for the CMake Debug config only | `%APPDATA%\PopupBits\SSHetu Debug\` — preferences, the credential file and the database |
+| Linux | `APPLICATION_ID` gets `.debug` when `CMAKE_BUILD_TYPE` is Debug | `$XDG_DATA_HOME/com.popupbits.sshetu.debug/`, and a libsecret schema named after that id |
+
+Most of it follows from the native id, because the plugins derive their
+storage from it: `shared_preferences` and `path_provider` on Windows and
+Linux name their folder after the product name / application id,
+`flutter_secure_storage_windows` keeps its DPAPI file in that same folder, and
+`flutter_secure_storage_linux` compiles `APPLICATION_ID` into its schema.
+`lib/core/config/app_config.dart` (`AppIdentity`) covers what the id does not
+reach:
+
+- **The database.** Release keeps `<documents>/sshetu.db` — on a desktop that
+  is the user's shared Documents folder, which both builds would otherwise
+  open. Debug uses `<application support>/sshetu-debug.db`.
+- **Keychain keys.** Debug prefixes every key with `sshetu-debug.`, in
+  `KeychainSecretVault`. On macOS that is the only separation: this app uses
+  the legacy login keychain (see `docs/macos-sandbox.md`), which every app
+  shares and which is keyed by service and account, not bundle id.
+- **A startup check.** Before anything is opened, a debug build confirms its
+  application support folder is its own (`AppIdentity.isolationProblem`) and
+  refuses to start if not — a stale CMake cache or a dropped define would
+  otherwise have it open the real app's settings.
+
+The shell's rail and the About screen show a small **DEBUG** pill in a debug
+build, and the window title says "SSHetu Debug", so a screenshot cannot pass
+for release. Neither is localized: like Flutter's own debug banner, they name
+the build and never appear in one a user installs.
+
+A first debug build on a physical iPhone or a signed Mac registers the new
+`.debug` bundle id with the team; automatic signing does that on its own.
+Release signing and `match` are untouched — they only ever build Release.
+
 ## 13. Tooling — use it when it is there
 
 Prefer a real tool over shelling out by hand. Each of these is optional: check

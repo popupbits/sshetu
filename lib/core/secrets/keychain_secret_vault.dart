@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../config/app_config.dart';
 import 'secret_ref.dart';
 import 'secret_vault.dart';
 
@@ -13,16 +14,38 @@ import 'secret_vault.dart';
 /// common case — connecting to a host you use every day, on the device you
 /// always use — never leaves the machine.
 class KeychainSecretVault implements SecretVault {
-  KeychainSecretVault({FlutterSecureStorage? storage})
-    : _storage =
-          storage ??
-          const FlutterSecureStorage(
-            aOptions: _androidOptions,
-            iOptions: _iosOptions,
-            mOptions: _macOsOptions,
-          );
+  KeychainSecretVault({
+    FlutterSecureStorage? storage,
+    this.identity = AppIdentity.current,
+  }) : _storage =
+           storage ??
+           const FlutterSecureStorage(
+             aOptions: _androidOptions,
+             iOptions: _iosOptions,
+             mOptions: _macOsOptions,
+           );
 
   final FlutterSecureStorage _storage;
+
+  /// Which build's keys this vault reads and writes. Injectable so a test can
+  /// prove both without rebuilding.
+  final AppIdentity identity;
+
+  /// The key [ref] is stored under in the platform store.
+  ///
+  /// Exactly [SecretRef.storageKey] for a release build — every secret an
+  /// existing install holds is filed under that. A debug build prefixes it,
+  /// so its entries can never be the real app's, even in the one store its
+  /// separate identity does not separate: the macOS login keychain, which
+  /// every app shares (see [AppIdentity.secretKeyPrefix]). On the other
+  /// platforms the store already follows the debug identity — Android's is
+  /// per package, iOS's per bundle id, Windows's a DPAPI file in the
+  /// "SSHetu Debug" app-data folder, Linux's a libsecret schema named after
+  /// the GTK application id — and the prefix is a second wall.
+  static String storageKeyFor(SecretRef ref, AppIdentity identity) =>
+      '${identity.secretKeyPrefix}${ref.storageKey}';
+
+  String _key(SecretRef ref) => storageKeyFor(ref, identity);
 
   /// `resetOnError` is **off**, against the plugin's default.
   ///
@@ -73,7 +96,7 @@ class KeychainSecretVault implements SecretVault {
   @override
   Future<String?> read(SecretRef ref) async {
     try {
-      return await _storage.read(key: ref.storageKey);
+      return await _storage.read(key: _key(ref));
     } on Object catch (e) {
       throw SecretVaultException(
         'Could not read secret',
@@ -87,7 +110,7 @@ class KeychainSecretVault implements SecretVault {
   @override
   Future<void> write(SecretRef ref, String value) async {
     try {
-      await _storage.write(key: ref.storageKey, value: value);
+      await _storage.write(key: _key(ref), value: value);
     } on Object catch (e) {
       throw SecretVaultException(
         'Could not save secret',
@@ -101,7 +124,7 @@ class KeychainSecretVault implements SecretVault {
   @override
   Future<void> delete(SecretRef ref) async {
     try {
-      await _storage.delete(key: ref.storageKey);
+      await _storage.delete(key: _key(ref));
     } on Object catch (e) {
       throw SecretVaultException(
         'Could not remove secret',
@@ -115,7 +138,7 @@ class KeychainSecretVault implements SecretVault {
   @override
   Future<bool> contains(SecretRef ref) async {
     try {
-      return await _storage.containsKey(key: ref.storageKey);
+      return await _storage.containsKey(key: _key(ref));
     } on Object catch (e) {
       throw SecretVaultException(
         'Could not read secret',

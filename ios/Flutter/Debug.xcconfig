@@ -1,2 +1,8 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
 #include "Generated.xcconfig"
+
+// The name under the icon. A Debug build is its own app, "SSHetu Debug",
+// with its own bundle id (.debug, set in the Runner Debug configuration),
+// so it installs beside the real one and never shares its keychain or
+// data. Release and Profile read Release.xcconfig and stay "SSHetu".
+APP_DISPLAY_NAME = SSHetu Debug

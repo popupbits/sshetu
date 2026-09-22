@@ -4,12 +4,12 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 // Re-exports everything sqflite does, plus the FFI factory desktop needs, so
 // importing both would be redundant.
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../config/app_config.dart';
 import 'migrations/migrations.dart';
 
 /// The open database. Installed by bootstrap; reading it without that override
@@ -29,8 +29,6 @@ class AppDatabase {
 
   final Database raw;
 
-  static const String fileName = 'sshetu.db';
-
   /// Open the database, creating and migrating it as needed.
   static Future<AppDatabase> open({String? path}) async {
     // Desktop has no bundled SQLite; the FFI implementation supplies one.
@@ -43,9 +41,16 @@ class AppDatabase {
       databaseFactory = databaseFactoryFfi;
     }
 
+    // Release: <documents>/sshetu.db, where it has always been. Debug: its
+    // own file in its own folder. See AppIdentity.databasePath.
     final resolved =
         path ??
-        p.join((await getApplicationDocumentsDirectory()).path, fileName);
+        await AppIdentity.current.databasePath(
+          documentsDirectory: () async =>
+              (await getApplicationDocumentsDirectory()).path,
+          supportDirectory: () async =>
+              (await getApplicationSupportDirectory()).path,
+        );
 
     final database = await openDatabase(
       resolved,

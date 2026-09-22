@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'background/keep_alive_service.dart';
+import 'config/app_config.dart';
 import 'router/router.dart';
 import 'settings/settings_controller.dart';
 import 'theme/app_theme.dart';
@@ -22,7 +23,9 @@ class SshetuApp extends ConsumerWidget {
     ref.watch(keepAliveControllerProvider);
 
     return MaterialApp.router(
-      title: 'SSHetu',
+      // 'SSHetu' for release, as before; 'SSHetu Debug' in Android's recents
+      // for a debug build.
+      title: AppIdentity.current.displayName,
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       scaffoldMessengerKey: rootMessengerKey,

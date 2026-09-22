@@ -46,6 +46,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // The launcher label. The manifest reads it, so the debug build type
+        // below can rename itself without the release manifest changing.
+        manifestPlaceholders["appLabel"] = "SSHetu"
     }
 
     signingConfigs {
@@ -60,6 +63,25 @@ android {
     }
 
     buildTypes {
+        // Debug builds are their own app, "SSHetu Debug": a separate package
+        // (com.popupbits.sshetu.debug), so a debug install never opens the
+        // real one's database, preferences or keystore entries, and installs
+        // beside it. Release and profile keep defaultConfig's applicationId
+        // untouched — that id is what every existing install's data is filed
+        // under. Guarded by test/android_identity_test.dart; see PROJECT.md,
+        // "Debug builds have their own identity".
+        debug {
+            applicationIdSuffix = ".debug"
+            manifestPlaceholders["appLabel"] = "SSHetu Debug"
+        }
+        // The Flutter plugin creates `profile` with initWith(debug) when it is
+        // applied, before this block runs, so it does not inherit the suffix
+        // today. Said explicitly anyway: profile builds are release-shaped
+        // and must never become a third identity through an ordering change.
+        getByName("profile") {
+            applicationIdSuffix = null
+            manifestPlaceholders["appLabel"] = "SSHetu"
+        }
         release {
             signingConfig = if (hasReleaseKeystore) {
                 signingConfigs.getByName("release")

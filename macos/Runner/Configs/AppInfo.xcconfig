@@ -11,6 +11,13 @@
 // capitalised the way the product is written.
 PRODUCT_NAME = SSHetu
 
+// The name in the menu bar and the About panel. Release and Profile: the
+// product name, exactly as before. The Runner target's Debug configuration
+// sets "SSHetu Debug" and its own bundle id (com.popupbits.sshetu.debug),
+// so a debug build is a separate app with its own sandbox container and
+// preferences. See PROJECT.md, "Debug builds have their own identity".
+APP_DISPLAY_NAME = $(PRODUCT_NAME)
+
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = com.popupbits.sshetu
 

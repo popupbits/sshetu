@@ -2,6 +2,7 @@
 //
 #pragma code_page(65001)
 #include "resource.h"
+#include "app_identity.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -90,12 +91,13 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "PopupBits" "\0"
-            VALUE "FileDescription", "SSHetu" "\0"
+            VALUE "FileDescription", SSHETU_PRODUCT_NAME "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "SSHetu" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 PopupBits. All rights reserved." "\0"
             VALUE "OriginalFilename", "sshetu.exe" "\0"
-            VALUE "ProductName", "SSHetu" "\0"
+            // The data folder's name; see app_identity.h before changing it.
+            VALUE "ProductName", SSHETU_PRODUCT_NAME "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -48,8 +48,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!--
+      The label is "SSHetu", set in build.gradle.kts; a debug build is
+      "SSHetu Debug", a separate app with its own data. See PROJECT.md,
+      "Debug builds have their own identity".
+    -->
     <application
-        android:label="SSHetu"
+        android:label="${appLabel}"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -27,6 +27,15 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_MINOR=${FLUTT
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_PATCH=${FLUTTER_VERSION_PATCH}")
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_BUILD=${FLUTTER_VERSION_BUILD}")
 
+# Debug builds are their own app, "SSHetu Debug". Runner.rc gives the exe that
+# ProductName, and path_provider, shared_preferences and
+# flutter_secure_storage_windows all derive their folder from it
+# (%APPDATA%\PopupBits\<ProductName>), so a debug build never opens the real
+# install's settings or credentials. Profile and Release keep "SSHetu" — the
+# folder every existing install's data is in. See PROJECT.md, "Debug builds
+# have their own identity".
+target_compile_definitions(${BINARY_NAME} PRIVATE "$<$<CONFIG:Debug>:SSHETU_DEBUG_IDENTITY>")
+
 # Disable Windows macros that collide with C++ standard library functions.
 target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 

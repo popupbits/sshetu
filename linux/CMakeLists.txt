@@ -34,6 +34,20 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Profile" "Release")
 endif()
 
+# Debug builds are their own app, "SSHetu Debug", with the GTK application id
+# com.popupbits.sshetu.debug. Everything that files data under that id follows
+# it: path_provider's application support folder ($XDG_DATA_HOME/<id>, and so
+# shared_preferences), and flutter_secure_storage_linux, which names its
+# libsecret schema and account after APPLICATION_ID when it is compiled. So a
+# debug build never opens the real install's settings or keyring entries.
+# Profile and Release keep the id every existing install's data is filed
+# under. Set before the runner and the plugins are added, which read it. See
+# PROJECT.md, "Debug builds have their own identity".
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(APPLICATION_ID "${APPLICATION_ID}.debug")
+  add_definitions(-DSSHETU_DEBUG_IDENTITY)
+endif()
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by

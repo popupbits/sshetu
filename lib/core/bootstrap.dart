@@ -1,8 +1,11 @@
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:material_ui/material_ui.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'config/app_config.dart';
 import 'error/error_logger.dart';
 import 'settings/app_settings.dart';
 import 'settings/settings_controller.dart';
@@ -62,6 +65,17 @@ class BootstrapResult {
   final List<BootstrapFailure> failures;
 }
 
+/// Throws if [identity] is a debug build whose app data folder is not its own.
+///
+/// A release build returns at once and asks the platform for nothing. See
+/// [AppIdentity.isolationProblem] for what is checked and why.
+Future<void> ensureIdentityIsolated(AppIdentity identity) async {
+  if (!identity.isDebug || kIsWeb) return;
+  final support = (await getApplicationSupportDirectory()).path;
+  final problem = identity.isolationProblem(defaultTargetPlatform, support);
+  if (problem != null) throw StateError(problem);
+}
+
 /// Open resources, then run the optional steps.
 ///
 /// Throws if a resource cannot be opened — `main` turns that into
@@ -69,6 +83,10 @@ class BootstrapResult {
 /// from and nowhere to write them to, which is worth saying out loud rather
 /// than running an app that silently forgets every change.
 Future<BootstrapResult> runBootstrap() async {
+  // Before anything is opened: a debug build that would share the real app's
+  // files must not get as far as opening them.
+  await ensureIdentityIsolated(AppIdentity.current);
+
   final preferences = await SharedPreferences.getInstance();
 
   // As early as possible: anything already captured in memory is merged with

@@ -4,6 +4,7 @@ import 'package:picons/picons.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/ui/debug_badge.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -37,7 +38,19 @@ class AboutScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.appTitle, style: theme.textTheme.headlineMedium),
+                  // A debug build says so beside the name; release shows the
+                  // name alone, as it always has.
+                  Wrap(
+                    spacing: Spacing.sm,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        l10n.appTitle,
+                        style: theme.textTheme.headlineMedium,
+                      ),
+                      if (AppIdentity.current.isDebug) const DebugBadge(),
+                    ],
+                  ),
                   const SizedBox(height: Spacing.xs),
                   // Read from the installed package rather than a constant, so
                   // the version shown can never drift from the one shipped.

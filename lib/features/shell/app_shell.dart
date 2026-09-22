@@ -19,7 +19,10 @@ import '../snippets/open_snippets.dart';
 import '../tunnels/launch_auto_start.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
+import '../../core/config/app_config.dart';
 import '../../core/settings/settings_controller.dart';
+import '../../core/theme/tokens.dart';
+import '../../core/ui/debug_badge.dart';
 import 'workspace_layout.dart';
 
 /// One navigation destination.
@@ -270,6 +273,14 @@ class AppShell extends ConsumerWidget {
                   // behaviour that matters happens to the right of here.
                   labelType: NavigationRailLabelType.all,
                   backgroundColor: scheme.surfaceContainerLow,
+                  // Debug builds only; null for release, so the rail lays
+                  // out exactly as it always has.
+                  leading: AppIdentity.current.isDebug
+                      ? const Padding(
+                          padding: EdgeInsets.only(top: Spacing.sm),
+                          child: DebugBadge(),
+                        )
+                      : null,
                   destinations: [
                     for (final branch in branches)
                       NavigationRailDestination(
