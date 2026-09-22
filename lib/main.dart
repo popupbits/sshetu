@@ -11,6 +11,8 @@ import 'core/bootstrap.dart';
 import 'core/error/error_logger.dart';
 import 'core/settings/settings_controller.dart';
 import 'core/db/database.dart';
+import 'features/hosts/data/reachability_probe.dart';
+import 'features/hosts/reachability_controller.dart';
 
 void main() {
   // Before anything else, so a failure during startup itself is recorded
@@ -59,6 +61,11 @@ void main() {
             () => SettingsController(initial: bootstrap.settings),
           ),
           databaseProvider.overrideWithValue(bootstrap.database),
+          // The one place a real probe is installed — see
+          // reachabilityProbeProvider for why tests get none by default.
+          reachabilityProbeProvider.overrideWithValue(
+            const TcpReachabilityProbe(),
+          ),
         ],
         child: const SshetuApp(),
       ),

@@ -43,7 +43,109 @@ abstract final class Mono {
       );
 }
 
-/// The terminal's colours, matched to the app's.
+/// One terminal colour scheme, as data: the sixteen ANSI colours plus the
+/// four a terminal paints around them.
+///
+/// Values, not code: a preset is a published palette copied in once and cited,
+/// and the tests can walk every one of them and check it is whole and legible.
+@immutable
+class TerminalPalette {
+  const TerminalPalette({
+    required this.foreground,
+    required this.background,
+    required this.cursor,
+    required this.selection,
+    required this.ansi,
+  });
+
+  final Color foreground;
+  final Color background;
+  final Color cursor;
+
+  /// Painted *under* the selected text (xterm2 draws selection before the
+  /// glyphs), so an opaque colour does not hide what is selected.
+  final Color selection;
+
+  /// The sixteen ANSI colours in escape-code order: black, red, green, yellow,
+  /// blue, magenta, cyan, white, then the bright variant of each.
+  final List<Color> ansi;
+
+  /// The number of colours [ansi] must hold.
+  static const int ansiCount = 16;
+
+  /// Whether this palette is meant for a light ground.
+  bool get isLight => background.computeLuminance() > 0.5;
+}
+
+/// A named terminal colour scheme the user can pick.
+///
+/// Either fixed — a [palette] copied from a published theme, the same whatever
+/// the app looks like — or adaptive, following the app's light or dark mode
+/// and its accent. There is exactly one adaptive preset: the default.
+@immutable
+class TerminalThemePreset {
+  const TerminalThemePreset({
+    required this.id,
+    required this.name,
+    this.palette,
+  });
+
+  /// Stored in settings and in `hosts.terminal_theme`. Never change one: a
+  /// renamed id silently repoints every host that chose it to the default.
+  final String id;
+
+  /// The theme's own name. Not translated: "Dracula" and "Nord" are proper
+  /// nouns, and they are what people search for.
+  final String name;
+
+  /// Null for the adaptive preset, which is built from the app's colours.
+  final TerminalPalette? palette;
+
+  bool get isAdaptive => palette == null;
+
+  /// The colours this preset paints with under [scheme].
+  TerminalPalette paletteFor(ColorScheme scheme) =>
+      palette ?? adaptiveTerminalPalette(scheme);
+
+  /// The xterm2 theme for this preset under [scheme].
+  ///
+  /// Search highlights come from [scheme] for every preset, fixed ones
+  /// included: they are the app's find bar showing through the terminal, and
+  /// the scheme's container / on-container pairs are the ones built to be
+  /// legible together. Borrowing, say, a palette's yellow would put the
+  /// palette's background colour on it as text, which fails on half of them.
+  TerminalTheme toTerminalTheme(ColorScheme scheme) {
+    final p = paletteFor(scheme);
+    final a = p.ansi;
+    return TerminalTheme(
+      cursor: p.cursor,
+      selection: p.selection,
+      foreground: p.foreground,
+      background: p.background,
+      black: a[0],
+      red: a[1],
+      green: a[2],
+      yellow: a[3],
+      blue: a[4],
+      magenta: a[5],
+      cyan: a[6],
+      white: a[7],
+      brightBlack: a[8],
+      brightRed: a[9],
+      brightGreen: a[10],
+      brightYellow: a[11],
+      brightBlue: a[12],
+      brightMagenta: a[13],
+      brightCyan: a[14],
+      brightWhite: a[15],
+      searchHitBackground: scheme.tertiaryContainer,
+      searchHitBackgroundCurrent: scheme.tertiary,
+      searchHitForeground: scheme.onTertiaryContainer,
+    );
+  }
+}
+
+/// The default preset's colours, matched to the app's.
 ///
 /// Two halves, decided differently on purpose:
 ///
@@ -61,116 +163,57 @@ abstract final class Mono {
 /// ground respectively. They are close to the widely-used One Dark / One Light
 /// sets, which exist precisely because this problem has been solved carefully
 /// before.
-TerminalTheme appTerminalTheme(ColorScheme scheme) {
+TerminalPalette adaptiveTerminalPalette(ColorScheme scheme) {
   final dark = scheme.brightness == Brightness.dark;
-  final ansi = dark ? _darkAnsi : _lightAnsi;
-
-  return TerminalTheme(
-    cursor: scheme.primary,
-    // Alpha rather than a solid fill: a selection must not hide the text it
-    // is selecting, which is the one thing the user is looking at.
-    selection: scheme.primary.withValues(alpha: 0.30),
+  return TerminalPalette(
     foreground: scheme.onSurface,
     background: scheme.surface,
-    black: ansi.black,
-    red: ansi.red,
-    green: ansi.green,
-    yellow: ansi.yellow,
-    blue: ansi.blue,
-    magenta: ansi.magenta,
-    cyan: ansi.cyan,
-    white: ansi.white,
-    brightBlack: ansi.brightBlack,
-    brightRed: ansi.brightRed,
-    brightGreen: ansi.brightGreen,
-    brightYellow: ansi.brightYellow,
-    brightBlue: ansi.brightBlue,
-    brightMagenta: ansi.brightMagenta,
-    brightCyan: ansi.brightCyan,
-    brightWhite: ansi.brightWhite,
-    searchHitBackground: scheme.tertiaryContainer,
-    searchHitBackgroundCurrent: scheme.tertiary,
-    searchHitForeground: scheme.onTertiaryContainer,
+    cursor: scheme.primary,
+    // Alpha rather than a solid fill, so the selection reads as a tint of the
+    // accent on whichever surface the app is showing.
+    selection: scheme.primary.withValues(alpha: 0.30),
+    ansi: dark ? _darkAnsi : _lightAnsi,
   );
 }
 
-/// The sixteen ANSI colours for one brightness.
-class _Ansi {
-  const _Ansi({
-    required this.black,
-    required this.red,
-    required this.green,
-    required this.yellow,
-    required this.blue,
-    required this.magenta,
-    required this.cyan,
-    required this.white,
-    required this.brightBlack,
-    required this.brightRed,
-    required this.brightGreen,
-    required this.brightYellow,
-    required this.brightBlue,
-    required this.brightMagenta,
-    required this.brightCyan,
-    required this.brightWhite,
-  });
-
-  final Color black;
-  final Color red;
-  final Color green;
-  final Color yellow;
-  final Color blue;
-  final Color magenta;
-  final Color cyan;
-  final Color white;
-  final Color brightBlack;
-  final Color brightRed;
-  final Color brightGreen;
-  final Color brightYellow;
-  final Color brightBlue;
-  final Color brightMagenta;
-  final Color brightCyan;
-  final Color brightWhite;
-}
-
 /// For a dark ground: saturated enough to read, not so bright they glare.
-const _darkAnsi = _Ansi(
-  black: Color(0xFF3F4451),
-  red: Color(0xFFE06C75),
-  green: Color(0xFF98C379),
-  yellow: Color(0xFFE5C07B),
-  blue: Color(0xFF61AFEF),
-  magenta: Color(0xFFC678DD),
-  cyan: Color(0xFF56B6C2),
-  white: Color(0xFFABB2BF),
-  brightBlack: Color(0xFF5C6370),
-  brightRed: Color(0xFFFF7A85),
-  brightGreen: Color(0xFFB5E890),
-  brightYellow: Color(0xFFF5D08A),
-  brightBlue: Color(0xFF7FC4FF),
-  brightMagenta: Color(0xFFDA8FF0),
-  brightCyan: Color(0xFF68CBD8),
-  brightWhite: Color(0xFFE6E6E6),
-);
+const _darkAnsi = <Color>[
+  Color(0xFF3F4451), // black
+  Color(0xFFE06C75), // red
+  Color(0xFF98C379), // green
+  Color(0xFFE5C07B), // yellow
+  Color(0xFF61AFEF), // blue
+  Color(0xFFC678DD), // magenta
+  Color(0xFF56B6C2), // cyan
+  Color(0xFFABB2BF), // white
+  Color(0xFF5C6370), // bright black
+  Color(0xFFFF7A85), // bright red
+  Color(0xFFB5E890), // bright green
+  Color(0xFFF5D08A), // bright yellow
+  Color(0xFF7FC4FF), // bright blue
+  Color(0xFFDA8FF0), // bright magenta
+  Color(0xFF68CBD8), // bright cyan
+  Color(0xFFE6E6E6), // bright white
+];
 
 /// For a light ground: darker and more saturated, because the same hues that
 /// read well on black wash out completely on white. A palette that is merely
 /// inverted is a palette that makes yellow invisible.
-const _lightAnsi = _Ansi(
-  black: Color(0xFF383A42),
-  red: Color(0xFFCA1243),
-  green: Color(0xFF3F7F2F),
-  yellow: Color(0xFF9A6800),
-  blue: Color(0xFF0184BC),
-  magenta: Color(0xFFA626A4),
-  cyan: Color(0xFF0997B3),
-  white: Color(0xFF6A737D),
-  brightBlack: Color(0xFF57606A),
-  brightRed: Color(0xFFE4506B),
-  brightGreen: Color(0xFF2F6F1F),
-  brightYellow: Color(0xFF7A5300),
-  brightBlue: Color(0xFF0166A6),
-  brightMagenta: Color(0xFF8B1D8A),
-  brightCyan: Color(0xFF077D96),
-  brightWhite: Color(0xFF24292F),
-);
+const _lightAnsi = <Color>[
+  Color(0xFF383A42), // black
+  Color(0xFFCA1243), // red
+  Color(0xFF3F7F2F), // green
+  Color(0xFF9A6800), // yellow
+  Color(0xFF0184BC), // blue
+  Color(0xFFA626A4), // magenta
+  Color(0xFF0997B3), // cyan
+  Color(0xFF6A737D), // white
+  Color(0xFF57606A), // bright black
+  Color(0xFFE4506B), // bright red
+  Color(0xFF2F6F1F), // bright green
+  Color(0xFF7A5300), // bright yellow
+  Color(0xFF0166A6), // bright blue
+  Color(0xFF8B1D8A), // bright magenta
+  Color(0xFF077D96), // bright cyan
+  Color(0xFF24292F), // bright white
+];

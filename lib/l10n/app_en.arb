@@ -178,7 +178,7 @@
   "keysImport": "Import keys",
   "keysGenerate": "Generate key",
   "keysGenerateTitle": "Generate a new key",
-  "keysGenerateBody": "An Ed25519 keypair, made on this device. The private half stays in this device's secure storage and never leaves it.",
+  "keysGenerateBody": "A new keypair, made on this device. The private half stays in this device's secure storage and never leaves it.",
   "keysGenerateLabel": "Name this key",
   "keysGenerateDone": "Add this line to the server's ~/.ssh/authorized_keys:",
   "keysCopyPublic": "Copy public key",
@@ -187,6 +187,47 @@
   "keysDelete": "Delete key",
   "keysDeleteConfirm": "Delete this key?",
   "keysDeleteBody": "The private key is destroyed on this device and cannot be recovered.",
+  "keysTypeLabel": "Key type",
+  "keysTypeEd25519": "Ed25519 (recommended)",
+  "keysTypeEcdsaP256": "ECDSA P-256",
+  "keysTypeEcdsaP384": "ECDSA P-384",
+  "keysTypeRsa3072": "RSA 3072",
+  "keysTypeRsa4096": "RSA 4096",
+  "keysTypeHelp": "Ed25519 works with every current server. Choose another only if a server or policy requires it.",
+  "keysPassphraseLabel": "Passphrase (optional)",
+  "keysPassphraseHelp": "Leave empty to rely on this device's lock. If set, you will be asked for it when connecting, and it cannot be recovered.",
+  "keysPassphraseRepeat": "Repeat passphrase",
+  "keysPassphraseMismatch": "The passphrases don't match.",
+  "keysGenerating": "Generating…",
+  "keysGeneratingSlow": "Generating an RSA key. This can take a few seconds.",
+  "keysGenerateFailed": "The key could not be generated.",
+  "keysShare": "Share public key",
+  "keysPaste": "Paste key",
+  "keysPasteTitle": "Paste a private key",
+  "keysPasteBody": "An OpenSSH or PEM private key. It is stored in this device's secure storage and never logged.",
+  "keysPasteField": "Private key",
+  "keysPasteCheck": "Check key",
+  "keysPasteSave": "Save key",
+  "keysPastePassphrase": "Passphrase",
+  "keysPastePassphraseHelp": "Used only to read the key now. It is not saved: you will be asked for it when connecting.",
+  "keysPasteEmpty": "Paste a private key first.",
+  "keysPastePublicKey": "That is a public key. Paste the private key instead: the file without .pub, starting with -----BEGIN.",
+  "keysPasteNotAKey": "That doesn't look like a private key.",
+  "keysPasteUnsupported": "This key format can't be used. OpenSSH, PEM RSA and PEM EC keys are supported; convert others with ssh-keygen or PuTTYgen.",
+  "keysPasteNeedsPassphrase": "This key is protected. Enter its passphrase to read it.",
+  "keysPasteWrongPassphrase": "That passphrase doesn't open this key.",
+  "keysPasteDamaged": "This key is damaged or incomplete. Copy it again, including the BEGIN and END lines.",
+  "keysPasteDuplicate": "You already have this key, as {label}.",
+  "@keysPasteDuplicate": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "keysPasteSaveFailed": "The key could not be saved to this device's secure storage.",
+  "keysPublicKeyHeading": "Public key",
+  "keysFingerprintHeading": "Fingerprint",
   "importTitle": "Import from OpenSSH",
   "importScanning": "Looking for an existing setup…",
   "importFoundIn": "Found in {path}",
@@ -245,6 +286,51 @@
   "sessionsGoToHosts": "Choose a host",
   "terminalSessionEnded": "Session ended",
   "timeNow": "now",
+  "reachabilityUp": "Reachable · {ms} ms",
+  "@reachabilityUp": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "reachabilityDown": "Unreachable ({reason})",
+  "@reachabilityDown": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "reachabilityTimedOut": "timed out",
+  "reachabilityRefused": "connection refused",
+  "reachabilityUnresolved": "address not found",
+  "reachabilityNoRoute": "no route to host",
+  "reachabilityUnknown": "Not checked yet",
+  "reachabilitySession": "Connected · a session is open",
+  "reachabilityCheckedNow": "Checked just now",
+  "reachabilityCheckedMinutes": "{count, plural, =1{Checked 1 min ago} other{Checked {count} min ago}}",
+  "@reachabilityCheckedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reachabilityCheckedHours": "{count, plural, =1{Checked 1 hour ago} other{Checked {count} hours ago}}",
+  "@reachabilityCheckedHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsReachability": "Check whether hosts are reachable",
+  "settingsReachabilityBody": "While the host list is on screen, briefly opens a connection to each server's port — never signs in. Slower checks are kinder to servers with connection limits.",
+  "settingsReachabilityOff": "Off",
+  "settingsReachability30s": "30 s",
+  "settingsReachability1m": "1 min",
+  "settingsReachability5m": "5 min",
   "hostEditorIdentityAny": "Any of my keys",
   "hostEditorAuthKeyHint": "Offers your keys, and falls back to a password if the server refuses them — the same as ssh.",
   "hostEditorAuthPasswordHint": "Never offers a key to this host.",
@@ -1144,5 +1230,188 @@
   },
   "terminalReconnecting": "Reconnecting…",
   "terminalRetryNow": "Retry now",
-  "terminalStopReconnecting": "Stop"
+  "terminalStopReconnecting": "Stop",
+  "settingsTerminalAppearance": "Terminal appearance",
+  "settingsTerminalTheme": "Terminal theme",
+  "terminalThemeAdaptive": "Follows light and dark",
+  "@terminalThemeAdaptive": {
+    "description": "Shown under the default terminal theme, which follows the app's light or dark mode and accent"
+  },
+  "terminalThemeFixedDark": "Dark",
+  "terminalThemeFixedLight": "Light",
+  "terminalPreviewUser": "you@server",
+  "@terminalPreviewUser": {
+    "description": "The prompt in the terminal theme preview. Looks like a user@host prompt"
+  },
+  "terminalPreviewCommand": "ls",
+  "@terminalPreviewCommand": {
+    "description": "A shell command in the terminal theme preview. Normally left as-is"
+  },
+  "terminalPreviewDirectory": "docs",
+  "terminalPreviewFile": "notes.txt",
+  "terminalPreviewScript": "deploy.sh",
+  "terminalPreviewError": "error: permission denied",
+  "settingsTerminalFont": "Terminal font",
+  "terminalFontSystem": "System monospace",
+  "settingsCursorShape": "Cursor",
+  "cursorShapeBlock": "Block",
+  "cursorShapeUnderline": "Underline",
+  "cursorShapeBar": "Bar",
+  "settingsCursorBlink": "Blinking cursor",
+  "settingsCursorBlinkBody": "Programs such as vim can still change the cursor while they run.",
+  "settingsScrollback": "Scrollback",
+  "settingsScrollbackValue": "{lines} lines · applies to new tabs",
+  "@settingsScrollbackValue": {
+    "placeholders": {
+      "lines": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "10000"
+      }
+    }
+  },
+  "scrollbackLinesOption": "{lines} lines",
+  "@scrollbackLinesOption": {
+    "placeholders": {
+      "lines": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "10000"
+      }
+    }
+  },
+  "hostEditorTerminalTheme": "Terminal theme",
+  "hostEditorTerminalThemeDefault": "Use default ({name})",
+  "@hostEditorTerminalThemeDefault": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Dracula"
+      }
+    }
+  },
+  "terminalNoticeTmuxSessionGone": "[the session kept on the server has ended, so this is a new shell]",
+  "hostsRunningSessions": "Running sessions…",
+  "sessionRunningSessions": "Sessions on this server…",
+  "runningSessionsTitle": "Sessions on {host}",
+  "@runningSessionsTitle": {
+    "placeholders": {
+      "host": {
+        "type": "String",
+        "example": "web-1"
+      }
+    }
+  },
+  "runningSessionsIntro": "Shells SSHetu keeps running on this server — from this device and your others. Attach one to pick up where you left off: start something on your desktop, carry on from your phone.",
+  "runningSessionsSharedNote": "Attaching a session that is open on another device shares it: both screens show the same shell, and either can type. Closing a tab attached from here leaves the session running — end it here when you are done.",
+  "runningSessionsRefresh": "Refresh",
+  "runningSessionsError": "Could not list the sessions on this server",
+  "runningSessionsNoTmux": "tmux is not installed on this server, so SSHetu cannot keep sessions running on it.",
+  "runningSessionsEmpty": "No SSHetu sessions are running on this server",
+  "runningSessionsEmptyBody": "Tabs opened with “Keep sessions running on the server” turned on appear here, from any of your devices, for as long as they run.",
+  "runningSessionsThisDevice": "This device",
+  "runningSessionsOtherDevice": "Another device ({id})",
+  "@runningSessionsOtherDevice": {
+    "placeholders": {
+      "id": {
+        "type": "String",
+        "example": "a1b2c3"
+      }
+    }
+  },
+  "runningSessionsOlder": "An earlier SSHetu version",
+  "runningSessionsStarted": "started {age} ago",
+  "@runningSessionsStarted": {
+    "placeholders": {
+      "age": {
+        "type": "String",
+        "example": "2h"
+      }
+    }
+  },
+  "runningSessionsActive": "active {age} ago",
+  "@runningSessionsActive": {
+    "placeholders": {
+      "age": {
+        "type": "String",
+        "example": "5m"
+      }
+    }
+  },
+  "runningSessionsRunning": "running {command}",
+  "@runningSessionsRunning": {
+    "placeholders": {
+      "command": {
+        "type": "String",
+        "example": "vim"
+      }
+    }
+  },
+  "runningSessionsAttached": "Attached elsewhere",
+  "runningSessionsOpenHere": "Open here",
+  "runningSessionsAttach": "Attach",
+  "runningSessionsShow": "Show",
+  "runningSessionsEnd": "End",
+  "runningSessionsEndTitle": "End this session?",
+  "runningSessionsEndBody": "Everything running in it on {host} stops, on every device attached to it. This cannot be undone.",
+  "@runningSessionsEndBody": {
+    "placeholders": {
+      "host": {
+        "type": "String",
+        "example": "web-1"
+      }
+    }
+  },
+  "runningSessionsEndFailed": "Could not end the session: {error}",
+  "@runningSessionsEndFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "timed out"
+      }
+    }
+  },
+  "runningSessionsAttachFailed": "Could not attach: {error}",
+  "@runningSessionsAttachFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "timed out"
+      }
+    }
+  },
+  "settingsReopenTabs": "Reopen tabs on launch",
+  "settingsReopenTabsBody": "Brings back the terminal tabs that were open when SSHetu last closed, reattaching the sessions kept on the server.",
+  "settingsReopenTabsAsk": "Ask",
+  "settingsReopenTabsAlways": "Always",
+  "settingsReopenTabsNever": "Never",
+  "restoreTabsTitle": "Reopen your tabs?",
+  "restoreTabsBody": "{count, plural, =1{1 terminal tab was open when SSHetu last closed: {hosts}.} other{{count} terminal tabs were open when SSHetu last closed: {hosts}.}}",
+  "@restoreTabsBody": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      },
+      "hosts": {
+        "type": "String",
+        "example": "web-1, db"
+      }
+    }
+  },
+  "restoreTabsRemember": "Don’t ask again",
+  "restoreTabsNotNow": "Not now",
+  "restoreTabsReopen": "Reopen",
+  "hostEditorEnv": "Environment",
+  "hostEditorEnvHelp": "Set in every new shell on this host, exactly as typed. A session already kept on the server keeps the values it started with.",
+  "hostEditorEnvName": "Name",
+  "hostEditorEnvValue": "Value",
+  "hostEditorEnvAdd": "Add variable",
+  "hostEditorEnvRemove": "Remove variable",
+  "hostEditorEnvMissingName": "Give it a name",
+  "hostEditorEnvInvalidName": "Letters, digits and _ only, not starting with a digit",
+  "hostEditorEnvDuplicateName": "Already set above",
+  "hostEditorEnvInvalidValue": "Cannot contain a line break",
+  "hostEditorForwardAgent": "Forward SSH agent",
+  "hostEditorForwardAgentHelp": "Lets this server use your keys to sign in elsewhere while you're connected. Only enable it for servers you trust. If the server has AllowAgentForwarding disabled, the connection will fail."
 }

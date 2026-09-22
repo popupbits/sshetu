@@ -27,6 +27,8 @@ class SshHost {
     this.fontSize,
     this.notes,
     this.tags = const [],
+    this.envVars = const {},
+    this.forwardAgent = false,
     this.lastConnectedAt,
   });
 
@@ -54,6 +56,9 @@ class SshHost {
   /// Seconds between keepalives; 0 turns them off.
   final int keepaliveSeconds;
 
+  /// A terminal colour preset id, or null to follow the app setting. See
+  /// `TerminalThemePresets.resolve`, which also treats an id it does not know
+  /// as null.
   final String? terminalTheme;
 
   /// This host's terminal font size, or null to follow the app setting.
@@ -64,6 +69,14 @@ class SshHost {
 
   /// Stored comma-separated; see `HostTags` for the rules a tag obeys.
   final List<String> tags;
+
+  /// Environment variables set in every new shell on this host. Names are
+  /// valid POSIX identifiers; see `HostEnv`.
+  final Map<String, String> envVars;
+
+  /// Whether this server may use the keys this app holds to sign in
+  /// elsewhere while connected. Off by default; see [SshTarget.forwardAgent].
+  final bool forwardAgent;
 
   /// Whether there is anything in [notes] worth showing.
   bool get hasNotes => notes?.trim().isNotEmpty ?? false;
@@ -141,6 +154,7 @@ class SshHost {
     allowLegacyAlgorithms: allowLegacyAlgorithms,
     // Negative is nonsense from a hand-edited row; it means off, like zero.
     keepaliveInterval: Duration(seconds: max(0, keepaliveSeconds)),
+    forwardAgent: forwardAgent,
   );
 
   SshHost copyWith({
@@ -160,11 +174,14 @@ class SshHost {
     bool clearStartupCommand = false,
     int? keepaliveSeconds,
     String? terminalTheme,
+    bool clearTerminalTheme = false,
     double? fontSize,
     bool clearFontSize = false,
     String? notes,
     bool clearNotes = false,
     List<String>? tags,
+    Map<String, String>? envVars,
+    bool? forwardAgent,
     DateTime? lastConnectedAt,
     DateTime? updatedAt,
   }) => SshHost(
@@ -182,10 +199,14 @@ class SshHost {
         ? null
         : (startupCommand ?? this.startupCommand),
     keepaliveSeconds: keepaliveSeconds ?? this.keepaliveSeconds,
-    terminalTheme: terminalTheme ?? this.terminalTheme,
+    terminalTheme: clearTerminalTheme
+        ? null
+        : (terminalTheme ?? this.terminalTheme),
     fontSize: clearFontSize ? null : (fontSize ?? this.fontSize),
     notes: clearNotes ? null : (notes ?? this.notes),
     tags: tags ?? this.tags,
+    envVars: envVars ?? this.envVars,
+    forwardAgent: forwardAgent ?? this.forwardAgent,
     lastConnectedAt: lastConnectedAt ?? this.lastConnectedAt,
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,

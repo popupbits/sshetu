@@ -68,6 +68,8 @@ class SshShellLauncher implements ShellLauncher {
     required this.connection,
     required this.keepOnServer,
     required this.tmuxName,
+    this.env = const {},
+    this.ownsSession = true,
     this.probeTimeout = const Duration(seconds: 10),
     this.discardTimeout = const Duration(seconds: 5),
   });
@@ -81,6 +83,17 @@ class SshShellLauncher implements ShellLauncher {
 
   /// This tab's tmux session name. See [tmuxSessionName].
   final String tmuxName;
+
+  /// The host's environment variables, set in every *new* shell: a new tmux
+  /// session, or a plain shell. See [plainShellCommand].
+  final Map<String, String> env;
+
+  /// Whether ending the tab ends the tmux session too.
+  ///
+  /// False for a tab that attached a session it did not start — picked from
+  /// "Sessions on this server", perhaps left running by another device.
+  /// Closing that tab lets go of it; ending it is a separate, confirmed act.
+  final bool ownsSession;
 
   final Duration probeTimeout;
   final Duration discardTimeout;
@@ -101,15 +114,13 @@ class SshShellLauncher implements ShellLauncher {
     );
 
     if (!keepOnServer) {
-      return SshRemoteShell(await client.shell(pty: pty), ShellOrigin.plain);
+      return SshRemoteShell(await _plainShell(client, pty), ShellOrigin.plain);
     }
 
     final probe = await _probe(client);
     if (probe == TmuxProbe.unavailable) {
-      // An ordinary shell request, not `exec sh`: a switch or a router has no
-      // shell to exec, and must work exactly as it did before tmux existed.
       return SshRemoteShell(
-        await client.shell(pty: pty),
+        await _plainShell(client, pty),
         ShellOrigin.plainWithoutTmux,
       );
     }
@@ -119,7 +130,7 @@ class SshShellLauncher implements ShellLauncher {
     // the redraw attaching triggers.
     final history = reattaching ? await _history(client) : null;
     final session = await client.execute(
-      tmuxAttachCommand(tmuxName, columns: columns, rows: rows),
+      tmuxAttachCommand(tmuxName, columns: columns, rows: rows, env: env),
       pty: pty,
     );
     _usedTmux = true;
@@ -129,6 +140,15 @@ class SshShellLauncher implements ShellLauncher {
       history: history,
     );
   }
+
+  /// An ordinary shell. A `shell` request when there are no variables, not
+  /// `exec sh`: a switch or a router has no shell to exec, and must work
+  /// exactly as it did before tmux existed. With variables, the login shell
+  /// is started with them already set — see [plainShellCommand].
+  Future<SSHSession> _plainShell(SSHClient client, SSHPtyConfig pty) =>
+      env.isEmpty
+      ? client.shell(pty: pty)
+      : client.execute(plainShellCommand(env), pty: pty);
 
   Future<TmuxProbe> _probe(SSHClient client) async {
     try {
@@ -162,6 +182,7 @@ class SshShellLauncher implements ShellLauncher {
   Future<void> discard() async {
     if (!_usedTmux) return;
     _usedTmux = false;
+    if (!ownsSession) return;
     // Never dials: a tab closed while offline leaves its session behind
     // rather than raising a host key or password prompt on the way out.
     if (!connection.isConnected) return;
@@ -173,20 +194,28 @@ class SshShellLauncher implements ShellLauncher {
     }
   }
 
-  static Future<String> _run(SSHClient client, String command) async {
-    final session = await client.execute(command);
-    await session.stdin.close();
-    // Bytes first, decoded once: a history full of box drawing and emoji
-    // splits characters across chunks, and decoding chunk by chunk would
-    // turn each split into a replacement character.
-    final out = BytesBuilder(copy: false);
-    await Future.wait([
-      session.stdout.listen(out.add).asFuture<void>(),
-      session.stderr.listen((_) {}).asFuture<void>(),
-    ]);
-    await session.done;
-    return utf8.decode(out.takeBytes(), allowMalformed: true);
-  }
+  static Future<String> _run(SSHClient client, String command) =>
+      runRemoteCommand(client, command);
+}
+
+/// Runs [command] over an exec channel (no PTY) and returns its stdout.
+///
+/// For the short, scripted questions the terminal layer asks a server — is
+/// tmux there, what is its history, which sessions are running — never for
+/// anything interactive.
+Future<String> runRemoteCommand(SSHClient client, String command) async {
+  final session = await client.execute(command);
+  await session.stdin.close();
+  // Bytes first, decoded once: a history full of box drawing and emoji
+  // splits characters across chunks, and decoding chunk by chunk would turn
+  // each split into a replacement character.
+  final out = BytesBuilder(copy: false);
+  await Future.wait([
+    session.stdout.listen(out.add).asFuture<void>(),
+    session.stderr.listen((_) {}).asFuture<void>(),
+  ]);
+  await session.done;
+  return utf8.decode(out.takeBytes(), allowMalformed: true);
 }
 
 /// [RemoteShell] over a dartssh2 session.

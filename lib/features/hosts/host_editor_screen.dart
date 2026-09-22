@@ -8,6 +8,7 @@ import '../../core/settings/settings_controller.dart';
 import '../../core/ssh/ssh_algorithm_policy.dart';
 import '../../core/ssh/ssh_target.dart';
 import '../../core/theme/terminal_theme.dart';
+import '../../core/theme/terminal_theme_presets.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
@@ -15,10 +16,13 @@ import '../../l10n/app_localizations.dart';
 import '../../core/settings/app_settings.dart';
 import '../keys/keys_controller.dart';
 import 'domain/connection_string.dart';
+import 'domain/host_env.dart';
 import 'domain/host_group.dart';
 import 'domain/host_tags.dart';
 import 'domain/ssh_host.dart';
 import 'hosts_controller.dart';
+import '../settings/widgets/terminal_theme_preview.dart';
+import 'widgets/env_vars_editor.dart';
 import 'widgets/group_actions.dart';
 import 'widgets/tag_editor.dart';
 
@@ -66,6 +70,16 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
   /// This host's terminal font size; null follows the app setting.
   double? _fontSize;
 
+  /// This host's terminal colour preset; null follows the app setting. Kept
+  /// verbatim from the row, so an id this build does not know survives an
+  /// edit of some other field.
+  String? _terminalTheme;
+
+  /// The environment variables as last loaded, and as edited since. See
+  /// [EnvVarsEditor].
+  Map<String, String> _envInitial = const {};
+  List<(String, String)> _envPairs = const [];
+
   /// Open when editing a host that already has a group, tags or notes.
   var _organiseOpen = false;
 
@@ -73,6 +87,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
   String? _identityId;
   String? _jumpHostId;
   var _allowLegacy = false;
+  var _forwardAgent = false;
   var _loaded = false;
   SshHost? _existing;
 
@@ -145,11 +160,15 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
     _identityId = host.identityId;
     _jumpHostId = host.jumpHostId;
     _allowLegacy = host.allowLegacyAlgorithms;
+    _forwardAgent = host.forwardAgent;
     _groupId = host.groupId;
     _tags = [...host.tags];
     _notes.text = host.notes ?? '';
     _keepalive.text = '${host.keepaliveSeconds}';
     _fontSize = host.fontSize;
+    _terminalTheme = host.terminalTheme;
+    _envInitial = host.envVars;
+    _envPairs = [for (final e in host.envVars.entries) (e.key, e.value)];
     _organiseOpen =
         host.groupId != null || host.tags.isNotEmpty || host.hasNotes;
   }
@@ -203,6 +222,20 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
 
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    // The variables are checked here too: folded away inside Advanced, their
+    // fields are not in the form, and a bad name must not be saved unseen.
+    final envProblem = [
+      for (var i = 0; i < _envPairs.length; i++)
+        HostEnv.problemAt(_envPairs, i),
+    ].any((problem) => problem != null);
+    if (envProblem) {
+      setState(() => _advancedOpen = true);
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _formKey.currentState?.validate(),
+      );
+      return;
+    }
+    final envVars = HostEnv.fromPairs(_envPairs);
     final now = DateTime.now().toUtc();
     final existing = _existing;
     final notes = _notes.text.trim();
@@ -226,6 +259,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
             identityId: _auth == SshAuthMethod.publicKey ? _identityId : null,
             jumpHostId: _jumpHostId,
             allowLegacyAlgorithms: _allowLegacy,
+            forwardAgent: _forwardAgent,
             startupCommand: _startup.text.trim().isEmpty
                 ? null
                 : _startup.text.trim(),
@@ -233,7 +267,9 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
             tags: tags,
             notes: notes.isEmpty ? null : notes,
             keepaliveSeconds: keepalive,
+            envVars: envVars,
             fontSize: _fontSize,
+            terminalTheme: _terminalTheme,
             createdAt: now,
             updatedAt: now,
           )
@@ -248,6 +284,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
             jumpHostId: _jumpHostId,
             clearJumpHostId: _jumpHostId == null,
             allowLegacyAlgorithms: _allowLegacy,
+            forwardAgent: _forwardAgent,
             startupCommand: _startup.text.trim().isEmpty
                 ? null
                 : _startup.text.trim(),
@@ -260,6 +297,9 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
             keepaliveSeconds: keepalive,
             fontSize: _fontSize,
             clearFontSize: _fontSize == null,
+            terminalTheme: _terminalTheme,
+            clearTerminalTheme: _terminalTheme == null,
+            envVars: envVars,
             updatedAt: now,
           );
 
@@ -619,6 +659,14 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                       border: const OutlineInputBorder(),
                     ),
                   ),
+                  const SizedBox(height: Spacing.lg),
+                  // Beside the startup command: the other thing this host
+                  // puts into every new shell.
+                  EnvVarsEditor(
+                    key: ValueKey('env-$_loaded'),
+                    initial: _envInitial,
+                    onChanged: (pairs) => _envPairs = pairs,
+                  ),
                   const SizedBox(height: Spacing.sm),
                   SwitchListTile(
                     value: _allowLegacy,
@@ -628,6 +676,20 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                     // to a real downgrade, and this is the moment they decide.
                     subtitle: Text(
                       SshAlgorithmPolicy.legacyWarning,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    isThreeLine: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  SwitchListTile(
+                    key: const Key('hostEditor.forwardAgent'),
+                    value: _forwardAgent,
+                    onChanged: (value) => setState(() => _forwardAgent = value),
+                    title: Text(l10n.hostEditorForwardAgent),
+                    subtitle: Text(
+                      l10n.hostEditorForwardAgentHelp,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -660,6 +722,11 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                   _FontSizeOverride(
                     value: _fontSize,
                     onChanged: (size) => setState(() => _fontSize = size),
+                  ),
+                  const SizedBox(height: Spacing.md),
+                  _TerminalThemeOverride(
+                    value: _terminalTheme,
+                    onChanged: (id) => setState(() => _terminalTheme = id),
                   ),
                 ],
               ),
@@ -799,6 +866,59 @@ class _FontSizeOverride extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// An optional per-host terminal colour scheme.
+///
+/// The obvious use is telling production from staging at a glance. The
+/// "use default" entry names the default, so the choice is between two
+/// things the user can see rather than between a theme and a mystery.
+class _TerminalThemeOverride extends ConsumerWidget {
+  const _TerminalThemeOverride({required this.value, required this.onChanged});
+
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final appDefault = TerminalThemePresets.byId(
+      ref.watch(settingsControllerProvider.select((s) => s.terminalThemeId)),
+    );
+
+    Widget item(TerminalThemePreset preset, String label) => Row(
+      children: [
+        TerminalThemeSwatch(preset: preset),
+        const SizedBox(width: Spacing.md),
+        Expanded(child: Text(label, overflow: TextOverflow.ellipsis)),
+      ],
+    );
+
+    return DropdownButtonFormField<String?>(
+      isExpanded: true,
+      // An id this build does not know shows as the default, which is what
+      // the terminal draws with; it is only replaced if a choice is made.
+      initialValue: TerminalThemePresets.isKnown(value) ? value : null,
+      decoration: InputDecoration(
+        labelText: l10n.hostEditorTerminalTheme,
+        border: const OutlineInputBorder(),
+      ),
+      items: [
+        DropdownMenuItem<String?>(
+          child: item(
+            appDefault,
+            l10n.hostEditorTerminalThemeDefault(appDefault.name),
+          ),
+        ),
+        for (final preset in TerminalThemePresets.all)
+          DropdownMenuItem<String?>(
+            value: preset.id,
+            child: item(preset, preset.name),
+          ),
+      ],
+      onChanged: onChanged,
     );
   }
 }

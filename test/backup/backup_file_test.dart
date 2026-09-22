@@ -186,6 +186,27 @@ void main() {
     expect(rows.single['tags'], 'ops');
   });
 
+  test('v6 host columns are backed up and restored', () async {
+    await seed();
+    await source.raw.update('hosts', {
+      'env_vars': '{"DEPLOY_ENV":"staging eu"}',
+      'forward_agent': 1,
+    }, where: "id = 'h0'");
+
+    final bytes = await backup();
+    // Sealed like everything else in the file.
+    expect(utf8.decode(bytes), isNot(contains('DEPLOY_ENV')));
+
+    final opened = await BackupFile.read(
+      bytes: bytes,
+      passphrase: 'correct horse battery staple',
+    );
+    await opened.payload.apply(destination.raw, vault: destinationVault);
+    final rows = await destination.raw.query('hosts', where: "id = 'h0'");
+    expect(rows.single['env_vars'], '{"DEPLOY_ENV":"staging eu"}');
+    expect(rows.single['forward_agent'], 1);
+  });
+
   test('what it holds is known only after opening it', () async {
     await seed(hosts: 3);
 

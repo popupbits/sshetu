@@ -62,6 +62,15 @@ class TransferPayload {
   ///
   /// A migration that changes a carried table's columns must raise this to
   /// its own version, and say why here.
+  ///
+  /// v6 added `hosts.env_vars` (nullable) and `hosts.forward_agent` (NOT
+  /// NULL DEFAULT 0) and did *not* raise it, deliberately: a v4 or v5 host
+  /// row simply lacks both, inserts cleanly, and lands with no variables and
+  /// agent forwarding off. What that does mean is that applying an older
+  /// payload over a host that has them here resets them, which is "replace
+  /// by id, the sender wins" applied to a sender that never had either.
+  /// Dropping or renaming a column, or adding a NOT NULL one without a
+  /// default, is the kind of change that must raise it.
   static const int oldestApplicableSchema = 4;
 
   final int schemaVersion;

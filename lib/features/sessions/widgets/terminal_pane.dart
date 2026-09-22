@@ -9,13 +9,14 @@ import 'package:xterm2/xterm.dart';
 import '../../../core/terminal/terminal_find.dart';
 import '../../../core/terminal/terminal_links.dart';
 import '../../../core/terminal/terminal_session.dart';
-import '../../../core/theme/terminal_theme.dart';
+import '../../../core/settings/settings_controller.dart';
 import '../../../core/ui/context_menu.dart';
 import '../../../core/ui/keyboard_accessory.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../snippets/open_snippets.dart';
+import '../terminal_appearance.dart';
 import '../terminal_font_size.dart';
 import '../session_shortcuts.dart';
 import '../terminal_find_request.dart';
@@ -57,6 +58,14 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
   /// the menu is built after the press, and needs to know what was under it.
   Offset? _lastPointerDown;
 
+  /// Terminals that have already been given the user's blink preference.
+  ///
+  /// Blink is terminal state, not view state — a program turns it on and off
+  /// with DECSCUSR or DECSET 12 — so the preference is applied once per
+  /// terminal, when it is first shown. Re-applying it every time a pane is
+  /// rebuilt for the same session would undo whatever the program asked for.
+  static final _blinkApplied = Expando<bool>('cursor blink applied');
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +73,13 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
       terminal: widget.session.terminal,
       controller: _controller,
     )..addListener(_revealCurrentMatch);
+    final terminal = widget.session.terminal;
+    if (_blinkApplied[terminal] != true) {
+      _blinkApplied[terminal] = true;
+      terminal.setCursorBlinkMode(
+        ref.read(settingsControllerProvider).cursorBlink,
+      );
+    }
   }
 
   @override
@@ -267,6 +283,19 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
   Widget build(BuildContext context) {
     final session = widget.session;
     final fontSize = ref.watch(terminalFontSizeProvider(session.hostId));
+    final preset = ref.watch(terminalThemePresetProvider(session.hostId));
+    final font = ref.watch(terminalFontProvider);
+    final cursorShape = ref.watch(
+      settingsControllerProvider.select((s) => s.cursorShape),
+    );
+    // Changing the setting is a deliberate act, so it does reach terminals
+    // that are already open — unlike a rebuild, which must not.
+    ref.listen(settingsControllerProvider.select((s) => s.cursorBlink), (
+      _,
+      blink,
+    ) {
+      session.terminal.setCursorBlinkMode(blink);
+    });
 
     // The menu bar, the app-wide shortcut and the phone's app bar ask for the
     // find bar through this; only the pane showing that session answers.
@@ -280,10 +309,11 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
       // session's status ticks. It repaints itself from the terminal's own
       // notifier; rebuilding it here would throw away its scroll position and
       // its selection every time a status line changed.
-      // Built from the app's ColorScheme, so the terminal follows the theme
-      // mode and accent the user chose instead of shipping xterm2's own
-      // palette regardless — which on a light theme meant a dark terminal
-      // pasted into a light window.
+      // The host's preset, or the app's default one. The default is built
+      // from the app's ColorScheme, so the terminal follows the theme mode
+      // and accent the user chose instead of shipping xterm2's own palette
+      // regardless — which on a light theme meant a dark terminal pasted into
+      // a light window.
       child: Actions(
         actions: <Type, Action<Intent>>{
           TerminalPasteIntent: CallbackAction<TerminalPasteIntent>(
@@ -316,12 +346,11 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
             autofocus: true,
             backgroundOpacity: 1,
             padding: const EdgeInsets.all(Spacing.xs),
-            theme: appTerminalTheme(Theme.of(context).colorScheme),
-            textStyle: TerminalStyle(
-              fontFamily: Mono.family,
-              fontFamilyFallback: Mono.fallback,
-              fontSize: fontSize,
-            ),
+            theme: preset.toTerminalTheme(Theme.of(context).colorScheme),
+            textStyle: font.style(fontSize),
+            // What a program asks for with DECSCUSR still wins; this is the
+            // shape it returns to.
+            cursorType: cursorShape.cursorType,
             // The grid has its own size setting; the app-wide text scale must
             // not compound onto it and reflow the columns the remote program
             // drew.

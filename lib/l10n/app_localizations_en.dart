@@ -445,7 +445,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get keysGenerateBody =>
-      'An Ed25519 keypair, made on this device. The private half stays in this device\'s secure storage and never leaves it.';
+      'A new keypair, made on this device. The private half stays in this device\'s secure storage and never leaves it.';
 
   @override
   String get keysGenerateLabel => 'Name this key';
@@ -472,6 +472,121 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get keysDeleteBody =>
       'The private key is destroyed on this device and cannot be recovered.';
+
+  @override
+  String get keysTypeLabel => 'Key type';
+
+  @override
+  String get keysTypeEd25519 => 'Ed25519 (recommended)';
+
+  @override
+  String get keysTypeEcdsaP256 => 'ECDSA P-256';
+
+  @override
+  String get keysTypeEcdsaP384 => 'ECDSA P-384';
+
+  @override
+  String get keysTypeRsa3072 => 'RSA 3072';
+
+  @override
+  String get keysTypeRsa4096 => 'RSA 4096';
+
+  @override
+  String get keysTypeHelp =>
+      'Ed25519 works with every current server. Choose another only if a server or policy requires it.';
+
+  @override
+  String get keysPassphraseLabel => 'Passphrase (optional)';
+
+  @override
+  String get keysPassphraseHelp =>
+      'Leave empty to rely on this device\'s lock. If set, you will be asked for it when connecting, and it cannot be recovered.';
+
+  @override
+  String get keysPassphraseRepeat => 'Repeat passphrase';
+
+  @override
+  String get keysPassphraseMismatch => 'The passphrases don\'t match.';
+
+  @override
+  String get keysGenerating => 'Generating…';
+
+  @override
+  String get keysGeneratingSlow =>
+      'Generating an RSA key. This can take a few seconds.';
+
+  @override
+  String get keysGenerateFailed => 'The key could not be generated.';
+
+  @override
+  String get keysShare => 'Share public key';
+
+  @override
+  String get keysPaste => 'Paste key';
+
+  @override
+  String get keysPasteTitle => 'Paste a private key';
+
+  @override
+  String get keysPasteBody =>
+      'An OpenSSH or PEM private key. It is stored in this device\'s secure storage and never logged.';
+
+  @override
+  String get keysPasteField => 'Private key';
+
+  @override
+  String get keysPasteCheck => 'Check key';
+
+  @override
+  String get keysPasteSave => 'Save key';
+
+  @override
+  String get keysPastePassphrase => 'Passphrase';
+
+  @override
+  String get keysPastePassphraseHelp =>
+      'Used only to read the key now. It is not saved: you will be asked for it when connecting.';
+
+  @override
+  String get keysPasteEmpty => 'Paste a private key first.';
+
+  @override
+  String get keysPastePublicKey =>
+      'That is a public key. Paste the private key instead: the file without .pub, starting with -----BEGIN.';
+
+  @override
+  String get keysPasteNotAKey => 'That doesn\'t look like a private key.';
+
+  @override
+  String get keysPasteUnsupported =>
+      'This key format can\'t be used. OpenSSH, PEM RSA and PEM EC keys are supported; convert others with ssh-keygen or PuTTYgen.';
+
+  @override
+  String get keysPasteNeedsPassphrase =>
+      'This key is protected. Enter its passphrase to read it.';
+
+  @override
+  String get keysPasteWrongPassphrase =>
+      'That passphrase doesn\'t open this key.';
+
+  @override
+  String get keysPasteDamaged =>
+      'This key is damaged or incomplete. Copy it again, including the BEGIN and END lines.';
+
+  @override
+  String keysPasteDuplicate(String label) {
+    return 'You already have this key, as $label.';
+  }
+
+  @override
+  String get keysPasteSaveFailed =>
+      'The key could not be saved to this device\'s secure storage.';
+
+  @override
+  String get keysPublicKeyHeading => 'Public key';
+
+  @override
+  String get keysFingerprintHeading => 'Fingerprint';
 
   @override
   String get importTitle => 'Import from OpenSSH';
@@ -566,6 +681,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeNow => 'now';
+
+  @override
+  String reachabilityUp(int ms) {
+    return 'Reachable · $ms ms';
+  }
+
+  @override
+  String reachabilityDown(String reason) {
+    return 'Unreachable ($reason)';
+  }
+
+  @override
+  String get reachabilityTimedOut => 'timed out';
+
+  @override
+  String get reachabilityRefused => 'connection refused';
+
+  @override
+  String get reachabilityUnresolved => 'address not found';
+
+  @override
+  String get reachabilityNoRoute => 'no route to host';
+
+  @override
+  String get reachabilityUnknown => 'Not checked yet';
+
+  @override
+  String get reachabilitySession => 'Connected · a session is open';
+
+  @override
+  String get reachabilityCheckedNow => 'Checked just now';
+
+  @override
+  String reachabilityCheckedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Checked $count min ago',
+      one: 'Checked 1 min ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reachabilityCheckedHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Checked $count hours ago',
+      one: 'Checked 1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsReachability => 'Check whether hosts are reachable';
+
+  @override
+  String get settingsReachabilityBody =>
+      'While the host list is on screen, briefly opens a connection to each server\'s port — never signs in. Slower checks are kinder to servers with connection limits.';
+
+  @override
+  String get settingsReachabilityOff => 'Off';
+
+  @override
+  String get settingsReachability30s => '30 s';
+
+  @override
+  String get settingsReachability1m => '1 min';
+
+  @override
+  String get settingsReachability5m => '5 min';
 
   @override
   String get hostEditorIdentityAny => 'Any of my keys';
@@ -2104,4 +2291,270 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get terminalStopReconnecting => 'Stop';
+
+  @override
+  String get settingsTerminalAppearance => 'Terminal appearance';
+
+  @override
+  String get settingsTerminalTheme => 'Terminal theme';
+
+  @override
+  String get terminalThemeAdaptive => 'Follows light and dark';
+
+  @override
+  String get terminalThemeFixedDark => 'Dark';
+
+  @override
+  String get terminalThemeFixedLight => 'Light';
+
+  @override
+  String get terminalPreviewUser => 'you@server';
+
+  @override
+  String get terminalPreviewCommand => 'ls';
+
+  @override
+  String get terminalPreviewDirectory => 'docs';
+
+  @override
+  String get terminalPreviewFile => 'notes.txt';
+
+  @override
+  String get terminalPreviewScript => 'deploy.sh';
+
+  @override
+  String get terminalPreviewError => 'error: permission denied';
+
+  @override
+  String get settingsTerminalFont => 'Terminal font';
+
+  @override
+  String get terminalFontSystem => 'System monospace';
+
+  @override
+  String get settingsCursorShape => 'Cursor';
+
+  @override
+  String get cursorShapeBlock => 'Block';
+
+  @override
+  String get cursorShapeUnderline => 'Underline';
+
+  @override
+  String get cursorShapeBar => 'Bar';
+
+  @override
+  String get settingsCursorBlink => 'Blinking cursor';
+
+  @override
+  String get settingsCursorBlinkBody =>
+      'Programs such as vim can still change the cursor while they run.';
+
+  @override
+  String get settingsScrollback => 'Scrollback';
+
+  @override
+  String settingsScrollbackValue(int lines) {
+    final intl.NumberFormat linesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String linesString = linesNumberFormat.format(lines);
+
+    return '$linesString lines · applies to new tabs';
+  }
+
+  @override
+  String scrollbackLinesOption(int lines) {
+    final intl.NumberFormat linesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String linesString = linesNumberFormat.format(lines);
+
+    return '$linesString lines';
+  }
+
+  @override
+  String get hostEditorTerminalTheme => 'Terminal theme';
+
+  @override
+  String hostEditorTerminalThemeDefault(String name) {
+    return 'Use default ($name)';
+  }
+
+  @override
+  String get terminalNoticeTmuxSessionGone =>
+      '[the session kept on the server has ended, so this is a new shell]';
+
+  @override
+  String get hostsRunningSessions => 'Running sessions…';
+
+  @override
+  String get sessionRunningSessions => 'Sessions on this server…';
+
+  @override
+  String runningSessionsTitle(String host) {
+    return 'Sessions on $host';
+  }
+
+  @override
+  String get runningSessionsIntro =>
+      'Shells SSHetu keeps running on this server — from this device and your others. Attach one to pick up where you left off: start something on your desktop, carry on from your phone.';
+
+  @override
+  String get runningSessionsSharedNote =>
+      'Attaching a session that is open on another device shares it: both screens show the same shell, and either can type. Closing a tab attached from here leaves the session running — end it here when you are done.';
+
+  @override
+  String get runningSessionsRefresh => 'Refresh';
+
+  @override
+  String get runningSessionsError =>
+      'Could not list the sessions on this server';
+
+  @override
+  String get runningSessionsNoTmux =>
+      'tmux is not installed on this server, so SSHetu cannot keep sessions running on it.';
+
+  @override
+  String get runningSessionsEmpty =>
+      'No SSHetu sessions are running on this server';
+
+  @override
+  String get runningSessionsEmptyBody =>
+      'Tabs opened with “Keep sessions running on the server” turned on appear here, from any of your devices, for as long as they run.';
+
+  @override
+  String get runningSessionsThisDevice => 'This device';
+
+  @override
+  String runningSessionsOtherDevice(String id) {
+    return 'Another device ($id)';
+  }
+
+  @override
+  String get runningSessionsOlder => 'An earlier SSHetu version';
+
+  @override
+  String runningSessionsStarted(String age) {
+    return 'started $age ago';
+  }
+
+  @override
+  String runningSessionsActive(String age) {
+    return 'active $age ago';
+  }
+
+  @override
+  String runningSessionsRunning(String command) {
+    return 'running $command';
+  }
+
+  @override
+  String get runningSessionsAttached => 'Attached elsewhere';
+
+  @override
+  String get runningSessionsOpenHere => 'Open here';
+
+  @override
+  String get runningSessionsAttach => 'Attach';
+
+  @override
+  String get runningSessionsShow => 'Show';
+
+  @override
+  String get runningSessionsEnd => 'End';
+
+  @override
+  String get runningSessionsEndTitle => 'End this session?';
+
+  @override
+  String runningSessionsEndBody(String host) {
+    return 'Everything running in it on $host stops, on every device attached to it. This cannot be undone.';
+  }
+
+  @override
+  String runningSessionsEndFailed(String error) {
+    return 'Could not end the session: $error';
+  }
+
+  @override
+  String runningSessionsAttachFailed(String error) {
+    return 'Could not attach: $error';
+  }
+
+  @override
+  String get settingsReopenTabs => 'Reopen tabs on launch';
+
+  @override
+  String get settingsReopenTabsBody =>
+      'Brings back the terminal tabs that were open when SSHetu last closed, reattaching the sessions kept on the server.';
+
+  @override
+  String get settingsReopenTabsAsk => 'Ask';
+
+  @override
+  String get settingsReopenTabsAlways => 'Always';
+
+  @override
+  String get settingsReopenTabsNever => 'Never';
+
+  @override
+  String get restoreTabsTitle => 'Reopen your tabs?';
+
+  @override
+  String restoreTabsBody(int count, String hosts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count terminal tabs were open when SSHetu last closed: $hosts.',
+      one: '1 terminal tab was open when SSHetu last closed: $hosts.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get restoreTabsRemember => 'Don’t ask again';
+
+  @override
+  String get restoreTabsNotNow => 'Not now';
+
+  @override
+  String get restoreTabsReopen => 'Reopen';
+
+  @override
+  String get hostEditorEnv => 'Environment';
+
+  @override
+  String get hostEditorEnvHelp =>
+      'Set in every new shell on this host, exactly as typed. A session already kept on the server keeps the values it started with.';
+
+  @override
+  String get hostEditorEnvName => 'Name';
+
+  @override
+  String get hostEditorEnvValue => 'Value';
+
+  @override
+  String get hostEditorEnvAdd => 'Add variable';
+
+  @override
+  String get hostEditorEnvRemove => 'Remove variable';
+
+  @override
+  String get hostEditorEnvMissingName => 'Give it a name';
+
+  @override
+  String get hostEditorEnvInvalidName =>
+      'Letters, digits and _ only, not starting with a digit';
+
+  @override
+  String get hostEditorEnvDuplicateName => 'Already set above';
+
+  @override
+  String get hostEditorEnvInvalidValue => 'Cannot contain a line break';
+
+  @override
+  String get hostEditorForwardAgent => 'Forward SSH agent';
+
+  @override
+  String get hostEditorForwardAgentHelp =>
+      'Lets this server use your keys to sign in elsewhere while you\'re connected. Only enable it for servers you trust. If the server has AllowAgentForwarding disabled, the connection will fail.';
 }

@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:material_ui/material_ui.dart';
 
 import '../../features/shell/workspace_layout.dart';
 import '../theme/accent.dart';
+import '../theme/terminal_fonts.dart';
+import '../theme/terminal_theme_presets.dart';
 
 /// How the app resolves light vs dark.
 ///
@@ -27,6 +31,61 @@ enum AppThemeMode {
       values.firstWhere((m) => m.id == id, orElse: () => AppThemeMode.system);
 }
 
+/// The shape the terminal draws its cursor in.
+///
+/// Our own enum with stable ids, for the same reason as [AppThemeMode]. A
+/// program can still ask for another shape (DECSCUSR — vim does, for insert
+/// mode); that request wins while it stands, and this is what it returns to.
+enum TerminalCursorShape {
+  block('block'),
+  underline('underline'),
+  bar('bar');
+
+  const TerminalCursorShape(this.id);
+
+  final String id;
+
+  static TerminalCursorShape fromId(String? id) => values.firstWhere(
+    (s) => s.id == id,
+    orElse: () => TerminalCursorShape.block,
+  );
+}
+
+/// Whether the terminal tabs open at the last exit come back at launch.
+enum ReopenTabs {
+  ask('ask'),
+  always('always'),
+  never('never');
+
+  const ReopenTabs(this.id);
+
+  /// The persisted value. Our own names, for the reason [AppThemeMode] has.
+  final String id;
+
+  static ReopenTabs? fromId(String? id) {
+    for (final value in values) {
+      if (value.id == id) return value;
+    }
+    return null;
+  }
+
+  /// The choice for someone who has not made one.
+  ///
+  /// **Always on a desktop, Ask on a phone.** A deliberate exception to "adapt
+  /// by width, never by operating system": this is not layout, it is what
+  /// launching the app *means* on each. Starting it on a desktop is starting
+  /// a working session, and the tabs from the last one are what it is for.
+  /// On a phone it is opened many times a day, often for one quick look at a
+  /// different server, frequently on a metered or flaky network — dialling
+  /// every server from last time, and perhaps raising a password prompt for
+  /// one of them, before the user has said what they came for would be
+  /// presumptuous. There, one tap on "Reopen" costs nothing.
+  static ReopenTabs defaultFor(TargetPlatform platform) => switch (platform) {
+    TargetPlatform.android || TargetPlatform.iOS => ReopenTabs.ask,
+    _ => ReopenTabs.always,
+  };
+}
+
 /// Everything the user can personalise, in one immutable value.
 @immutable
 class AppSettings {
@@ -42,7 +101,44 @@ class AppSettings {
     this.confirmMultilinePaste = true,
     this.keepAliveInBackground = true,
     this.keepSessionsOnServer = true,
+    this.terminalThemeId = TerminalThemePresets.defaultId,
+    this.terminalFontId = TerminalFonts.defaultId,
+    this.scrollbackLines = defaultScrollbackLines,
+    this.cursorShape = TerminalCursorShape.block,
+    this.cursorBlink = false,
+    this.reopenTabs,
   });
+
+  /// How many lines of history a terminal tab keeps.
+  ///
+  /// xterm2 stores a cell in 16 bytes (four 32-bit words: codepoint, fg, bg,
+  /// attributes), so a line costs about `columns × 16` bytes plus its object:
+  /// ~1.4 KB at 80 columns, ~3.3 KB at 200. 10,000 lines is therefore ~14 MB
+  /// per tab at 80 columns, and the 100,000 ceiling ~140 MB — already a lot on
+  /// a phone with several tabs open, which is why it stops there. The floor of
+  /// 1,000 keeps a `make` or `journalctl` run scrollable at all.
+  ///
+  /// The buffer is a fixed-capacity ring (`IndexAwareCircularBuffer`) whose
+  /// size xterm2 takes as a `final` constructor argument, so the value is read
+  /// when a tab opens and a change applies to new tabs only.
+  static const int defaultScrollbackLines = 10000;
+  static const int minScrollbackLines = 1000;
+  static const int maxScrollbackLines = 100000;
+
+  /// The steps offered in Settings.
+  static const List<int> scrollbackSteps = [
+    1000,
+    5000,
+    10000,
+    25000,
+    50000,
+    100000,
+  ];
+
+  /// Clamped to the supported range: a preferences file edited by hand must
+  /// not be able to ask for a billion-line ring.
+  static int clampScrollback(int lines) =>
+      lines.clamp(minScrollbackLines, maxScrollbackLines);
 
   /// The terminal grid's own size, in logical pixels.
   static const double defaultTerminalFontSize = 13;
@@ -106,6 +202,30 @@ class AppSettings {
   /// ordinary shell by itself where the server has no tmux.
   final bool keepSessionsOnServer;
 
+  /// The terminal colour scheme hosts use unless they choose their own. An
+  /// unknown id reads as the default; see [TerminalThemePresets.byId].
+  final String terminalThemeId;
+
+  /// The terminal face, by [TerminalFont.id].
+  final String terminalFontId;
+
+  /// Lines of history per terminal tab; see [defaultScrollbackLines].
+  final int scrollbackLines;
+
+  final TerminalCursorShape cursorShape;
+
+  /// Off by default, as in xterm: a blinking cursor repaints the grid twice a
+  /// second while it blinks, and a program that wants one can ask for it.
+  final bool cursorBlink;
+
+  /// Whether last time's terminal tabs are reopened at launch. Null until the
+  /// user chooses; see [effectiveReopenTabs].
+  final ReopenTabs? reopenTabs;
+
+  /// [reopenTabs], or this platform's default when none was chosen.
+  ReopenTabs get effectiveReopenTabs =>
+      reopenTabs ?? ReopenTabs.defaultFor(defaultTargetPlatform);
+
   AccentOption get accent => Accents.byId(accentId);
 
   Locale? get locale => localeCode == null ? null : Locale(localeCode!);
@@ -124,6 +244,12 @@ class AppSettings {
     bool? confirmMultilinePaste,
     bool? keepAliveInBackground,
     bool? keepSessionsOnServer,
+    String? terminalThemeId,
+    String? terminalFontId,
+    int? scrollbackLines,
+    TerminalCursorShape? cursorShape,
+    bool? cursorBlink,
+    ReopenTabs? reopenTabs,
   }) {
     return AppSettings(
       accentId: accentId ?? this.accentId,
@@ -141,6 +267,12 @@ class AppSettings {
       keepAliveInBackground:
           keepAliveInBackground ?? this.keepAliveInBackground,
       keepSessionsOnServer: keepSessionsOnServer ?? this.keepSessionsOnServer,
+      terminalThemeId: terminalThemeId ?? this.terminalThemeId,
+      terminalFontId: terminalFontId ?? this.terminalFontId,
+      scrollbackLines: scrollbackLines ?? this.scrollbackLines,
+      cursorShape: cursorShape ?? this.cursorShape,
+      cursorBlink: cursorBlink ?? this.cursorBlink,
+      reopenTabs: reopenTabs ?? this.reopenTabs,
     );
   }
 
@@ -157,7 +289,13 @@ class AppSettings {
       other.requireUnlock == requireUnlock &&
       other.confirmMultilinePaste == confirmMultilinePaste &&
       other.keepAliveInBackground == keepAliveInBackground &&
-      other.keepSessionsOnServer == keepSessionsOnServer;
+      other.keepSessionsOnServer == keepSessionsOnServer &&
+      other.terminalThemeId == terminalThemeId &&
+      other.terminalFontId == terminalFontId &&
+      other.scrollbackLines == scrollbackLines &&
+      other.cursorShape == cursorShape &&
+      other.cursorBlink == cursorBlink &&
+      other.reopenTabs == reopenTabs;
 
   @override
   int get hashCode => Object.hash(
@@ -172,6 +310,12 @@ class AppSettings {
     confirmMultilinePaste,
     keepAliveInBackground,
     keepSessionsOnServer,
+    terminalThemeId,
+    terminalFontId,
+    scrollbackLines,
+    cursorShape,
+    cursorBlink,
+    reopenTabs,
   );
 }
 

@@ -16,11 +16,18 @@ import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/app_lock_tile.dart';
 import 'widgets/confirm_paste_tile.dart';
+import 'widgets/cursor_blink_tile.dart';
+import 'widgets/cursor_shape_tile.dart';
 import 'widgets/keep_alive_tile.dart';
 import '../../core/background/keep_alive_service.dart';
 import 'widgets/keep_sessions_tile.dart';
+import 'widgets/reachability_tile.dart';
 import 'widgets/language_tile.dart';
+import 'widgets/scrollback_tile.dart';
+import 'widgets/reopen_tabs_tile.dart';
 import 'widgets/terminal_font_size_tile.dart';
+import 'widgets/terminal_font_tile.dart';
+import 'widgets/terminal_theme_tile.dart';
 import 'widgets/text_scale_tile.dart';
 import 'widgets/theme_mode_tile.dart';
 
@@ -44,19 +51,28 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
   return [
     SettingsSection(
       title: l10n.settingsAppearance,
+      tiles: const [AccentTile(), ThemeModeTile(), TextScaleTile()],
+    ),
+    // How the grid looks, apart from how the app around it looks: a terminal
+    // is read for hours, and its colours and face are chosen on their own.
+    SettingsSection(
+      title: l10n.settingsTerminalAppearance,
       tiles: const [
-        AccentTile(),
-        ThemeModeTile(),
-        TextScaleTile(),
+        TerminalThemeTile(),
+        TerminalFontTile(),
         TerminalFontSizeTile(),
+        CursorShapeTile(),
+        CursorBlinkTile(),
       ],
     ),
     SettingsSection(title: l10n.settingsGeneral, tiles: const [LanguageTile()]),
     SettingsSection(
       title: l10n.settingsTerminal,
       tiles: [
+        const ScrollbackTile(),
         const ConfirmPasteTile(),
         const KeepSessionsTile(),
+        const ReopenTabsTile(),
         if (ref.watch(keepAliveSupportedProvider)) const KeepAliveTile(),
       ],
     ),
@@ -77,6 +93,7 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => openImport(context, ref),
         ),
+        const ReachabilityTile(),
       ],
     ),
     SettingsSection(

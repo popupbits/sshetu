@@ -9,7 +9,9 @@ import '../sessions/open_screens.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import '../keys/widgets/generate_key_sheet.dart';
+import '../keys/widgets/paste_key_sheet.dart';
 import '../sessions/session_shortcuts.dart';
+import '../sessions/widgets/workspace_restore_listener.dart';
 import '../sessions/widgets/terminal_workspace.dart';
 import '../snippets/open_snippets.dart';
 import '../../core/router/navigation.dart';
@@ -99,6 +101,14 @@ class AppShell extends ConsumerWidget {
           padding: dense ? EdgeInsets.zero : null,
           constraints: constraints,
           onPressed: () => showGenerateKeySheet(context),
+        ),
+        IconButton(
+          tooltip: l10n.keysPaste,
+          icon: Icon(PiconsRegular.clipboardText, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
+          onPressed: () => showPasteKeySheet(context),
         ),
         IconButton(
           tooltip: l10n.keysImport,
@@ -193,10 +203,16 @@ class AppShell extends ConsumerWidget {
     // Wrapped around the whole shell rather than around the terminal: Cmd-W
     // has to close a tab while the focus is in the host list too, which is
     // exactly where it will be when someone has just started a session.
-    return SessionShortcuts(
-      child: context.useRail
-          ? _buildDesktop(context, ref, destinations, index)
-          : _buildCompact(context, ref, destinations, index),
+    //
+    // The restore listener sits here, under the router, because reopening
+    // last launch's tabs raises the same host-key and password dialogs a
+    // connection does — and a dialog needs a navigator above it.
+    return WorkspaceRestoreListener(
+      child: SessionShortcuts(
+        child: context.useRail
+            ? _buildDesktop(context, ref, destinations, index)
+            : _buildCompact(context, ref, destinations, index),
+      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../../../core/secrets/secret_ref.dart';
 import '../../../core/secrets/secret_vault.dart';
 import '../../../core/ssh/ssh_target.dart';
+import '../domain/host_env.dart';
 import '../domain/host_tags.dart';
 import '../domain/ssh_host.dart';
 
@@ -163,6 +164,8 @@ class HostRepository {
     // hand over a tag with a comma in it, and that is one tag on the way in
     // and two on the way out.
     'tags': HostTags.join(host.tags),
+    'env_vars': HostEnv.encode(host.envVars),
+    'forward_agent': host.forwardAgent ? 1 : 0,
     'last_connected_at': host.lastConnectedAt?.millisecondsSinceEpoch,
     'created_at': host.createdAt.millisecondsSinceEpoch,
     'updated_at': host.updatedAt.millisecondsSinceEpoch,
@@ -192,6 +195,8 @@ class HostRepository {
     fontSize: (row['font_size'] as num?)?.toDouble(),
     notes: row['notes'] as String?,
     tags: HostTags.parse(row['tags'] as String?),
+    envVars: HostEnv.parse(row['env_vars'] as String?),
+    forwardAgent: (row['forward_agent'] as int? ?? 0) == 1,
     lastConnectedAt: _time(row['last_connected_at']),
     createdAt: _time(row['created_at'])!,
     updatedAt: _time(row['updated_at'])!,

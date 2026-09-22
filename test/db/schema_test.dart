@@ -417,6 +417,61 @@ void main() {
     });
   });
 
+  group('v6 — host environment variables', () {
+    test('a host without variables has NULL, not a default', () async {
+      await insertHost('h1');
+      final row = (await db.query('hosts')).single;
+      expect(row.containsKey('env_vars'), isTrue);
+      expect(row['forward_agent'], 0, reason: 'agent forwarding is off');
+    });
+
+    test('forward_agent is required, so it can never be NULL', () async {
+      expect(
+        () => db.insert('hosts', {
+          'id': 'h1',
+          'label': 'h1',
+          'hostname': 'h1.example.com',
+          'username': 'root',
+          'forward_agent': null,
+          'created_at': t,
+          'updated_at': t,
+        }),
+        throwsA(isA<DatabaseException>()),
+      );
+    });
+
+    test('upgrading a v5 database keeps every host', () async {
+      final old = await databaseFactory.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(singleInstance: false),
+      );
+      addTearDown(old.close);
+      await old.execute('PRAGMA foreign_keys = ON');
+      Future<String> load(String path) async => File(path).readAsString();
+      for (final migration in migrations.take(5)) {
+        await migration.run(old, load);
+      }
+      await old.insert('hosts', {
+        'id': 'h1',
+        'label': 'h1',
+        'hostname': 'h1.example.com',
+        'username': 'root',
+        'startup_command': 'tmux a',
+        'created_at': t,
+        'updated_at': t,
+      });
+
+      await migrations[5].run(old, load);
+
+      final row = (await old.query('hosts')).single;
+      expect(row['startup_command'], 'tmux a');
+      expect(row['env_vars'], isNull);
+      expect(row['forward_agent'], 0);
+      await old.update('hosts', {'env_vars': '{"A":"1"}'});
+      expect((await old.query('hosts')).single['env_vars'], '{"A":"1"}');
+    });
+  });
+
   group('no table stores a secret', () {
     test('no column is named like a credential', () async {
       final tables = (await db.query(

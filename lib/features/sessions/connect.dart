@@ -9,6 +9,7 @@ import '../../core/providers.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../core/ssh/host_key.dart';
+import '../../core/ssh/ssh_connection.dart';
 import '../../core/terminal/terminal_session.dart';
 import '../../core/ui/feedback.dart';
 import '../../core/util/responsive.dart';
@@ -28,11 +29,24 @@ import 'session_manager.dart';
 /// wired identically everywhere. Duplicating this per call site is how one
 /// entry point ends up silently refusing unknown hosts because nobody
 /// remembered to pass the handler.
-Future<void> connectToHost(
+///
+/// [tmuxName], [resuming] and [ownsTmuxSession] open the tab on a session
+/// kept on the server instead of a new one — see [SessionManager.connect].
+/// [connection] hands over one already open to [host]. [navigate] false
+/// leaves the screen where it is, for reopening several tabs in a row.
+///
+/// Returns the tab, or null when none was opened.
+Future<TerminalSession?> connectToHost(
   BuildContext context,
   WidgetRef ref,
-  SshHost host,
-) async {
+  SshHost host, {
+  String? tmuxName,
+  bool resuming = false,
+  bool ownsTmuxSession = true,
+  SshConnection? connection,
+  bool navigate = true,
+  bool activate = true,
+}) async {
   final manager = ref.read(sessionManagerProvider.notifier);
 
   // Set when the user answers a password prompt with "use a key instead".
@@ -66,6 +80,11 @@ Future<void> connectToHost(
         if (!context.mounted) return null;
         return showKeyboardInteractiveDialog(context, request);
       },
+      tmuxName: tmuxName,
+      resuming: resuming,
+      ownsTmuxSession: ownsTmuxSession,
+      connection: connection,
+      activate: activate,
     );
   } on Object catch (error, stackTrace) {
     // Everything that can fail *before* a session exists lands here — reading
@@ -75,10 +94,10 @@ Future<void> connectToHost(
     // connection to fail.
     ErrorLogger.instance.record(error, stackTrace, source: 'connect');
     if (context.mounted) context.toast('$error');
-    return;
+    return null;
   }
 
-  if (!context.mounted) return;
+  if (!context.mounted) return session;
 
   // Retry with the key the user reached for, rather than making them cancel,
   // find the host editor, change it, and start again.
@@ -96,8 +115,19 @@ Future<void> connectToHost(
     if (choice.remember) {
       await ref.read(hostsControllerProvider).save(withKey);
     }
-    if (context.mounted) await connectToHost(context, ref, withKey);
-    return;
+    if (!context.mounted) return null;
+    // The same tab, asked for again — its handed-over connection went with
+    // the attempt just closed, so this one dials its own.
+    return connectToHost(
+      context,
+      ref,
+      withKey,
+      tmuxName: tmuxName,
+      resuming: resuming,
+      ownsTmuxSession: ownsTmuxSession,
+      navigate: navigate,
+      activate: activate,
+    );
   }
 
   // A refused host key deserves its own explanation rather than a generic
@@ -107,7 +137,7 @@ Future<void> connectToHost(
   if (rejection != null && rejection.verdict == HostKeyVerdict.changed) {
     await showHostKeyChangedDialog(context, rejection.presentation);
     if (context.mounted) manager.close(session.id);
-    return;
+    return null;
   }
 
   if (session.status == TerminalSessionStatus.failed) {
@@ -122,15 +152,16 @@ Future<void> connectToHost(
     unawaited(_autoStartTunnels(context, ref, host));
   }
 
-  if (!context.mounted) return;
+  if (!context.mounted) return session;
 
   // Desktop needs no navigation at all: the terminal occupies the right of
   // the window already, and the new session is the selected tab. Sending the
   // user somewhere would only take the panel they were working in away from
   // them. A phone has no room for both, so there the terminal is a page.
-  if (!context.useRail) {
+  if (navigate && !context.useRail) {
     context.pushTo(Routes.terminalFor(session.id));
   }
+  return session;
 }
 
 /// Starts every saved forward for [host] marked to start automatically.
@@ -149,5 +180,62 @@ Future<void> _autoStartTunnels(
   for (final tunnel in tunnels.where((t) => t.autoStart)) {
     if (!context.mounted) return;
     await startTunnel(context, ref, tunnel);
+  }
+}
+
+/// A connection to [host] for asking the server something, outside any tab.
+///
+/// Reuses an open tab's live connection when there is one — no handshake and
+/// no prompt — and otherwise dials a bare one through the same dialogs a tab
+/// uses, the way port forwarding does. [owned] says whether the caller must
+/// close it: never a tab's, always a bare one's.
+///
+/// Null when it could not be opened; the reason has been shown.
+Future<({SshConnection connection, bool owned})?> connectForQuery(
+  BuildContext context,
+  WidgetRef ref,
+  SshHost host,
+) async {
+  final manager = ref.read(sessionManagerProvider.notifier);
+  final shared = manager.connectionForHost(host.id);
+  if (shared != null) return (connection: shared, owned: false);
+
+  try {
+    final connection = await manager.openBareConnection(
+      host,
+      onUnknownHostKey: (presentation) async {
+        if (!context.mounted) return false;
+        return showHostKeyDialog(context, presentation);
+      },
+      prompt: (request) async {
+        if (!context.mounted) return null;
+        final outcome = await showSecretDialog(context, request);
+        return switch (outcome) {
+          SecretSupplied(:final response) => response,
+          // Nothing to retry into here; the host editor is where that
+          // choice belongs.
+          SecretUseIdentity() || null => null,
+        };
+      },
+      interactivePrompt: (request) async {
+        if (!context.mounted) return null;
+        return showKeyboardInteractiveDialog(context, request);
+      },
+    );
+    return (connection: connection, owned: true);
+  } on SshConnectionException catch (error, stackTrace) {
+    ErrorLogger.instance.record(error, stackTrace, source: 'connect');
+    if (!context.mounted) return null;
+    final cause = error.cause;
+    if (cause is HostKeyRejected && cause.verdict == HostKeyVerdict.changed) {
+      await showHostKeyChangedDialog(context, cause.presentation);
+      return null;
+    }
+    context.toast(error.message, isError: true);
+    return null;
+  } on Object catch (error, stackTrace) {
+    ErrorLogger.instance.record(error, stackTrace, source: 'connect');
+    if (context.mounted) context.toast('$error', isError: true);
+    return null;
   }
 }

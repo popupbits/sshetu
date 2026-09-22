@@ -269,6 +269,85 @@ void main() {
     expect(host['font_size'], 15.0);
   });
 
+  testWidgets('a terminal theme override is saved', (tester) async {
+    await pump(tester);
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'root@192.168.1.10',
+    );
+    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Advanced'));
+
+    // The default entry names what "default" currently is.
+    final field = find.text('Use default (SSHetu)');
+    await tapVisible(tester, field);
+    await tester.tap(find.text('Dracula').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect((await hosts(tester)).single['terminal_theme'], 'dracula');
+  });
+
+  testWidgets('choosing the default clears a host override', (tester) async {
+    final now = DateTime.utc(2026).millisecondsSinceEpoch;
+    await tester.runAsync(
+      () => database.raw.insert('hosts', {
+        'id': 'h1',
+        'label': 'prod',
+        'hostname': 'prod.example.com',
+        'port': 22,
+        'username': 'root',
+        'auth_method': 'publicKey',
+        'terminal_theme': 'dracula',
+        'created_at': now,
+        'updated_at': now,
+      }),
+    );
+    await pump(tester, hostId: 'h1');
+
+    await tapVisible(tester, find.text('Dracula'));
+    await tester.tap(find.text('Use default (SSHetu)').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect((await hosts(tester)).single['terminal_theme'], isNull);
+  });
+
+  testWidgets('an override this build does not know survives an edit', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026).millisecondsSinceEpoch;
+    await tester.runAsync(
+      () => database.raw.insert('hosts', {
+        'id': 'h1',
+        'label': 'prod',
+        'hostname': 'prod.example.com',
+        'port': 22,
+        'username': 'root',
+        'auth_method': 'publicKey',
+        'terminal_theme': 'from-a-newer-build',
+        'created_at': now,
+        'updated_at': now,
+      }),
+    );
+    await pump(tester, hostId: 'h1');
+
+    // Shown as the default, which is what the terminal draws with…
+    await tester.ensureVisible(find.text('Use default (SSHetu)'));
+    expect(find.text('Use default (SSHetu)'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    // …but not erased, so the newer build still finds it.
+    expect(
+      (await hosts(tester)).single['terminal_theme'],
+      'from-a-newer-build',
+    );
+  });
+
   testWidgets('a keepalive out of range is refused', (tester) async {
     await pump(tester);
 

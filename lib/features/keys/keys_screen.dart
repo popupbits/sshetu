@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -10,10 +13,19 @@ import '../sessions/open_screens.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/feedback.dart';
 import '../../core/ui/views.dart';
+import '../../core/util/launcher.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import 'keys_controller.dart';
 import 'widgets/generate_key_sheet.dart';
+import 'widgets/paste_key_sheet.dart';
+
+/// Whether this platform has a share sheet worth offering a public key to.
+///
+/// A capability check, not a layout one: on a phone, sharing is how a line of
+/// text reaches the email or chat that will carry it to a server's owner. On
+/// a desktop, copying already does that.
+bool get _canShare => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
 /// The Keys destination.
 class KeysScreen extends ConsumerWidget {
@@ -48,6 +60,12 @@ class KeysScreen extends ConsumerWidget {
                   label: Text(l10n.keysGenerate),
                 ),
                 const SizedBox(height: Spacing.sm),
+                TextButton.icon(
+                  key: const ValueKey('keys-empty-paste'),
+                  onPressed: () => showPasteKeySheet(context),
+                  icon: const Icon(PiconsRegular.clipboardText),
+                  label: Text(l10n.keysPaste),
+                ),
                 TextButton.icon(
                   onPressed: () =>
                       openImport(context, ref, focus: ImportFocus.keys),
@@ -91,6 +109,15 @@ class KeysScreen extends ConsumerWidget {
                           if (context.mounted) context.toast(l10n.keysCopied);
                         },
                         child: Text(l10n.keysCopyPublic),
+                      ),
+                    if (identity.publicKey != null && _canShare)
+                      MenuItemButton(
+                        leadingIcon: const Icon(PiconsRegular.shareNetwork),
+                        onPressed: () => Launcher.shareText(
+                          identity.publicKey!,
+                          subject: identity.label,
+                        ),
+                        child: Text(l10n.keysShare),
                       ),
                     MenuItemButton(
                       leadingIcon: Icon(

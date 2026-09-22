@@ -118,6 +118,10 @@ dependencies:
   # terminal tab is open; see features/sessions/reconnect_triggers.dart.
   connectivity_plus: ^7.3.1
 
+  # ECDSA and RSA key generation. Already in the tree under dartssh2, which
+  # signs with it; named here because the key generator calls it directly.
+  pointycastle: ^4.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -136,3 +140,35 @@ flutter:
 
   assets:
     - lib/core/db/migrations/
+    # The SIL OFL text of each bundled terminal face; the licence asks that
+    # it travel with the font. Shown on the licences page.
+    - assets/fonts/jetbrains_mono/OFL.txt
+    - assets/fonts/fira_code/OFL.txt
+    - assets/fonts/source_code_pro/OFL.txt
+    - assets/fonts/ibm_plex_mono/OFL.txt
+
+  # Terminal faces, bundled rather than fetched through google_fonts: that
+  # downloads on first use, so an offline first launch would draw the grid
+  # in a fallback face. See core/theme/terminal_fonts.dart. Regular and Bold
+  # only — the grid draws bold, and italic is a slant xterm2 can synthesise.
+  fonts:
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/jetbrains_mono/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/jetbrains_mono/JetBrainsMono-Bold.ttf
+          weight: 700
+    - family: Fira Code
+      fonts:
+        - asset: assets/fonts/fira_code/FiraCode-Regular.ttf
+        - asset: assets/fonts/fira_code/FiraCode-Bold.ttf
+          weight: 700
+    - family: Source Code Pro
+      fonts:
+        - asset: assets/fonts/source_code_pro/SourceCodePro-Regular.ttf
+        - asset: assets/fonts/source_code_pro/SourceCodePro-Bold.ttf
+          weight: 700
+    - family: IBM Plex Mono
+      fonts:
+        - asset: assets/fonts/ibm_plex_mono/IBMPlexMono-Regular.ttf
+        - asset: assets/fonts/ibm_plex_mono/IBMPlexMono-Bold.ttf
+          weight: 700

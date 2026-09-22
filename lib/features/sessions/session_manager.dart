@@ -11,9 +11,12 @@ import '../../core/ssh/key_material_cache.dart';
 import '../../core/ssh/ssh_connection.dart';
 import '../../core/ssh/ssh_credentials.dart';
 import '../../core/ssh/vault_credential_source.dart';
+import '../../core/settings/device_identity.dart';
 import '../../core/terminal/terminal_session.dart';
+import '../../core/terminal/tmux_names.dart';
 import '../hosts/domain/ssh_host.dart';
 import 'reconnect_triggers.dart';
+import 'workspace_restore.dart';
 
 /// The open terminal tabs.
 ///
@@ -81,8 +84,47 @@ class SessionManager extends Notifier<List<TerminalSession>> {
 
   var _counter = 0;
 
-  /// Publishes [_sessions] as immutable state.
-  void _publish() => state = List.unmodifiable(_sessions);
+  /// Publishes [_sessions] as immutable state, and remembers them for the
+  /// next launch.
+  void _publish() {
+    state = List.unmodifiable(_sessions);
+    _saveWorkspace();
+  }
+
+  /// Set while last launch's tabs are being reopened, so the half-reopened
+  /// list is not saved over the whole one — a crash mid-restore would
+  /// otherwise lose the tabs not yet reached.
+  bool _restoring = false;
+
+  /// The terminal tabs as they should come back next launch.
+  SavedWorkspace get workspace {
+    final active = activeId;
+    final index = _sessions.indexWhere((s) => s.id == active);
+    return SavedWorkspace(
+      tabs: [
+        for (final session in _sessions)
+          SavedTab(
+            hostId: session.hostId,
+            tmuxName: session.keepOnServer ? session.tmuxName : null,
+            ownsTmux: session.ownsTmuxSession,
+          ),
+      ],
+      selected: index < 0 ? null : index,
+    );
+  }
+
+  void _saveWorkspace() {
+    if (_restoring) return;
+    unawaited(ref.read(workspaceStoreProvider).write(workspace));
+  }
+
+  /// Brackets reopening last launch's tabs; see [_restoring].
+  void beginRestore() => _restoring = true;
+
+  void endRestore() {
+    _restoring = false;
+    _saveWorkspace();
+  }
 
   String? _activeId;
 
@@ -121,18 +163,32 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   /// required rather than optional: a connection wired up without them would
   /// silently refuse every unknown host and every password, and look like a
   /// broken network.
+  ///
+  /// [tmuxName] picks up a session kept on the server — one this device left
+  /// last launch, or one chosen from the server's list — instead of a new
+  /// one; [resuming] makes the tab say so if that session has gone.
+  /// [ownsTmuxSession] false borrows it: closing the tab leaves it running.
+  /// [connection], when given, is an already-open connection to [host] the
+  /// tab takes over, so no second handshake (or password prompt) is needed.
   Future<TerminalSession> connect(
     SshHost host, {
     required HostKeyTrustDecision onUnknownHostKey,
     required SecretPrompt prompt,
     required KeyboardInteractivePrompter interactivePrompt,
+    String? tmuxName,
+    bool resuming = false,
+    bool ownsTmuxSession = true,
+    SshConnection? connection,
+    bool activate = true,
   }) async {
-    final connection = await _buildConnection(
-      host,
-      onUnknownHostKey: onUnknownHostKey,
-      prompt: prompt,
-      interactivePrompt: interactivePrompt,
-    );
+    final transport =
+        connection ??
+        await _buildConnection(
+          host,
+          onUnknownHostKey: onUnknownHostKey,
+          prompt: prompt,
+          interactivePrompt: interactivePrompt,
+        );
 
     final settings = ref.read(settingsControllerProvider);
     final l10n = appLocalizationsFor(settings.localeCode);
@@ -143,24 +199,34 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       // does not exist, so the screen would open on "no open sessions" and
       // tapping a host would appear to do nothing at all.
       //
-      // Also the tmux session's name on the server, so it must stay the same
-      // for the life of the tab: that is how a reconnect finds it again.
+      // Not the tmux session's name: ids restart every launch, and a name
+      // derived from one would let a new tab reattach an unrelated old
+      // session. That name is random, and carries this device's id.
       id: '${host.id}-${_counter++}',
       title: host.label,
       hostId: host.id,
-      connection: connection,
+      connection: transport,
       startupCommand: host.startupCommand,
-      keepOnServer: settings.keepSessionsOnServer,
+      // A tab picking up a kept session keeps it, whatever the setting says
+      // now: turning it off is about new tabs, not about abandoning old ones.
+      keepOnServer: tmuxName != null || settings.keepSessionsOnServer,
+      tmuxName: tmuxName ?? newTmuxSessionName(ref.read(deviceIdProvider)),
+      env: host.envVars,
+      resuming: resuming && tmuxName != null,
+      ownsTmuxSession: ownsTmuxSession,
+      // Read once, here: xterm2 sizes the ring when the terminal is built.
+      scrollbackLines: settings.scrollbackLines,
       notices: TerminalNotices(
         connectionLost: l10n.terminalNoticeConnectionLost,
         sessionEnded: l10n.terminalNoticeSessionEnded,
         sessionClosed: l10n.terminalNoticeSessionClosed,
         reconnected: l10n.terminalNoticeReconnected,
         tmuxUnavailable: l10n.terminalNoticeTmuxUnavailable,
+        tmuxSessionGone: l10n.terminalNoticeTmuxSessionGone,
       ),
     );
 
-    _activeId = session.id;
+    if (activate || _sessions.isEmpty) _activeId = session.id;
     _sessions.add(session);
     _watchTriggers();
     _publish();
@@ -182,6 +248,20 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     for (final session in _sessions) {
       if (session.hostId == hostId && session.connection.isConnected) {
         return session.connection;
+      }
+    }
+    return null;
+  }
+
+  /// The open tab bound to tmux session [name] on [hostId], if any — so
+  /// attaching a session from the server's list selects the tab already
+  /// showing it rather than opening it twice.
+  TerminalSession? tabForTmux(String hostId, String name) {
+    for (final session in _sessions) {
+      if (session.hostId == hostId &&
+          session.keepOnServer &&
+          session.tmuxName == name) {
+        return session;
       }
     }
     return null;
@@ -212,7 +292,14 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     // Establishes the session now rather than lazily on first use, so a bad
     // host key or a rejected credential surfaces to the caller immediately
     // instead of on whichever tunnel happens to accept the first connection.
-    await connection.client();
+    try {
+      await connection.client();
+    } on Object {
+      // Nobody else holds it: a failed bare connection is closed here or
+      // never.
+      unawaited(connection.close());
+      rethrow;
+    }
     await ref
         .read(hostRepositoryProvider)
         .touch(host.id, now: DateTime.now().toUtc());
@@ -231,6 +318,9 @@ class SessionManager extends Notifier<List<TerminalSession>> {
 
     return SshConnection(
       target: target,
+      // The host's own choice, final hop only — a bastion never gets the
+      // agent, whatever the target says (see [agentHandlerFor]).
+      forwardAgent: target.forwardAgent,
       // Per hop, not per connection: a chain presents a host key at every
       // stage, and only checking the last one would let a compromised bastion
       // pass unnoticed.

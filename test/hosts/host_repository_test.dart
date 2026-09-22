@@ -115,6 +115,43 @@ void main() {
       expect((await repository.byId('h1'))!.tags, ['prod', 'eu west']);
     });
 
+    test('agent forwarding round-trips and reaches the target', () async {
+      expect(host('h0').forwardAgent, isFalse);
+      await repository.save(host('h1').copyWith(forwardAgent: true));
+      final back = (await repository.byId('h1'))!;
+      expect(back.forwardAgent, isTrue);
+      expect((await database.raw.query('hosts')).single['forward_agent'], 1);
+      expect((await repository.targetFor(back)).forwardAgent, isTrue);
+
+      await repository.save(back.copyWith(forwardAgent: false));
+      expect((await repository.byId('h1'))!.forwardAgent, isFalse);
+    });
+
+    test('a jump host does not inherit agent forwarding', () async {
+      await repository.save(host('bastion'));
+      await repository.save(
+        host('inner', jumpHostId: 'bastion').copyWith(forwardAgent: true),
+      );
+      final target = await repository.targetFor(
+        (await repository.byId('inner'))!,
+      );
+      expect(target.forwardAgent, isTrue);
+      expect(target.jumpTarget!.forwardAgent, isFalse);
+    });
+
+    test('environment variables round-trip, in order, and clear', () async {
+      await repository.save(
+        host('h1').copyWith(envVars: const {'Z': 'z', 'A': 'it\'s \$HOME'}),
+      );
+      final back = (await repository.byId('h1'))!;
+      expect(back.envVars, {'Z': 'z', 'A': 'it\'s \$HOME'});
+      expect(back.envVars.keys, ['Z', 'A']);
+
+      await repository.save(back.copyWith(envVars: const {}));
+      expect((await database.raw.query('hosts')).single['env_vars'], isNull);
+      expect((await repository.byId('h1'))!.envVars, isEmpty);
+    });
+
     test('a host with no tags reads back with an empty list, not [""]', () async {
       // The join/split round trip is the classic place an empty string becomes
       // a phantom tag that then shows up as a blank chip in the UI.

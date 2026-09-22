@@ -42,7 +42,13 @@ class TerminalNotices {
     this.tmuxUnavailable =
         '[tmux is not installed here; this session will not survive a '
         'dropped connection]',
+    this.tmuxSessionGone =
+        '[the session kept on the server has ended; this is a new shell]',
   });
+
+  /// The tab expected to pick up a session kept on the server — reopened
+  /// from last time, or attached from the server's list — and it was gone.
+  final String tmuxSessionGone;
 
   /// The link dropped, and the session is coming back by itself.
   final String connectionLost;
@@ -84,19 +90,25 @@ class TerminalSession extends ChangeNotifier {
     this.startupCommand,
     this.scrollbackLines = kScrollbackLines,
     this.keepOnServer = false,
+    String? tmuxName,
+    this.env = const {},
+    this.resuming = false,
+    this.ownsTmuxSession = true,
     this.notices = const TerminalNotices(),
     ReconnectPolicy reconnectPolicy = const ReconnectPolicy(),
     @visibleForTesting ShellLauncher? launcher,
     @visibleForTesting Future<bool> Function()? probe,
     @visibleForTesting ReconnectTimerFactory? reconnectTimer,
     @visibleForTesting DateTime Function()? clock,
-  }) {
+  }) : tmuxName = tmuxName ?? tmuxSafeName('$kTmuxNamePrefix$id') {
     _launcher =
         launcher ??
         SshShellLauncher(
           connection: connection,
           keepOnServer: keepOnServer,
-          tmuxName: tmuxSessionName(id),
+          tmuxName: this.tmuxName,
+          env: env,
+          ownsSession: ownsTmuxSession,
         );
     _probe = probe ?? (() => connection.probe());
     reconnect = ReconnectLoop(
@@ -172,6 +184,25 @@ class TerminalSession extends ChangeNotifier {
   /// server has no tmux.
   final bool keepOnServer;
 
+  /// The tmux session this tab lives in on the server, when [keepOnServer].
+  ///
+  /// Chosen by whoever opens the tab — `sshetu-<device>-<tab>`, see
+  /// `tmux_names.dart` — and fixed for its life, which is what lets a
+  /// reconnect, or a relaunch, find the same session again.
+  final String tmuxName;
+
+  /// The host's environment variables, set in each new shell.
+  final Map<String, String> env;
+
+  /// Whether this tab was opened to pick up an existing session — reopened
+  /// from last time, or attached from the server's list. If the session is
+  /// gone, the fresh shell says so instead of passing for the old one.
+  final bool resuming;
+
+  /// Whether closing the tab ends [tmuxName] on the server. False for a
+  /// session attached from the server's list, which the tab only borrowed.
+  final bool ownsTmuxSession;
+
   final TerminalNotices notices;
 
   /// The terminal this session draws into. Owned here, so a tab that is
@@ -240,6 +271,11 @@ class TerminalSession extends ChangeNotifier {
   /// a string would make the single most important failure this app reports
   /// indistinguishable from a network glitch.
   HostKeyRejected? get hostKeyRejection => _hostKeyRejection;
+
+  bool _resumeFailed = false;
+
+  /// Set when [resuming] found no session to pick up and started a new one.
+  bool get resumeFailed => _resumeFailed;
 
   ShellOrigin? _origin;
 
@@ -320,6 +356,15 @@ class TerminalSession extends ChangeNotifier {
       _toldNoTmux = true;
       // Dim, and written even into an empty terminal: nothing else says it.
       terminal.write('\x1b[2m${notices.tmuxUnavailable}\x1b[0m\r\n');
+    }
+    // Only on the first shell: a later reconnect that creates the session
+    // anew has already been explained by the ordinary reconnect notice.
+    if (resuming &&
+        !reconnecting &&
+        shell.origin != ShellOrigin.tmuxReattached &&
+        shell.origin != ShellOrigin.plainWithoutTmux) {
+      _resumeFailed = true;
+      terminal.write('\x1b[2m${notices.tmuxSessionGone}\x1b[0m\r\n');
     }
 
     final drained = Completer<void>();

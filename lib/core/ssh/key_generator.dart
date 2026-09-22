@@ -1,28 +1,87 @@
 import 'dart:convert';
+import 'dart:isolate';
+import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:pinenacl/ed25519.dart';
+import 'package:dartssh2/dartssh2.dart';
+import 'package:pinenacl/ed25519.dart' as nacl;
+import 'package:pointycastle/export.dart'
+    show
+        ECCurve_secp256r1,
+        ECCurve_secp384r1,
+        ECDomainParameters,
+        ECKeyGenerator,
+        ECKeyGeneratorParameters,
+        FortunaRandom,
+        KeyParameter,
+        ParametersWithRandom,
+        RSAKeyGenerator,
+        RSAKeyGeneratorParameters,
+        SecureRandom;
+
+/// The kinds of key this app can make.
+///
+/// Every one of them is a type dartssh2 4.0.0 can **authenticate with**, not
+/// merely parse: `OpenSSHKeyPairs.getPrivateKeys` decodes each into a key pair
+/// whose `sign` the client uses for `publickey` auth — Ed25519, ECDSA over the
+/// NIST curves, and RSA signing with `rsa-sha2-256`. Offering a type the
+/// client could store but never sign with would be a key that silently fails
+/// at the one moment it matters.
+///
+/// P-521 is left out on purpose rather than for want of support: it adds a
+/// third ECDSA choice that no server requires and nobody asks for, and every
+/// extra option on this sheet is a question the user has to answer.
+enum SshKeyType {
+  /// The default and the recommendation.
+  ed25519('ssh-ed25519'),
+  ecdsaP256('ecdsa-sha2-nistp256'),
+  ecdsaP384('ecdsa-sha2-nistp384'),
+  rsa3072('ssh-rsa'),
+  rsa4096('ssh-rsa');
+
+  const SshKeyType(this.wireName);
+
+  /// The algorithm name OpenSSH writes at the start of the public key line.
+  final String wireName;
+
+  /// Whether making one takes long enough that the user must be told to wait.
+  ///
+  /// RSA only. Finding two 1500–2000-bit primes in pure Dart takes seconds on
+  /// a desktop and longer on a phone; everything else is instant.
+  bool get isSlow => this == rsa3072 || this == rsa4096;
+}
 
 /// A freshly generated keypair, in the forms the rest of the app needs.
+///
+/// Plain strings only, so it crosses an isolate boundary as it is.
 class GeneratedKey {
   const GeneratedKey({
     required this.keyType,
     required this.privateKey,
     required this.publicKey,
     required this.fingerprint,
+    this.isEncrypted = false,
   });
 
-  /// Always `ssh-ed25519` today.
+  /// `ssh-ed25519`, `ecdsa-sha2-nistp256`, `ssh-rsa`, …
   final String keyType;
 
-  /// OpenSSH `openssh-key-v1` PEM, unencrypted. What goes in the vault.
+  /// OpenSSH `openssh-key-v1` PEM. What goes in the vault.
   final String privateKey;
 
-  /// The single `ssh-ed25519 AAAA… comment` line, for `authorized_keys`.
+  /// The single `type AAAA… comment` line, for `authorized_keys`.
   final String publicKey;
 
   /// `SHA256:…`, exactly as `ssh-keygen -l` prints it.
   final String fingerprint;
+
+  /// Whether [privateKey] is sealed with a passphrase.
+  final bool isEncrypted;
+
+  /// Never the private key.
+  @override
+  String toString() => 'GeneratedKey($keyType, $fingerprint)';
 }
 
 /// Makes SSH keys on the device.
@@ -33,51 +92,101 @@ class GeneratedKey {
 /// so the mobile app — the reason this project exists — could not get a user
 /// from "installed" to "connected" on its own.
 ///
-/// **Ed25519 only**, deliberately. It is small, fast, has no parameters to
-/// get wrong, and is accepted by every server that has been updated this
-/// decade. Offering RSA as well would mean offering a key size, and a key
-/// size is a question that invites a wrong answer.
+/// **Ed25519 is the default**, and the sheet says so. It is small, fast, has
+/// no parameters to get wrong, and is accepted by every server updated this
+/// decade. ECDSA and RSA exist for the servers and policies that are not:
+/// older appliances, FIPS-minded estates, a compliance document that says
+/// "RSA 4096". RSA sizes stop at the two still worth choosing.
 ///
 /// The private key is written in OpenSSH's own `openssh-key-v1` container,
-/// unencrypted, because the passphrase this app would otherwise ask for is
-/// not the thing protecting it — the key lives in the device keychain, behind
-/// whatever the device locks with. A second passphrase would be one more
-/// thing to lose, guarding a file nobody else can read.
+/// through dartssh2's encoder — the same code that will later decode it to
+/// connect. Unencrypted by default, because the key lives in the device
+/// keychain, behind whatever the device locks with. A passphrase is offered
+/// for people who want the key useless even to someone holding an unlocked
+/// device; the key is then sealed exactly as `ssh-keygen` seals it —
+/// `aes256-ctr` with key and IV from `bcrypt_pbkdf` — so the same file works
+/// in OpenSSH if it is ever carried off the device.
 abstract final class SshKeyGenerator {
-  static const _type = 'ssh-ed25519';
+  /// bcrypt_pbkdf rounds for a passphrase-protected key.
+  ///
+  /// dartssh2's default, and what current `ssh-keygen` writes. The cost is
+  /// paid again every time the key is unlocked to connect, so this is a
+  /// balance, not a dial to turn up.
+  static const bcryptRounds = OpenSSHKeyPairs.defaultBcryptRounds;
 
   /// Generates an Ed25519 keypair. [comment] is written into both halves, the
   /// way `ssh-keygen` writes `user@host`.
-  static GeneratedKey ed25519({String comment = ''}) {
-    final signing = SigningKey.generate();
-    final publicBytes = Uint8List.fromList(signing.publicKey.asTypedList);
-    // OpenSSH stores seed || public as the private field, which is exactly
-    // what pinenacl calls the secret.
-    final privateBytes = Uint8List.fromList(signing.asTypedList);
+  static GeneratedKey ed25519({String comment = '', String? passphrase}) =>
+      generate(SshKeyType.ed25519, comment: comment, passphrase: passphrase);
 
-    final publicBlob = _blob([
-      _string(utf8.encode(_type)),
-      _string(publicBytes),
-    ]);
+  /// Generates a key of [type], on the calling isolate.
+  ///
+  /// RSA, and any passphrase, make this slow: UI code wants
+  /// [generateInBackground]. A null or empty [passphrase] writes the key
+  /// unencrypted.
+  static GeneratedKey generate(
+    SshKeyType type, {
+    String comment = '',
+    String? passphrase,
+    int rounds = bcryptRounds,
+  }) {
+    final random = _secureRandom();
+    final OpenSSHKeyPair pair = switch (type) {
+      SshKeyType.ed25519 => _ed25519(comment),
+      SshKeyType.ecdsaP256 => _ecdsa(
+        'nistp256',
+        ECCurve_secp256r1(),
+        comment,
+        random,
+      ),
+      SshKeyType.ecdsaP384 => _ecdsa(
+        'nistp384',
+        ECCurve_secp384r1(),
+        comment,
+        random,
+      ),
+      SshKeyType.rsa3072 => _rsa(3072, comment, random),
+      SshKeyType.rsa4096 => _rsa(4096, comment, random),
+    };
+
+    final encrypt = passphrase != null && passphrase.isNotEmpty;
+    final publicBlob = pair.toPublicKey().encode();
 
     return GeneratedKey(
-      keyType: _type,
-      privateKey: _armour(
-        _privateFile(
-          publicBlob: publicBlob,
-          publicBytes: publicBytes,
-          privateBytes: privateBytes,
-          comment: comment,
-        ),
+      keyType: type.wireName,
+      privateKey: pair.toPem(
+        passphrase: encrypt ? passphrase : null,
+        rounds: rounds,
       ),
-      publicKey: [
-        _type,
-        base64.encode(publicBlob),
-        if (comment.isNotEmpty) comment,
-      ].join(' '),
+      publicKey: publicKeyLine(type.wireName, publicBlob, comment),
       fingerprint: fingerprintOfBlob(publicBlob),
+      isEncrypted: encrypt,
     );
   }
+
+  /// [generate], off the UI isolate.
+  ///
+  /// RSA 4096 takes seconds and a frame is sixteen milliseconds. Run on the
+  /// UI isolate it would freeze the sheet — spinner included — for the whole
+  /// time, which reads as a crash.
+  static Future<GeneratedKey> generateInBackground(
+    SshKeyType type, {
+    String comment = '',
+    String? passphrase,
+  }) => Isolate.run(
+    () => generate(type, comment: comment, passphrase: passphrase),
+  );
+
+  /// `type base64 [comment]`, the `authorized_keys` form.
+  static String publicKeyLine(
+    String type,
+    Uint8List publicBlob,
+    String comment,
+  ) => [
+    type,
+    base64.encode(publicBlob),
+    if (comment.trim().isNotEmpty) comment.trim(),
+  ].join(' ');
 
   /// `SHA256:` plus the unpadded base64 of the blob's SHA-256, which is what
   /// OpenSSH prints and therefore what a user will compare against.
@@ -86,75 +195,75 @@ abstract final class SshKeyGenerator {
     return 'SHA256:${base64.encode(digest).replaceAll('=', '')}';
   }
 
-  /// The `openssh-key-v1` container, unencrypted.
-  ///
-  /// Laid out exactly as PROTOCOL.key describes, because `ssh-keygen`,
-  /// `ssh-add` and every server-side tool will read this file and none of
-  /// them are forgiving: a wrong length prefix or missing padding is not a
-  /// warning, it is "invalid format" with nothing to go on.
-  static Uint8List _privateFile({
-    required Uint8List publicBlob,
-    required Uint8List publicBytes,
-    required Uint8List privateBytes,
-    required String comment,
-  }) {
-    // The same value twice: OpenSSH uses the pair to detect a wrong
-    // passphrase after decrypting. Unencrypted, they simply have to match.
-    final check = Uint8List.fromList(
-      SigningKey.generate().asTypedList.sublist(0, 4),
+  static OpenSSHEd25519KeyPair _ed25519(String comment) {
+    final signing = nacl.SigningKey.generate();
+    // OpenSSH stores seed || public as the private field, which is exactly
+    // what pinenacl calls the secret.
+    return OpenSSHEd25519KeyPair(
+      Uint8List.fromList(signing.publicKey.asTypedList),
+      Uint8List.fromList(signing.asTypedList),
+      comment,
     );
-
-    final unpadded = _blob([
-      check,
-      check,
-      _string(utf8.encode(_type)),
-      _string(publicBytes),
-      _string(privateBytes),
-      _string(utf8.encode(comment)),
-    ]);
-
-    // Padded to the cipher's block size with 1, 2, 3 … — "none" still counts
-    // as 8 here, which is the detail most hand-written encoders get wrong.
-    final padded = BytesBuilder()..add(unpadded);
-    for (var i = 1; padded.length % 8 != 0; i++) {
-      padded.addByte(i);
-    }
-
-    return _blob([
-      utf8.encode('openssh-key-v1\x00'),
-      _string(utf8.encode('none')), // cipher
-      _string(utf8.encode('none')), // kdf
-      _string(const []), // kdf options
-      _uint32(1), // one key
-      _string(publicBlob),
-      _string(padded.toBytes()),
-    ]);
   }
 
-  static String _armour(Uint8List body) {
-    final encoded = base64.encode(body);
-    final lines = <String>[
-      '-----BEGIN OPENSSH PRIVATE KEY-----',
-      for (var i = 0; i < encoded.length; i += 70)
-        encoded.substring(i, (i + 70).clamp(0, encoded.length)),
-      '-----END OPENSSH PRIVATE KEY-----',
-      '',
-    ];
-    return lines.join('\n');
+  static OpenSSHEcdsaKeyPair _ecdsa(
+    String curveId,
+    ECDomainParameters curve,
+    String comment,
+    SecureRandom random,
+  ) {
+    final generator = ECKeyGenerator()
+      ..init(ParametersWithRandom(ECKeyGeneratorParameters(curve), random));
+    final pair = generator.generateKeyPair();
+    final public = pair.publicKey;
+    final private = pair.privateKey;
+    // Uncompressed SEC1 point, 0x04 || X || Y with fixed-width coordinates:
+    // the form RFC 5656 puts in an SSH key.
+    return OpenSSHEcdsaKeyPair(
+      curveId,
+      public.Q!.getEncoded(false),
+      private.d!,
+      comment,
+    );
   }
 
-  static Uint8List _blob(List<List<int>> parts) {
-    final builder = BytesBuilder();
-    for (final part in parts) {
-      builder.add(part);
-    }
-    return builder.toBytes();
+  static OpenSSHRsaKeyPair _rsa(int bits, String comment, SecureRandom random) {
+    final e = BigInt.from(65537);
+    final generator = RSAKeyGenerator()
+      ..init(
+        ParametersWithRandom(
+          // 64 Miller–Rabin rounds: a composite surviving that is far rarer
+          // than anything else that could go wrong with this key.
+          RSAKeyGeneratorParameters(e, bits, 64),
+          random,
+        ),
+      );
+    final private = generator.generateKeyPair().privateKey;
+    final p = private.p!;
+    final q = private.q!;
+    // PROTOCOL.key's field order: n, e, d, iqmp, p, q — with iqmp = q⁻¹ mod p.
+    return OpenSSHRsaKeyPair(
+      private.modulus!,
+      e,
+      private.privateExponent!,
+      q.modInverse(p),
+      p,
+      q,
+      comment,
+    );
   }
 
-  /// An SSH `string`: a big-endian length, then the bytes.
-  static Uint8List _string(List<int> value) =>
-      _blob([_uint32(value.length), value]);
-
-  static Uint8List _uint32(int value) =>
-      Uint8List(4)..buffer.asByteData().setUint32(0, value);
+  /// Fortuna seeded from the platform CSPRNG.
+  ///
+  /// pointycastle's generators draw from a `SecureRandom` of their own, and
+  /// its default constructor looks one up in a registry. Seeding explicitly
+  /// from `Random.secure()` keeps where the entropy comes from obvious.
+  static SecureRandom _secureRandom() {
+    final seed = Random.secure();
+    return FortunaRandom()..seed(
+      KeyParameter(
+        Uint8List.fromList(List.generate(32, (_) => seed.nextInt(256))),
+      ),
+    );
+  }
 }

@@ -370,6 +370,63 @@ void main() {
     });
   });
 
+  group('host columns added in v6: env_vars, forward_agent', () {
+    test('travel with the host', () async {
+      await seed();
+      await source.raw.update('hosts', {
+        'env_vars': '{"EDITOR":"vim","MSG":"it\'s \$HOME"}',
+        'forward_agent': 1,
+      }, where: "id = 'h1'");
+
+      final payload = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      await TransferPayload.fromJson(payload.toJson())
+          .apply(destination.raw, vault: destinationVault);
+
+      final row = (await destination.raw.query('hosts')).single;
+      expect(row['env_vars'], '{"EDITOR":"vim","MSG":"it\'s \$HOME"}');
+      expect(row['forward_agent'], 1);
+    });
+
+    test('a v5 payload, whose hosts lack both columns, still applies', () {
+      // A nullable column, and a NOT NULL one with a default, leave every
+      // older row insertable, so v5 payloads — every backup written before
+      // this update — stay within the applicable range.
+      expect(TransferPayload.canApply(5), isTrue);
+      expect(TransferPayload.oldestApplicableSchema, lessThanOrEqualTo(5));
+    });
+
+    test('...and lands with no variables and no agent forwarding', () async {
+      await seed();
+      final current = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      final json = current.toJson();
+      final tables = Map<String, Object?>.from(json['tables']! as Map);
+      tables['hosts'] = [
+        for (final row in tables['hosts']! as List)
+          Map<String, Object?>.from(row as Map)
+            ..remove('env_vars')
+            ..remove('forward_agent'),
+      ];
+      final fromV5 = TransferPayload.fromJson({
+        ...json,
+        'schema': 5,
+        'tables': tables,
+      });
+
+      await fromV5.apply(destination.raw, vault: destinationVault);
+
+      final row = (await destination.raw.query('hosts')).single;
+      expect(row['hostname'], 'web.example.com');
+      expect(row['env_vars'], isNull);
+      expect(row['forward_agent'], 0);
+    });
+  });
+
   test('the payload survives JSON, which is how it travels', () async {
     await seed();
     final original = await (await TransferPayload.read(

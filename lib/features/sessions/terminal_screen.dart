@@ -12,6 +12,7 @@ import '../../core/ui/views.dart';
 import '../hosts/widgets/open_key_setup.dart';
 import '../snippets/open_snippets.dart';
 import '../../l10n/app_localizations.dart';
+import 'server_sessions.dart';
 import 'session_manager.dart';
 import 'terminal_find_request.dart';
 import 'widgets/session_tab_strip.dart';
@@ -121,6 +122,15 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
               icon: const Icon(PiconsRegular.codeBlock),
               onPressed: () =>
                   openSnippetPicker(context, ref, sessionId: session.id),
+            ),
+            // What else SSHetu keeps running on this server — from this
+            // device or another one. The strip, and its menu, is hidden
+            // with a single tab on a phone, so it gets a button here.
+            IconButton(
+              key: const Key('terminal.runningSessions'),
+              tooltip: l10n.sessionRunningSessions,
+              icon: const Icon(PiconsRegular.stack),
+              onPressed: () => openRunningSessionsForTab(context, ref, session),
             ),
             // Opens the SFTP browser over this session's *existing*
             // connection rather than dialling the host a second time.

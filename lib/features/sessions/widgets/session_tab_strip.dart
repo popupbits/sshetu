@@ -6,6 +6,7 @@ import '../../../core/terminal/terminal_session.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/ui/context_menu.dart';
 import '../../../l10n/app_localizations.dart';
+import '../server_sessions.dart';
 import '../session_manager.dart';
 import '../workspace_pages.dart';
 
@@ -88,6 +89,13 @@ class SessionTabStrip extends ConsumerWidget {
                         // difference between disconnecting and closing.
                         onSelected: session.disconnect,
                       ),
+                    MenuAction(
+                      label: AppLocalizations.of(context)
+                          .sessionRunningSessions,
+                      icon: PiconsRegular.stack,
+                      onSelected: () =>
+                          openRunningSessionsForTab(context, ref, session),
+                    ),
                     MenuAction(
                       label: AppLocalizations.of(context).terminalCloseTab,
                       icon: PiconsRegular.x,

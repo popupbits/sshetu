@@ -13,6 +13,7 @@ import 'hosts_controller.dart';
 import 'widgets/group_actions.dart';
 import 'widgets/host_group_header.dart';
 import 'widgets/host_tile.dart';
+import 'widgets/reachability_scope.dart';
 import 'widgets/tag_filter_bar.dart';
 
 /// The Hosts destination: the app's front door.
@@ -76,7 +77,9 @@ class HostsScreen extends ConsumerWidget {
             ),
             data: (list) => list.every((s) => s.hosts.isEmpty)
                 ? _Empty(hasQuery: filtering)
-                : _HostList(sections: list, showHeaders: hasGroups),
+                : ReachabilityScope(
+                    child: _HostList(sections: list, showHeaders: hasGroups),
+                  ),
           ),
         ),
       ],

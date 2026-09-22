@@ -33,6 +33,7 @@ class SshTarget {
     this.jumpTarget,
     this.allowLegacyAlgorithms = false,
     this.keepaliveInterval = const Duration(seconds: 30),
+    this.forwardAgent = false,
   });
 
   final String hostname;
@@ -83,6 +84,15 @@ class SshTarget {
   /// dartssh2 disables keepalives only on null. Handed [Duration.zero] it
   /// builds a zero-period `Timer.periodic` and pings the server as fast as the
   /// event loop turns — the opposite of what "0 = off" promised.
+  /// Whether this host may use the keys this app holds to sign in onward
+  /// (`ForwardAgent`) while connected. Off unless the user turned it on for
+  /// this host: a server with agent access can authenticate as the user
+  /// anywhere those keys are accepted, for as long as the connection lasts.
+  ///
+  /// Applies to this target only, never to the jump hosts in front of it —
+  /// a bastion has no business signing with the user's keys.
+  final bool forwardAgent;
+
   Duration? get keepaliveOrNull =>
       keepaliveInterval > Duration.zero ? keepaliveInterval : null;
 
@@ -106,6 +116,7 @@ class SshTarget {
     bool clearJumpTarget = false,
     bool? allowLegacyAlgorithms,
     Duration? keepaliveInterval,
+    bool? forwardAgent,
   }) => SshTarget(
     hostname: hostname ?? this.hostname,
     port: port ?? this.port,
@@ -116,6 +127,7 @@ class SshTarget {
     jumpTarget: clearJumpTarget ? null : (jumpTarget ?? this.jumpTarget),
     allowLegacyAlgorithms: allowLegacyAlgorithms ?? this.allowLegacyAlgorithms,
     keepaliveInterval: keepaliveInterval ?? this.keepaliveInterval,
+    forwardAgent: forwardAgent ?? this.forwardAgent,
   );
 
   @override
@@ -129,7 +141,8 @@ class SshTarget {
       other.credentialId == credentialId &&
       other.jumpTarget == jumpTarget &&
       other.allowLegacyAlgorithms == allowLegacyAlgorithms &&
-      other.keepaliveInterval == keepaliveInterval;
+      other.keepaliveInterval == keepaliveInterval &&
+      other.forwardAgent == forwardAgent;
 
   @override
   int get hashCode => Object.hash(
@@ -142,6 +155,7 @@ class SshTarget {
     jumpTarget,
     allowLegacyAlgorithms,
     keepaliveInterval,
+    forwardAgent,
   );
 
   /// Prints the address only — never the identity, never a credential.

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/shell/workspace_layout.dart';
+import '../theme/terminal_fonts.dart';
+import '../theme/terminal_theme_presets.dart';
 import 'app_settings.dart';
 
 /// The preferences instance opened during bootstrap.
@@ -33,6 +35,12 @@ const _keyRequireUnlock = 'settings.requireUnlock';
 const _keyConfirmMultilinePaste = 'settings.confirmMultilinePaste';
 const _keyKeepAlive = 'settings.keepAliveInBackground';
 const _keyKeepSessionsOnServer = 'settings.keepSessionsOnServer';
+const _keyTerminalTheme = 'settings.terminalTheme';
+const _keyTerminalFont = 'settings.terminalFont';
+const _keyScrollbackLines = 'settings.scrollbackLines';
+const _keyCursorShape = 'settings.cursorShape';
+const _keyCursorBlink = 'settings.cursorBlink';
+const _keyReopenTabs = 'settings.reopenTabs';
 
 /// Read persisted settings, falling back to defaults for anything missing or
 /// corrupt. Called from bootstrap before the first frame.
@@ -61,7 +69,40 @@ AppSettings readSettings(SharedPreferences preferences) {
     keepAliveInBackground: _readBool(preferences, _keyKeepAlive) ?? true,
     keepSessionsOnServer:
         _readBool(preferences, _keyKeepSessionsOnServer) ?? true,
+    // Unknown ids are normalised to the defaults here, so the Settings rows
+    // name what the terminal actually draws with rather than a stale id.
+    terminalThemeId: TerminalThemePresets.byId(
+      _readString(preferences, _keyTerminalTheme),
+    ).id,
+    terminalFontId: TerminalFonts.byId(
+      _readString(preferences, _keyTerminalFont),
+    ).id,
+    scrollbackLines: AppSettings.clampScrollback(
+      _readInt(preferences, _keyScrollbackLines) ??
+          AppSettings.defaultScrollbackLines,
+    ),
+    cursorShape: TerminalCursorShape.fromId(
+      _readString(preferences, _keyCursorShape),
+    ),
+    cursorBlink: _readBool(preferences, _keyCursorBlink) ?? false,
+    reopenTabs: ReopenTabs.fromId(_readString(preferences, _keyReopenTabs)),
   );
+}
+
+String? _readString(SharedPreferences preferences, String key) {
+  try {
+    return preferences.getString(key);
+  } on Object {
+    return null;
+  }
+}
+
+int? _readInt(SharedPreferences preferences, String key) {
+  try {
+    return preferences.getInt(key);
+  } on Object {
+    return null;
+  }
 }
 
 bool? _readBool(SharedPreferences preferences, String key) {
@@ -166,6 +207,39 @@ class SettingsController extends Notifier<AppSettings> {
     keep,
   );
 
+  /// The terminal colour scheme hosts use by default. An unknown id is stored
+  /// as the default rather than as itself.
+  void setTerminalTheme(String id) {
+    final known = TerminalThemePresets.byId(id).id;
+    _update(state.copyWith(terminalThemeId: known), _keyTerminalTheme, known);
+  }
+
+  /// The terminal face, by [TerminalFont.id].
+  void setTerminalFont(String id) {
+    final known = TerminalFonts.byId(id).id;
+    _update(state.copyWith(terminalFontId: known), _keyTerminalFont, known);
+  }
+
+  /// Lines of history for new terminal tabs, clamped to the supported range.
+  void setScrollbackLines(int lines) {
+    final clamped = AppSettings.clampScrollback(lines);
+    _update(
+      state.copyWith(scrollbackLines: clamped),
+      _keyScrollbackLines,
+      clamped,
+    );
+  }
+
+  void setCursorShape(TerminalCursorShape shape) =>
+      _update(state.copyWith(cursorShape: shape), _keyCursorShape, shape.id);
+
+  void setCursorBlink(bool blink) =>
+      _update(state.copyWith(cursorBlink: blink), _keyCursorBlink, blink);
+
+  /// Whether last time's terminal tabs come back at launch.
+  void setReopenTabs(ReopenTabs choice) =>
+      _update(state.copyWith(reopenTabs: choice), _keyReopenTabs, choice.id);
+
   /// Sets how wide the desktop list panel should be.
   ///
   /// Called continuously while a divider is dragged, so it writes to disk
@@ -198,6 +272,8 @@ class SettingsController extends Notifier<AppSettings> {
           await preferences.setString(key, text);
         case final double number:
           await preferences.setDouble(key, number);
+        case final int number:
+          await preferences.setInt(key, number);
         case final bool flag:
           await preferences.setBool(key, flag);
         default:

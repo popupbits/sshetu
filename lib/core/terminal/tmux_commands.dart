@@ -14,6 +14,10 @@
 /// themselves inside one of these tabs is an ordinary, fully-working tmux.
 library;
 
+// Session names are made in `tmux_names.dart`; re-exported so the commands
+// and the names that go into them can be imported together.
+export 'tmux_names.dart';
+
 /// The socket name of SSHetu's private tmux server (`tmux -L`).
 const String kTmuxSocket = 'sshetu';
 
@@ -47,14 +51,6 @@ String shellQuote(String value) => "'${value.replaceAll("'", r"'\''")}'";
 /// is. An exec request is run by the user's shell, and fish or csh would read
 /// POSIX syntax as an error; `sh -c '…'` means the same thing to all of them.
 String posixShell(String script) => 'sh -c ${shellQuote(script)}';
-
-/// The tmux session name for the tab with id [tabId].
-///
-/// tmux gives `.` and `:` meaning in a target, so anything outside a plain
-/// set becomes `_`. Stable for the life of the tab, which is what lets a
-/// reconnect find the same session again.
-String tmuxSessionName(String tabId) =>
-    'sshetu-${tabId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}';
 
 /// The exact-match target for [name]. Without the `=`, tmux falls back to
 /// prefix matching, and `sshetu-host-1` would happily attach to
@@ -138,10 +134,14 @@ TmuxProbe parseTmuxProbe(String output) {
 /// If the session still cannot be found — tmux too old for an exact-match
 /// target, a socket directory that is not writable — this falls back to an
 /// ordinary login shell rather than leaving the tab with nothing.
+///
+/// [env] is set in a *new* session's shell — see [envExports]. A reattached
+/// session keeps the environment it was created with.
 String tmuxAttachCommand(
   String name, {
   required int columns,
   required int rows,
+  Map<String, String> env = const {},
 }) {
   // printf rather than a heredoc, so the whole script is one line: csh, still
   // the login shell on some BSD accounts, rejects a newline inside quotes.
@@ -149,6 +149,21 @@ String tmuxAttachCommand(
   final width = columns < 1 ? 80 : columns;
   final height = rows < 1 ? 24 : rows;
   final target = _target(name);
+  final exports = envExports(env);
+  // With variables, the first window runs an explicit command instead of the
+  // server's default-command — the same command, with the exports in front.
+  // tmux runs it through default-shell, which the options file sets to
+  // /bin/sh, so it is POSIX whatever the login shell is.
+  //
+  // Not `new-session -e`: that flag arrived in tmux 3.2, and telling its
+  // failure apart from "duplicate session" (also exit 1), or sniffing
+  // `tmux -V` (which says things like `next-3.4` and `3.3a`), is more
+  // machinery than an explicit command that works on every tmux there is.
+  // Nothing is typed into the terminal either way, so nothing lands in the
+  // scrollback or the shell's history.
+  final firstWindow = exports.isEmpty
+      ? ''
+      : ' ${shellQuote('$exports$_loginShell')}';
   return posixShell(
     'unset TMUX TMUX_PANE; '
     // No mktemp, no options — never a guessable path in /tmp, which another
@@ -156,13 +171,161 @@ String tmuxAttachCommand(
     'cfg=\$(mktemp 2>/dev/null) || cfg=/dev/null; '
     'if [ "\$cfg" != /dev/null ]; then printf \'%s\\n\' $options > "\$cfg"; fi; '
     'tmux -u -L $kTmuxSocket -f "\$cfg" new-session -d '
-    '-s ${shellQuote(name)} -x $width -y $height 2>/dev/null; '
+    '-s ${shellQuote(name)} -x $width -y $height$firstWindow 2>/dev/null; '
     'if [ "\$cfg" != /dev/null ]; then rm -f "\$cfg"; fi; '
     'if tmux -L $kTmuxSocket has-session -t $target 2>/dev/null; then '
     'exec tmux -u -L $kTmuxSocket attach-session -t $target; fi; '
-    'exec "\${SHELL:-/bin/sh}" -l',
+    '${exports}exec "\${SHELL:-/bin/sh}" -l',
   );
 }
+
+/// What a tmux window runs by default, spelled out so a window with
+/// variables can run the same thing. Matches `default-command` in
+/// [kTmuxServerOptions].
+const String _loginShell = 'unset TMUX TMUX_PANE; exec "\${SHELL:-/bin/sh}" -l';
+
+/// `export NAME='value'; ` for each of [env], for a POSIX shell.
+///
+/// Names are checked, not quoted — a name is syntax, and one that is not a
+/// valid identifier is refused outright ([ArgumentError]) rather than
+/// escaped into something else. Values go through [shellQuote], so a space,
+/// a quote, a `$` or a backtick arrives exactly as typed.
+String envExports(Map<String, String> env) {
+  final out = StringBuffer();
+  for (final MapEntry(:key, :value) in env.entries) {
+    if (!isValidEnvName(key)) {
+      throw ArgumentError.value(key, 'env', 'not a variable name');
+    }
+    out.write('export $key=${shellQuote(value)}; ');
+  }
+  return out.toString();
+}
+
+/// A POSIX variable name: a letter or underscore, then letters, digits and
+/// underscores.
+bool isValidEnvName(String name) =>
+    RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$').hasMatch(name);
+
+/// An ordinary login shell with [env] set, for an exec request with a PTY.
+///
+/// The way a plain (non-tmux) tab gets its variables. The SSH `env` request
+/// would be the obvious route, but OpenSSH accepts only what the server's
+/// `AcceptEnv` lists — `LANG` and `LC_*` by default — and ignores the rest
+/// in silence. Typing an `export` line into the shell would work, and would
+/// also print it in the terminal and save it in the shell's history. So the
+/// shell is started *with* the variables instead: `sh` exports them, then
+/// replaces itself with the user's own shell as a login shell (`-l`), which
+/// reads the same profile files the `shell` request's login shell does.
+///
+/// What differs from a `shell` request: sshd prints no message of the day
+/// for a command. That, and needing a POSIX `sh` — which a switch or a router
+/// does not have — is why this is used only when a host has variables.
+String plainShellCommand(Map<String, String> env) =>
+    posixShell('${envExports(env)}exec "\${SHELL:-/bin/sh}" -l');
+
+/// Markers [tmuxListCommand] prints around its answer.
+abstract final class TmuxListMarkers {
+  static const String absent = TmuxProbeMarkers.absent;
+  static const String begin = 'SSHETU:tmux-list';
+}
+
+/// Fields [tmuxListCommand] asks tmux for, in order. `|` separates them:
+/// session names are restricted to characters that exclude it, and the one
+/// free-text field — the running command — is last, so a `|` in it cannot
+/// shift the others.
+const String _listFormat =
+    '#{session_name}|#{session_created}|#{session_attached}|'
+    '#{session_activity}|#{session_windows}|#{pane_current_command}';
+
+/// Lists the sessions on SSHetu's private tmux server — every device's,
+/// since they all share the account's one socket.
+///
+/// No server running is not an error: `list-sessions` fails, prints nothing
+/// after the marker, and the answer is "none".
+String tmuxListCommand() => posixShell(
+  'if ! command -v tmux >/dev/null 2>&1; then '
+  'echo ${TmuxListMarkers.absent}; exit 0; fi; '
+  'echo ${TmuxListMarkers.begin}; '
+  'tmux -L $kTmuxSocket list-sessions -F ${shellQuote(_listFormat)} '
+  '2>/dev/null; true',
+);
+
+/// One session [tmuxListCommand] found.
+class TmuxSessionInfo {
+  const TmuxSessionInfo({
+    required this.name,
+    required this.created,
+    required this.attachedClients,
+    this.lastActivity,
+    this.windows = 1,
+    this.command,
+  });
+
+  final String name;
+  final DateTime created;
+
+  /// How many clients are attached right now — any device, this one included.
+  final int attachedClients;
+
+  /// When anything last happened in it. Null on a tmux too old to say.
+  final DateTime? lastActivity;
+
+  final int windows;
+
+  /// What its visible pane is running (`bash`, `vim`, `htop`), when known.
+  final String? command;
+
+  bool get isAttached => attachedClients > 0;
+}
+
+/// What [tmuxListCommand] found.
+class TmuxListing {
+  const TmuxListing({required this.tmuxAvailable, required this.sessions});
+
+  final bool tmuxAvailable;
+
+  /// Newest activity first.
+  final List<TmuxSessionInfo> sessions;
+}
+
+/// Reads [tmuxListCommand]'s output. Lines that do not parse — a login
+/// banner, a session someone named by hand without the prefix — are skipped.
+TmuxListing parseTmuxListing(String output) {
+  final lines = output.replaceAll('\r', '').split('\n');
+  final start = lines.indexWhere((l) => l.trim() == TmuxListMarkers.begin);
+  if (start < 0) {
+    return const TmuxListing(tmuxAvailable: false, sessions: []);
+  }
+  final sessions = <TmuxSessionInfo>[];
+  for (final line in lines.skip(start + 1)) {
+    final parts = line.split('|');
+    if (parts.length < 6) continue;
+    final name = parts[0];
+    if (!name.startsWith('sshetu-')) continue;
+    final created = int.tryParse(parts[1]);
+    if (created == null) continue;
+    final activity = int.tryParse(parts[3]);
+    final command = parts.sublist(5).join('|').trim();
+    sessions.add(
+      TmuxSessionInfo(
+        name: name,
+        created: _epoch(created),
+        attachedClients: int.tryParse(parts[2]) ?? 0,
+        lastActivity: activity == null ? null : _epoch(activity),
+        windows: int.tryParse(parts[4]) ?? 1,
+        command: command.isEmpty ? null : command,
+      ),
+    );
+  }
+  sessions.sort(
+    (a, b) =>
+        (b.lastActivity ?? b.created).compareTo(a.lastActivity ?? a.created),
+  );
+  return TmuxListing(tmuxAvailable: true, sessions: sessions);
+}
+
+DateTime _epoch(int seconds) =>
+    DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
 
 /// How many lines of history SSHetu's tmux server keeps per session — the
 /// same depth as a terminal tab's own scrollback.

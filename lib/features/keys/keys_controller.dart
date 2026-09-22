@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../../core/ssh/key_generator.dart';
 import '../../core/ssh/key_material_cache.dart';
+import '../../core/ssh/private_key_inspector.dart';
 import 'domain/ssh_identity.dart';
 
 /// Every key the user has.
@@ -54,4 +56,30 @@ class IdentitiesController {
 
 final identitiesControllerProvider = Provider<IdentitiesController>(
   IdentitiesController.new,
+);
+
+/// Makes a key, off the UI isolate.
+typedef KeyGeneratorFn = Future<GeneratedKey> Function(
+  SshKeyType type, {
+  String comment,
+  String? passphrase,
+});
+
+/// Reads a pasted private key, off the UI isolate.
+typedef KeyInspectorFn = Future<KeyInspection> Function(
+  String text, {
+  String? passphrase,
+});
+
+/// The key generator the sheets use. A provider so a widget test can swap
+/// the background isolate — which a fake-async test clock never lets finish —
+/// for a synchronous call.
+final keyGeneratorProvider = Provider<KeyGeneratorFn>(
+  (ref) => SshKeyGenerator.generateInBackground,
+);
+
+/// The pasted-key reader the paste sheet uses. A provider for the same reason
+/// as [keyGeneratorProvider].
+final keyInspectorProvider = Provider<KeyInspectorFn>(
+  (ref) => inspectPrivateKeyInBackground,
 );

@@ -138,9 +138,9 @@ void main() {
     'killed on close',
     () async {
       final id = 'live${DateTime.now().millisecondsSinceEpoch}';
-      final name = tmuxSessionName(id);
       final startupLog = '/tmp/sshetu-live-$id.log';
       final session = tab(id, startupCommand: 'echo ran >> $startupLog');
+      final name = session.tmuxName;
 
       await session.start();
       expect(

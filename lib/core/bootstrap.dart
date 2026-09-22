@@ -7,6 +7,7 @@ import 'error/error_logger.dart';
 import 'settings/app_settings.dart';
 import 'settings/settings_controller.dart';
 import 'db/database.dart';
+import 'theme/terminal_fonts.dart';
 
 /// Async work that must finish before the first frame.
 ///
@@ -30,7 +31,9 @@ abstract class BootstrapStep {
 }
 
 /// Non-critical steps, in order. This is the seam a feature extends.
-const List<BootstrapStep> optionalSteps = <BootstrapStep>[];
+const List<BootstrapStep> optionalSteps = <BootstrapStep>[
+  RegisterFontLicenses(),
+];
 
 /// A step that failed. Startup continued without it.
 class BootstrapFailure {

@@ -907,7 +907,7 @@ abstract class AppLocalizations {
   /// No description provided for @keysGenerateBody.
   ///
   /// In en, this message translates to:
-  /// **'An Ed25519 keypair, made on this device. The private half stays in this device\'s secure storage and never leaves it.'**
+  /// **'A new keypair, made on this device. The private half stays in this device\'s secure storage and never leaves it.'**
   String get keysGenerateBody;
 
   /// No description provided for @keysGenerateLabel.
@@ -957,6 +957,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The private key is destroyed on this device and cannot be recovered.'**
   String get keysDeleteBody;
+
+  /// No description provided for @keysTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Key type'**
+  String get keysTypeLabel;
+
+  /// No description provided for @keysTypeEd25519.
+  ///
+  /// In en, this message translates to:
+  /// **'Ed25519 (recommended)'**
+  String get keysTypeEd25519;
+
+  /// No description provided for @keysTypeEcdsaP256.
+  ///
+  /// In en, this message translates to:
+  /// **'ECDSA P-256'**
+  String get keysTypeEcdsaP256;
+
+  /// No description provided for @keysTypeEcdsaP384.
+  ///
+  /// In en, this message translates to:
+  /// **'ECDSA P-384'**
+  String get keysTypeEcdsaP384;
+
+  /// No description provided for @keysTypeRsa3072.
+  ///
+  /// In en, this message translates to:
+  /// **'RSA 3072'**
+  String get keysTypeRsa3072;
+
+  /// No description provided for @keysTypeRsa4096.
+  ///
+  /// In en, this message translates to:
+  /// **'RSA 4096'**
+  String get keysTypeRsa4096;
+
+  /// No description provided for @keysTypeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Ed25519 works with every current server. Choose another only if a server or policy requires it.'**
+  String get keysTypeHelp;
+
+  /// No description provided for @keysPassphraseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase (optional)'**
+  String get keysPassphraseLabel;
+
+  /// No description provided for @keysPassphraseHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to rely on this device\'s lock. If set, you will be asked for it when connecting, and it cannot be recovered.'**
+  String get keysPassphraseHelp;
+
+  /// No description provided for @keysPassphraseRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat passphrase'**
+  String get keysPassphraseRepeat;
+
+  /// No description provided for @keysPassphraseMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The passphrases don\'t match.'**
+  String get keysPassphraseMismatch;
+
+  /// No description provided for @keysGenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating…'**
+  String get keysGenerating;
+
+  /// No description provided for @keysGeneratingSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating an RSA key. This can take a few seconds.'**
+  String get keysGeneratingSlow;
+
+  /// No description provided for @keysGenerateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The key could not be generated.'**
+  String get keysGenerateFailed;
+
+  /// No description provided for @keysShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share public key'**
+  String get keysShare;
+
+  /// No description provided for @keysPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste key'**
+  String get keysPaste;
+
+  /// No description provided for @keysPasteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a private key'**
+  String get keysPasteTitle;
+
+  /// No description provided for @keysPasteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An OpenSSH or PEM private key. It is stored in this device\'s secure storage and never logged.'**
+  String get keysPasteBody;
+
+  /// No description provided for @keysPasteField.
+  ///
+  /// In en, this message translates to:
+  /// **'Private key'**
+  String get keysPasteField;
+
+  /// No description provided for @keysPasteCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check key'**
+  String get keysPasteCheck;
+
+  /// No description provided for @keysPasteSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save key'**
+  String get keysPasteSave;
+
+  /// No description provided for @keysPastePassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get keysPastePassphrase;
+
+  /// No description provided for @keysPastePassphraseHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Used only to read the key now. It is not saved: you will be asked for it when connecting.'**
+  String get keysPastePassphraseHelp;
+
+  /// No description provided for @keysPasteEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a private key first.'**
+  String get keysPasteEmpty;
+
+  /// No description provided for @keysPastePublicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'That is a public key. Paste the private key instead: the file without .pub, starting with -----BEGIN.'**
+  String get keysPastePublicKey;
+
+  /// No description provided for @keysPasteNotAKey.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like a private key.'**
+  String get keysPasteNotAKey;
+
+  /// No description provided for @keysPasteUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This key format can\'t be used. OpenSSH, PEM RSA and PEM EC keys are supported; convert others with ssh-keygen or PuTTYgen.'**
+  String get keysPasteUnsupported;
+
+  /// No description provided for @keysPasteNeedsPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'This key is protected. Enter its passphrase to read it.'**
+  String get keysPasteNeedsPassphrase;
+
+  /// No description provided for @keysPasteWrongPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'That passphrase doesn\'t open this key.'**
+  String get keysPasteWrongPassphrase;
+
+  /// No description provided for @keysPasteDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'This key is damaged or incomplete. Copy it again, including the BEGIN and END lines.'**
+  String get keysPasteDamaged;
+
+  /// No description provided for @keysPasteDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have this key, as {label}.'**
+  String keysPasteDuplicate(String label);
+
+  /// No description provided for @keysPasteSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The key could not be saved to this device\'s secure storage.'**
+  String get keysPasteSaveFailed;
+
+  /// No description provided for @keysPublicKeyHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Public key'**
+  String get keysPublicKeyHeading;
+
+  /// No description provided for @keysFingerprintHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint'**
+  String get keysFingerprintHeading;
 
   /// No description provided for @importTitle.
   ///
@@ -1119,6 +1323,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'now'**
   String get timeNow;
+
+  /// No description provided for @reachabilityUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Reachable · {ms} ms'**
+  String reachabilityUp(int ms);
+
+  /// No description provided for @reachabilityDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unreachable ({reason})'**
+  String reachabilityDown(String reason);
+
+  /// No description provided for @reachabilityTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'timed out'**
+  String get reachabilityTimedOut;
+
+  /// No description provided for @reachabilityRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'connection refused'**
+  String get reachabilityRefused;
+
+  /// No description provided for @reachabilityUnresolved.
+  ///
+  /// In en, this message translates to:
+  /// **'address not found'**
+  String get reachabilityUnresolved;
+
+  /// No description provided for @reachabilityNoRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'no route to host'**
+  String get reachabilityNoRoute;
+
+  /// No description provided for @reachabilityUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked yet'**
+  String get reachabilityUnknown;
+
+  /// No description provided for @reachabilitySession.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected · a session is open'**
+  String get reachabilitySession;
+
+  /// No description provided for @reachabilityCheckedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked just now'**
+  String get reachabilityCheckedNow;
+
+  /// No description provided for @reachabilityCheckedMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Checked 1 min ago} other{Checked {count} min ago}}'**
+  String reachabilityCheckedMinutes(int count);
+
+  /// No description provided for @reachabilityCheckedHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Checked 1 hour ago} other{Checked {count} hours ago}}'**
+  String reachabilityCheckedHours(int count);
+
+  /// No description provided for @settingsReachability.
+  ///
+  /// In en, this message translates to:
+  /// **'Check whether hosts are reachable'**
+  String get settingsReachability;
+
+  /// No description provided for @settingsReachabilityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'While the host list is on screen, briefly opens a connection to each server\'s port — never signs in. Slower checks are kinder to servers with connection limits.'**
+  String get settingsReachabilityBody;
+
+  /// No description provided for @settingsReachabilityOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get settingsReachabilityOff;
+
+  /// No description provided for @settingsReachability30s.
+  ///
+  /// In en, this message translates to:
+  /// **'30 s'**
+  String get settingsReachability30s;
+
+  /// No description provided for @settingsReachability1m.
+  ///
+  /// In en, this message translates to:
+  /// **'1 min'**
+  String get settingsReachability1m;
+
+  /// No description provided for @settingsReachability5m.
+  ///
+  /// In en, this message translates to:
+  /// **'5 min'**
+  String get settingsReachability5m;
 
   /// No description provided for @hostEditorIdentityAny.
   ///
@@ -3625,6 +3931,438 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop'**
   String get terminalStopReconnecting;
+
+  /// No description provided for @settingsTerminalAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal appearance'**
+  String get settingsTerminalAppearance;
+
+  /// No description provided for @settingsTerminalTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal theme'**
+  String get settingsTerminalTheme;
+
+  /// Shown under the default terminal theme, which follows the app's light or dark mode and accent
+  ///
+  /// In en, this message translates to:
+  /// **'Follows light and dark'**
+  String get terminalThemeAdaptive;
+
+  /// No description provided for @terminalThemeFixedDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get terminalThemeFixedDark;
+
+  /// No description provided for @terminalThemeFixedLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get terminalThemeFixedLight;
+
+  /// The prompt in the terminal theme preview. Looks like a user@host prompt
+  ///
+  /// In en, this message translates to:
+  /// **'you@server'**
+  String get terminalPreviewUser;
+
+  /// A shell command in the terminal theme preview. Normally left as-is
+  ///
+  /// In en, this message translates to:
+  /// **'ls'**
+  String get terminalPreviewCommand;
+
+  /// No description provided for @terminalPreviewDirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'docs'**
+  String get terminalPreviewDirectory;
+
+  /// No description provided for @terminalPreviewFile.
+  ///
+  /// In en, this message translates to:
+  /// **'notes.txt'**
+  String get terminalPreviewFile;
+
+  /// No description provided for @terminalPreviewScript.
+  ///
+  /// In en, this message translates to:
+  /// **'deploy.sh'**
+  String get terminalPreviewScript;
+
+  /// No description provided for @terminalPreviewError.
+  ///
+  /// In en, this message translates to:
+  /// **'error: permission denied'**
+  String get terminalPreviewError;
+
+  /// No description provided for @settingsTerminalFont.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal font'**
+  String get settingsTerminalFont;
+
+  /// No description provided for @terminalFontSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System monospace'**
+  String get terminalFontSystem;
+
+  /// No description provided for @settingsCursorShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Cursor'**
+  String get settingsCursorShape;
+
+  /// No description provided for @cursorShapeBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get cursorShapeBlock;
+
+  /// No description provided for @cursorShapeUnderline.
+  ///
+  /// In en, this message translates to:
+  /// **'Underline'**
+  String get cursorShapeUnderline;
+
+  /// No description provided for @cursorShapeBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get cursorShapeBar;
+
+  /// No description provided for @settingsCursorBlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Blinking cursor'**
+  String get settingsCursorBlink;
+
+  /// No description provided for @settingsCursorBlinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Programs such as vim can still change the cursor while they run.'**
+  String get settingsCursorBlinkBody;
+
+  /// No description provided for @settingsScrollback.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrollback'**
+  String get settingsScrollback;
+
+  /// No description provided for @settingsScrollbackValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{lines} lines · applies to new tabs'**
+  String settingsScrollbackValue(int lines);
+
+  /// No description provided for @scrollbackLinesOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{lines} lines'**
+  String scrollbackLinesOption(int lines);
+
+  /// No description provided for @hostEditorTerminalTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal theme'**
+  String get hostEditorTerminalTheme;
+
+  /// No description provided for @hostEditorTerminalThemeDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use default ({name})'**
+  String hostEditorTerminalThemeDefault(String name);
+
+  /// No description provided for @terminalNoticeTmuxSessionGone.
+  ///
+  /// In en, this message translates to:
+  /// **'[the session kept on the server has ended, so this is a new shell]'**
+  String get terminalNoticeTmuxSessionGone;
+
+  /// No description provided for @hostsRunningSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Running sessions…'**
+  String get hostsRunningSessions;
+
+  /// No description provided for @sessionRunningSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions on this server…'**
+  String get sessionRunningSessions;
+
+  /// No description provided for @runningSessionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions on {host}'**
+  String runningSessionsTitle(String host);
+
+  /// No description provided for @runningSessionsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Shells SSHetu keeps running on this server — from this device and your others. Attach one to pick up where you left off: start something on your desktop, carry on from your phone.'**
+  String get runningSessionsIntro;
+
+  /// No description provided for @runningSessionsSharedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Attaching a session that is open on another device shares it: both screens show the same shell, and either can type. Closing a tab attached from here leaves the session running — end it here when you are done.'**
+  String get runningSessionsSharedNote;
+
+  /// No description provided for @runningSessionsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get runningSessionsRefresh;
+
+  /// No description provided for @runningSessionsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not list the sessions on this server'**
+  String get runningSessionsError;
+
+  /// No description provided for @runningSessionsNoTmux.
+  ///
+  /// In en, this message translates to:
+  /// **'tmux is not installed on this server, so SSHetu cannot keep sessions running on it.'**
+  String get runningSessionsNoTmux;
+
+  /// No description provided for @runningSessionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No SSHetu sessions are running on this server'**
+  String get runningSessionsEmpty;
+
+  /// No description provided for @runningSessionsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tabs opened with “Keep sessions running on the server” turned on appear here, from any of your devices, for as long as they run.'**
+  String get runningSessionsEmptyBody;
+
+  /// No description provided for @runningSessionsThisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get runningSessionsThisDevice;
+
+  /// No description provided for @runningSessionsOtherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device ({id})'**
+  String runningSessionsOtherDevice(String id);
+
+  /// No description provided for @runningSessionsOlder.
+  ///
+  /// In en, this message translates to:
+  /// **'An earlier SSHetu version'**
+  String get runningSessionsOlder;
+
+  /// No description provided for @runningSessionsStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'started {age} ago'**
+  String runningSessionsStarted(String age);
+
+  /// No description provided for @runningSessionsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'active {age} ago'**
+  String runningSessionsActive(String age);
+
+  /// No description provided for @runningSessionsRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'running {command}'**
+  String runningSessionsRunning(String command);
+
+  /// No description provided for @runningSessionsAttached.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached elsewhere'**
+  String get runningSessionsAttached;
+
+  /// No description provided for @runningSessionsOpenHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Open here'**
+  String get runningSessionsOpenHere;
+
+  /// No description provided for @runningSessionsAttach.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach'**
+  String get runningSessionsAttach;
+
+  /// No description provided for @runningSessionsShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get runningSessionsShow;
+
+  /// No description provided for @runningSessionsEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get runningSessionsEnd;
+
+  /// No description provided for @runningSessionsEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End this session?'**
+  String get runningSessionsEndTitle;
+
+  /// No description provided for @runningSessionsEndBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything running in it on {host} stops, on every device attached to it. This cannot be undone.'**
+  String runningSessionsEndBody(String host);
+
+  /// No description provided for @runningSessionsEndFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not end the session: {error}'**
+  String runningSessionsEndFailed(String error);
+
+  /// No description provided for @runningSessionsAttachFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not attach: {error}'**
+  String runningSessionsAttachFailed(String error);
+
+  /// No description provided for @settingsReopenTabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen tabs on launch'**
+  String get settingsReopenTabs;
+
+  /// No description provided for @settingsReopenTabsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Brings back the terminal tabs that were open when SSHetu last closed, reattaching the sessions kept on the server.'**
+  String get settingsReopenTabsBody;
+
+  /// No description provided for @settingsReopenTabsAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask'**
+  String get settingsReopenTabsAsk;
+
+  /// No description provided for @settingsReopenTabsAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get settingsReopenTabsAlways;
+
+  /// No description provided for @settingsReopenTabsNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get settingsReopenTabsNever;
+
+  /// No description provided for @restoreTabsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen your tabs?'**
+  String get restoreTabsTitle;
+
+  /// No description provided for @restoreTabsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 terminal tab was open when SSHetu last closed: {hosts}.} other{{count} terminal tabs were open when SSHetu last closed: {hosts}.}}'**
+  String restoreTabsBody(int count, String hosts);
+
+  /// No description provided for @restoreTabsRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Don’t ask again'**
+  String get restoreTabsRemember;
+
+  /// No description provided for @restoreTabsNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get restoreTabsNotNow;
+
+  /// No description provided for @restoreTabsReopen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen'**
+  String get restoreTabsReopen;
+
+  /// No description provided for @hostEditorEnv.
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get hostEditorEnv;
+
+  /// No description provided for @hostEditorEnvHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set in every new shell on this host, exactly as typed. A session already kept on the server keeps the values it started with.'**
+  String get hostEditorEnvHelp;
+
+  /// No description provided for @hostEditorEnvName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get hostEditorEnvName;
+
+  /// No description provided for @hostEditorEnvValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get hostEditorEnvValue;
+
+  /// No description provided for @hostEditorEnvAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add variable'**
+  String get hostEditorEnvAdd;
+
+  /// No description provided for @hostEditorEnvRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove variable'**
+  String get hostEditorEnvRemove;
+
+  /// No description provided for @hostEditorEnvMissingName.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it a name'**
+  String get hostEditorEnvMissingName;
+
+  /// No description provided for @hostEditorEnvInvalidName.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters, digits and _ only, not starting with a digit'**
+  String get hostEditorEnvInvalidName;
+
+  /// No description provided for @hostEditorEnvDuplicateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Already set above'**
+  String get hostEditorEnvDuplicateName;
+
+  /// No description provided for @hostEditorEnvInvalidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot contain a line break'**
+  String get hostEditorEnvInvalidValue;
+
+  /// No description provided for @hostEditorForwardAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward SSH agent'**
+  String get hostEditorForwardAgent;
+
+  /// No description provided for @hostEditorForwardAgentHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Lets this server use your keys to sign in elsewhere while you\'re connected. Only enable it for servers you trust. If the server has AllowAgentForwarding disabled, the connection will fail.'**
+  String get hostEditorForwardAgentHelp;
 }
 
 class _AppLocalizationsDelegate

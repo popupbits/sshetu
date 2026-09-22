@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dartssh2/dartssh2.dart';
 
@@ -24,6 +25,34 @@ typedef HostKeyVerifierFactory = SshHostKeyVerifier Function(
   String hostname,
   int port,
 );
+
+/// The agent a connection answers forwarded requests with, or null for none.
+///
+/// dartssh2 4.0.0 implements the client side of `ssh -A`: given an
+/// `agentHandler`, every `shell()` and `execute()` sends
+/// `auth-agent-req@openssh.com`, and `auth-agent@openssh.com` channels the
+/// server opens back are served by it. [SSHKeyPairAgent] answers
+/// `REQUEST_IDENTITIES` and `SIGN_REQUEST` (including the rsa-sha2-256/512
+/// flags) from in-memory key pairs; it refuses everything else — no adding,
+/// removing, locking, or constraints.
+///
+/// What is offered is exactly [identities]: the keys this connection already
+/// decoded to authenticate to the host. A host that names one key forwards
+/// that key; one that names none forwards whichever keys it was offered. No
+/// extra key is unlocked for the agent's sake.
+///
+/// Null when [forward] is false or there is nothing to offer, so a connection
+/// without forwarding never sends the request at all. That matters beyond
+/// tidiness: dartssh2 treats a refused agent request as fatal to the channel,
+/// so a server with `AllowAgentForwarding no` fails every shell and exec on a
+/// connection that asked.
+SSHAgentHandler? agentHandlerFor(
+  List<SSHKeyPair>? identities, {
+  required bool forward,
+}) {
+  if (!forward || identities == null || identities.isEmpty) return null;
+  return SSHKeyPairAgent(List.unmodifiable(identities));
+}
 
 /// Raised when a connection cannot be established or has been lost.
 ///
@@ -63,7 +92,13 @@ class SshConnection {
     this.connectTimeout = const Duration(seconds: 15),
     this.interactiveTimeout = const Duration(minutes: 5),
     this.maxAttempts = 3,
+    this.forwardAgent = false,
   });
+
+  /// Whether the final host may use this connection's keys through a
+  /// forwarded agent (`ssh -A`). Off unless a caller turns it on; see
+  /// [agentHandlerFor] for what is offered and what is not.
+  final bool forwardAgent;
 
   final SshTarget target;
   final HostKeyVerifierFactory verifierFactory;
@@ -403,6 +438,12 @@ class SshConnection {
       // "connected" until TCP gave up, many minutes later. A bastion keeps
       // dartssh2's, because the watchdog's ping travels through it anyway.
       keepAliveInterval: identical(hop, target) ? null : hop.keepaliveOrNull,
+      // Final hop only: a bastion that can sign with the user's keys is the
+      // exact exposure ProxyJump exists to avoid.
+      agentHandler: agentHandlerFor(
+        identities,
+        forward: forwardAgent && identical(hop, target),
+      ),
       // Not [connectTimeout]: both of these can be waiting on a dialog.
       handshakeTimeout: interactiveTimeout,
       authTimeout: interactiveTimeout,
@@ -502,7 +543,7 @@ class SshConnection {
     final rejected = <String>[];
     for (final key in keys) {
       try {
-        pairs.addAll(SSHKeyPair.fromPem(key.pem, key.passphrase));
+        pairs.addAll(await _decode(key));
       } on Object {
         // One unreadable key among several must not sink the connection: the
         // others may well be the one this server wants. Recorded by label so
@@ -520,6 +561,19 @@ class SshConnection {
       );
     }
     return pairs;
+  }
+
+  /// Decodes one key, off the UI isolate when it has a passphrase.
+  ///
+  /// An encrypted OpenSSH key is opened with bcrypt_pbkdf, which takes about
+  /// half a second at the default rounds on a desktop and more on a phone —
+  /// long enough to freeze the connecting spinner. Unencrypted keys decode in
+  /// microseconds and stay where they are.
+  static Future<List<SSHKeyPair>> _decode(SshPrivateKey key) {
+    final pem = key.pem;
+    final passphrase = key.passphrase;
+    if (passphrase == null) return Future.value(SSHKeyPair.fromPem(pem));
+    return Isolate.run(() => SSHKeyPair.fromPem(pem, passphrase));
   }
 
   void _handleDropped(SSHClient client, Object? error) {

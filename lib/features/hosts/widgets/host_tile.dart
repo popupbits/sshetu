@@ -10,9 +10,11 @@ import '../../../core/ui/context_menu.dart';
 import '../../../core/ui/feedback.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../sessions/connect.dart';
+import '../../sessions/server_sessions.dart';
 import '../domain/ssh_host.dart';
 import '../hosts_controller.dart';
 import 'host_notes_dialog.dart';
+import 'reachability_badge.dart';
 
 /// One saved server, as a row.
 ///
@@ -45,6 +47,11 @@ class HostTile extends ConsumerWidget {
           label: l10n.hostsEdit,
           icon: PiconsRegular.pencilSimple,
           onSelected: () => openHostEditor(context, ref, hostId: host.id),
+        ),
+        MenuAction(
+          label: l10n.hostsRunningSessions,
+          icon: PiconsRegular.stack,
+          onSelected: () => openRunningSessions(context, ref, host),
         ),
         if (host.hasNotes)
           MenuAction(
@@ -85,7 +92,10 @@ class HostTile extends ConsumerWidget {
         // servers at comfortable density is a lot of scrolling for no gain.
         visualDensity: VisualDensity.compact,
         minVerticalPadding: Spacing.sm,
-        leading: _Monogram(host: host),
+        leading: ReachabilityBadge(
+          host: host,
+          child: _Monogram(host: host),
+        ),
         title: Row(
           children: [
             Flexible(
@@ -354,6 +364,11 @@ class _HostMenu extends ConsumerWidget {
           leadingIcon: const Icon(PiconsRegular.pencilSimple),
           onPressed: () => openHostEditor(context, ref, hostId: host.id),
           child: Text(l10n.hostsEdit),
+        ),
+        MenuItemButton(
+          leadingIcon: const Icon(PiconsRegular.stack),
+          onPressed: () => openRunningSessions(context, ref, host),
+          child: Text(l10n.hostsRunningSessions),
         ),
         if (host.hasNotes)
           MenuItemButton(
