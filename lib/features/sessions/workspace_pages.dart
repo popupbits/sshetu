@@ -100,3 +100,24 @@ class WorkspacePages extends Notifier<List<WorkspacePage>> {
 
 final workspacePagesProvider =
     NotifierProvider<WorkspacePages, List<WorkspacePage>>(WorkspacePages.new);
+
+/// Tells a screen that it is showing as the workspace tab [id].
+///
+/// A screen opened with `openInWorkspace` is a route on a phone and a tab on a
+/// desktop, and "I am done" means a different thing in each: pop the route, or
+/// close the tab. `Navigator.maybePop` only knows the first — inside a tab it
+/// finds the shell's navigator, has nothing to pop, and quietly does nothing,
+/// so a saved form stayed open and a second Save wrote a second copy. See
+/// `closeOpenedScreen`.
+class WorkspacePageScope extends InheritedWidget {
+  const WorkspacePageScope({required this.id, required super.child, super.key});
+
+  final String id;
+
+  /// The tab [context] is showing in, or null when it is not in one.
+  static String? idOf(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<WorkspacePageScope>()?.id;
+
+  @override
+  bool updateShouldNotify(WorkspacePageScope oldWidget) => oldWidget.id != id;
+}

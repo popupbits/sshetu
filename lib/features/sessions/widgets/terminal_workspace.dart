@@ -87,7 +87,13 @@ class TerminalWorkspace extends ConsumerWidget {
               // a full diagnostic tree, which is what took the window down.
               ? Material(
                   color: scheme.surface,
-                  child: Builder(key: ValueKey(page.id), builder: page.builder),
+                  child: WorkspacePageScope(
+                    id: page.id,
+                    child: Builder(
+                      key: ValueKey(page.id),
+                      builder: page.builder,
+                    ),
+                  ),
                 )
               : active == null
               ? const SizedBox.shrink()

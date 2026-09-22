@@ -368,6 +368,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hostEditorLegacy => 'Allow legacy algorithms';
 
   @override
+  String get hostEditorLegacyHelp =>
+      'Allows SHA-1 key exchange, ssh-rsa host keys, CBC ciphers and HMAC-MD5 for this host only. These are weak and were removed from the defaults for good reason — turn this on only for equipment that offers nothing else, such as an old switch, router or management controller.';
+
+  @override
   String get hostEditorSave => 'Save';
 
   @override

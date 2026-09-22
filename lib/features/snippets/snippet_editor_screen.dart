@@ -10,6 +10,7 @@ import '../hosts/domain/host_tags.dart';
 import '../hosts/widgets/tag_editor.dart';
 import 'domain/snippet.dart';
 import 'domain/snippet_template.dart';
+import '../sessions/open_in_workspace.dart';
 import 'snippets_controller.dart';
 
 /// Add or edit one snippet.
@@ -91,7 +92,7 @@ class _SnippetEditorScreenState extends ConsumerState<SnippetEditorScreen> {
           );
 
     await ref.read(snippetsControllerProvider).save(snippet);
-    if (mounted) Navigator.of(context).maybePop();
+    if (mounted) closeOpenedScreen(context, ref);
   }
 
   @override

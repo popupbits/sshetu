@@ -758,6 +758,12 @@ abstract class AppLocalizations {
   /// **'Allow legacy algorithms'**
   String get hostEditorLegacy;
 
+  /// Host editor: the warning under the 'Allow legacy algorithms' switch. Names exactly what the switch enables (SshAlgorithmPolicy.permissive in lib/core/ssh/ssh_algorithm_policy.dart) — update both together. Keep the algorithm names as they are.
+  ///
+  /// In en, this message translates to:
+  /// **'Allows SHA-1 key exchange, ssh-rsa host keys, CBC ciphers and HMAC-MD5 for this host only. These are weak and were removed from the defaults for good reason — turn this on only for equipment that offers nothing else, such as an old switch, router or management controller.'**
+  String get hostEditorLegacyHelp;
+
   /// No description provided for @hostEditorSave.
   ///
   /// In en, this message translates to:

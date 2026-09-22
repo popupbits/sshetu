@@ -80,13 +80,7 @@ abstract final class SshAlgorithmPolicy {
   static SSHAlgorithms forHost({required bool allowLegacy}) =>
       allowLegacy ? permissive : modern;
 
-  /// What to tell the user, in the host editor, next to the switch.
-  ///
-  /// Kept here beside the lists so the warning cannot drift away from what the
-  /// lists actually enable.
-  static const String legacyWarning =
-      'Allows SHA-1 key exchange, ssh-rsa host keys, CBC ciphers and HMAC-MD5 '
-      'for this host only. These are weak and were removed from the defaults '
-      'for good reason — turn this on only for equipment that offers nothing '
-      'else, such as an old switch, router or management controller.';
+  // What the host editor tells the user next to the switch is the
+  // `hostEditorLegacyHelp` string in lib/l10n — it names what [permissive]
+  // adds, so a change to these lists changes that string too.
 }

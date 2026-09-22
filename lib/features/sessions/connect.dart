@@ -22,6 +22,7 @@ import '../hosts/widgets/secret_dialog.dart';
 import '../tunnels/tunnel_connect.dart';
 import 'pane_layouts.dart';
 import 'session_manager.dart';
+import 'workspace_pages.dart';
 
 /// Opens a session to [host] and shows its terminal.
 ///
@@ -165,6 +166,12 @@ Future<TerminalSession?> connectToHost(
   // them. A phone has no room for both, so there the terminal is a page.
   if (navigate && !context.useRail) {
     context.pushTo(Routes.terminalFor(session.id));
+  }
+  // What the desktop does need: the new tab uncovered. A page left selected
+  // — Files, a host editor, an import — kept covering the terminal, so
+  // connecting from the host list opened a tab nobody could see.
+  if (navigate && activate && context.useRail) {
+    ref.read(workspacePagesProvider.notifier).deselect();
   }
   return session;
 }

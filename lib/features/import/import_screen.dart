@@ -16,6 +16,7 @@ import '../../l10n/app_localizations.dart';
 import '../keys/domain/ssh_identity.dart';
 import '../export/presentation/json_import_dialog.dart';
 import '../keys/keys_controller.dart';
+import '../sessions/open_in_workspace.dart';
 import 'import_controller.dart';
 import 'putty/putty_import.dart';
 import 'putty/putty_import_dialog.dart';
@@ -150,7 +151,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
     if (mounted) {
       context.toast(l10n.importKeyAdded(label));
-      Navigator.of(context).maybePop();
+      closeOpenedScreen(context, ref);
     }
   }
 
@@ -185,7 +186,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           .import(scan: scan, hostAliases: _hosts, keyPaths: _keys);
       if (!mounted) return;
       context.toast(l10n.importDone(outcome.hosts, outcome.keys));
-      Navigator.of(context).maybePop();
+      closeOpenedScreen(context, ref);
     } on Object catch (e, stackTrace) {
       // Into the on-device log as well as the toast. A toast is gone in three
       // seconds, and this is exactly the failure someone will report later as

@@ -9,6 +9,7 @@ import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import '../hosts/hosts_controller.dart';
+import '../sessions/open_in_workspace.dart';
 import 'domain/tunnel.dart';
 import 'tunnels_controller.dart';
 
@@ -150,7 +151,7 @@ class _TunnelEditorScreenState extends ConsumerState<TunnelEditorScreen> {
           );
 
     await ref.read(tunnelsControllerProvider).save(tunnel);
-    if (mounted) Navigator.of(context).maybePop();
+    if (mounted) closeOpenedScreen(context, ref);
   }
 
   @override

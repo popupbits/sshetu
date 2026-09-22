@@ -153,6 +153,10 @@
   "hostEditorStartup": "Startup command",
   "hostEditorStartupHint": "tmux new -A -s main",
   "hostEditorLegacy": "Allow legacy algorithms",
+  "hostEditorLegacyHelp": "Allows SHA-1 key exchange, ssh-rsa host keys, CBC ciphers and HMAC-MD5 for this host only. These are weak and were removed from the defaults for good reason — turn this on only for equipment that offers nothing else, such as an old switch, router or management controller.",
+  "@hostEditorLegacyHelp": {
+    "description": "Host editor: the warning under the 'Allow legacy algorithms' switch. Names exactly what the switch enables (SshAlgorithmPolicy.permissive in lib/core/ssh/ssh_algorithm_policy.dart) — update both together. Keep the algorithm names as they are."
+  },
   "hostEditorSave": "Save",
   "hostEditorRequired": "Required",
   "hostEditorPortInvalid": "1–65535",

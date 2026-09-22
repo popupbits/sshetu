@@ -369,6 +369,10 @@ class AppLocalizationsNe extends AppLocalizations {
   String get hostEditorLegacy => 'पुराना (लेगेसी) एल्गोरिदमलाई अनुमति दिनुहोस्';
 
   @override
+  String get hostEditorLegacyHelp =>
+      'यो होस्टका लागि मात्र SHA-1 कुञ्जी आदानप्रदान, ssh-rsa होस्ट कुञ्जी, CBC साइफर र HMAC-MD5 लाई अनुमति दिन्छ। यी कमजोर छन् र उचित कारणले पूर्वनिर्धारितबाट हटाइएका हुन् — अरू केही नचल्ने उपकरणका लागि मात्र यो सक्रिय गर्नुहोस्, जस्तै पुरानो स्विच, राउटर वा व्यवस्थापन कन्ट्रोलर।';
+
+  @override
   String get hostEditorSave => 'सेभ गर्नुहोस्';
 
   @override

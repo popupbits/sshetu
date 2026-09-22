@@ -5,7 +5,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
 
 import '../../core/settings/settings_controller.dart';
-import '../../core/ssh/ssh_algorithm_policy.dart';
 import '../../core/ssh/ssh_target.dart';
 import '../../core/theme/terminal_theme.dart';
 import '../../core/theme/terminal_theme_presets.dart';
@@ -20,6 +19,7 @@ import 'domain/host_env.dart';
 import 'domain/host_group.dart';
 import 'domain/host_tags.dart';
 import 'domain/ssh_host.dart';
+import '../sessions/open_in_workspace.dart';
 import 'hosts_controller.dart';
 import '../settings/widgets/terminal_theme_preview.dart';
 import 'widgets/env_vars_editor.dart';
@@ -308,7 +308,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
           );
 
     await ref.read(hostsControllerProvider).save(host);
-    if (mounted) Navigator.of(context).maybePop();
+    if (mounted) closeOpenedScreen(context, ref);
   }
 
   @override
@@ -679,7 +679,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                     // The full warning, not a shortened one: the user is agreeing
                     // to a real downgrade, and this is the moment they decide.
                     subtitle: Text(
-                      SshAlgorithmPolicy.legacyWarning,
+                      l10n.hostEditorLegacyHelp,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
