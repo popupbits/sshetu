@@ -245,9 +245,31 @@ class SshRemoteShell implements RemoteShell {
   @override
   void write(Uint8List data) => _session.write(data);
 
+  /// Tells the server the window changed — unless the channel is gone.
+  ///
+  /// A pane is laid out again the moment its link drops (the "reconnecting"
+  /// bar appears), with this shell still attached until the reconnect
+  /// replaces it. dartssh2 answers a window-change on a terminated channel
+  /// by *rethrowing the error that terminated it*, with the stack captured
+  /// at termination — `SSHStateError(SSH connection closed)` from
+  /// `SSHChannelController._finish` — or `SSHStateError(Transport is
+  /// closed)` in the moment before the channel hears of it. Thrown from the
+  /// terminal's layout, that surfaced in Diagnostics on every drop and cut
+  /// the terminal's own resize short, leaving its buffer at the old size.
+  ///
+  /// Once the arguments are valid, the only way a window-change fails is a
+  /// channel or transport that has already closed, and that closing is
+  /// reported through [done]. Nothing is lost by dropping it: the next shell
+  /// opens at the terminal's current size. Bad arguments are still a bug and
+  /// still throw.
   @override
-  void resize(int width, int height, int pixelWidth, int pixelHeight) =>
+  void resize(int width, int height, int pixelWidth, int pixelHeight) {
+    try {
       _session.resizeTerminal(width, height, pixelWidth, pixelHeight);
+    } on SSHError {
+      // The channel is gone; see above.
+    }
+  }
 
   @override
   void close() => _session.close();

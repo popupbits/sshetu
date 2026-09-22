@@ -84,6 +84,11 @@ class HostOsController extends Notifier<Map<String, HostOsInfo>> {
     } on Object catch (error, stackTrace) {
       // Allowed to try again next connect.
       _asked.remove(hostId);
+      // The link dropping mid-question fails the exec with dartssh2's
+      // `SSHStateError(SSH connection closed)`: the connection going
+      // offline, which the tab already reports, not something wrong with
+      // detection — so it is treated like being offline, not recorded.
+      if (!exec.isConnected) return;
       ErrorLogger.instance.record(error, stackTrace, source: 'os-detect');
     }
   }

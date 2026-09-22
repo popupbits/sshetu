@@ -1,6 +1,8 @@
+import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sshetu/core/error/error_logger.dart';
 import 'package:sshetu/core/settings/settings_controller.dart';
 import 'package:sshetu/features/server_info/data/server_exec.dart';
 import 'package:sshetu/features/server_info/domain/host_os.dart';
@@ -115,6 +117,33 @@ void main() {
       await c.read(hostOsProvider.notifier).detect('w', exec);
       expect(exec.calls.map((c) => c.command), ['sh -s', 'cmd /c ver']);
       expect(c.read(hostOsProvider)['w']?.family, OsFamily.windows);
+    });
+
+    test('the link dropping mid-detection is offline, not an error to record; '
+        'a failure on a live link still is', () async {
+      SharedPreferences.setMockInitialValues({});
+      await ErrorLogger.instance.clear();
+      addTearDown(ErrorLogger.instance.clear);
+      final c = await container();
+      late FakeServerExec exec;
+      exec = FakeServerExec((_, _) {
+        // What a drop does: the connection is gone by the time the exec
+        // fails with it.
+        exec.connected = false;
+        throw SSHStateError('SSH connection closed');
+      });
+      await c.read(hostOsProvider.notifier).detect('h', exec);
+      expect(ErrorLogger.instance.records.value, isEmpty);
+      expect(c.read(hostOsProvider), isEmpty);
+
+      // Not counted as asked: the next connect asks again.
+      exec
+        ..connected = true
+        ..handler = (_, _) => throw StateError('a real bug');
+      await c.read(hostOsProvider.notifier).detect('h', exec);
+      expect(ErrorLogger.instance.records.value.map((r) => r.source), [
+        'os-detect',
+      ]);
     });
 
     test('unknown never overwrites a known answer', () async {

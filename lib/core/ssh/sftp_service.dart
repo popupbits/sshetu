@@ -7,6 +7,47 @@ import 'package:dartssh2/dartssh2.dart';
 import '../util/sort_entries.dart';
 import 'ssh_connection.dart';
 
+/// Runs [body] — a dartssh2 call that starts a channel request it never
+/// awaits — so that request failing with the connection cannot surface as an
+/// uncaught error.
+///
+/// `SSHClient.sftp()` (dartssh2 4.0.0, `ssh_client.dart:652`) sends the
+/// `subsystem` request with `channelController.sendSubsystem('sftp');` and
+/// drops the returned future. If the transport closes before the server's
+/// reply — a drop in the round trip after the SFTP channel opened — dartssh2
+/// fails every pending request on the channel (`SSHClient.
+/// _handleTransportClosed` → `_closeChannels` → `SSHChannelController.
+/// _finish` → `AsyncQueue.closeWithError`), and that one has no listener:
+/// `SSHStateError(SSH connection closed)`, uncaught, from a drop the
+/// connection already reports. Nothing outside dartssh2 can reach the
+/// future, so the zone it is created in is the narrowest place to catch it.
+///
+/// Only [SSHError]s are dropped: what a pending channel request fails with
+/// is always the error that terminated the channel, and dartssh2 raises
+/// nothing else. Anything else uncaught in [body]'s zone — which also runs
+/// the callbacks [body] registers, such as the SFTP client's channel
+/// listener — goes on to the parent zone exactly as before, and from there
+/// to Diagnostics.
+///
+/// [body]'s own result is delivered through a completer made outside the
+/// zone: an error zone does not pass a future's error across its boundary,
+/// so awaiting [body] from out here directly would lose a failure to open.
+Future<T> guardOrphanedChannelReplies<T>(Future<T> Function() body) {
+  final result = Completer<T>();
+  runZoned(
+    () => body().then(result.complete, onError: result.completeError),
+    zoneSpecification: ZoneSpecification(
+      handleUncaughtError: (self, parent, zone, error, stackTrace) {
+        // The connection going away; reported by the connection's state
+        // and by the next SFTP call failing. See above.
+        if (error is SSHError) return;
+        parent.handleUncaughtError(zone, error, stackTrace);
+      },
+    ),
+  );
+  return result.future;
+}
+
 /// One entry in a remote directory listing.
 ///
 /// A domain type rather than the raw `SftpName` dartssh2 hands back: the UI
@@ -313,13 +354,20 @@ class SshSftpService implements SftpService {
   final SshConnection _connection;
   SftpClient? _sftp;
 
+  /// The SSH session [_sftp] was opened on. An SFTP channel lives and dies
+  /// with its session: after a drop the tab reconnects on a *new* session,
+  /// and a browser still holding the old channel failed every call from
+  /// then on until it was closed and reopened.
+  SSHClient? _sftpOwner;
+
   Future<SftpClient> _client() async {
-    final existing = _sftp;
-    if (existing != null) return existing;
     try {
       final ssh = await _connection.client();
-      final sftp = await ssh.sftp();
+      final existing = _sftp;
+      if (existing != null && identical(_sftpOwner, ssh)) return existing;
+      final sftp = await guardOrphanedChannelReplies(ssh.sftp);
       _sftp = sftp;
+      _sftpOwner = ssh;
       return sftp;
     } on SshConnectionException catch (e) {
       throw SftpException(e.message, cause: e);
