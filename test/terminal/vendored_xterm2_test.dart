@@ -230,4 +230,110 @@ void main() {
       expect(output.join(), 'lls');
     });
   });
+
+  group('line reuse on a full scrollback (core/buffer/buffer.dart)', () {
+    // Once the scrollback is full every line feed evicts lines[0], and
+    // upstream allocates a fresh BufferLine for every push — a newline flood
+    // spends most of its time allocating ~2 KB per `\n` and collecting the
+    // line that fell off (`seq`: 6.7 → 20 MB/s with reuse, measured by
+    // throughput_bench_test.dart). The patch pushes the evicted line back as
+    // the new blank one.
+    Terminal fullTerminal({int maxLines = 30, int width = 20}) {
+      final terminal = Terminal(maxLines: maxLines)..resize(width, 5);
+      for (var i = 0; i < maxLines * 3; i++) {
+        terminal.write('fill $i\r\n');
+      }
+      expect(terminal.buffer.lines.isFull, isTrue);
+      return terminal;
+    }
+
+    test('the line that falls off the top becomes the new bottom line', () {
+      final terminal = fullTerminal();
+      final lines = terminal.buffer.lines;
+      final oldest = lines[0];
+
+      terminal.write('\r\n');
+
+      expect(
+        identical(lines[lines.length - 1], oldest),
+        isTrue,
+        reason: 'a full scrollback should recycle the evicted line',
+      );
+      expect(oldest.attached, isTrue);
+      expect(oldest.index, lines.length - 1);
+    });
+
+    test('a reused line is as blank as a new one', () {
+      final terminal = fullTerminal(maxLines: 10, width: 12);
+      final lines = terminal.buffer.lines;
+
+      // Dirty every line with what a fresh line must never inherit: colours
+      // and attributes, a double-underline colour, wide cells, combining
+      // marks, and a soft wrap.
+      for (var i = 0; i < 10; i++) {
+        terminal.write(
+          '\x1b[1;4;31;42;58;2;255;0;0mनमस्ते日本\x1b[0mwrapped-past-the-edge\r\n',
+        );
+      }
+      final dirty = lines[0];
+      expect(dirty.getText().trim(), isNotEmpty);
+
+      terminal.write('\r\n');
+
+      final reused = lines[lines.length - 1];
+      expect(identical(reused, dirty), isTrue);
+      expect(reused.length, terminal.viewWidth);
+      expect(reused.isWrapped, isFalse);
+      expect(reused.hasCombiningCharacters, isFalse);
+      for (var x = 0; x < reused.length; x++) {
+        expect(reused.getCodePoint(x), 0, reason: 'cell $x content');
+        expect(reused.getForeground(x), 0, reason: 'cell $x foreground');
+        expect(reused.getBackground(x), 0, reason: 'cell $x background');
+        expect(reused.getAttributes(x), 0, reason: 'cell $x attributes');
+        expect(reused.getUnderlineColor(x), 0, reason: 'cell $x underline');
+      }
+    });
+
+    test('scrollback holds exactly the newest lines after a long flood', () {
+      // Reuse must never leave one line object in two slots, or two rows of
+      // scrollback would show the same text.
+      final terminal = Terminal(maxLines: 50)..resize(30, 10);
+      for (var i = 0; i < 5000; i++) {
+        terminal.write('row $i\r\n');
+      }
+      final lines = terminal.buffer.lines;
+      final texts = [for (var i = 0; i < lines.length; i++) lines[i].getText()];
+      // The last line is the empty one the cursor sits on.
+      expect(texts.last.trim(), isEmpty);
+      expect(texts.sublist(0, texts.length - 1), [
+        for (var i = 5000 - 49; i < 5000; i++) 'row $i',
+      ]);
+      final unique = {for (var i = 0; i < lines.length; i++) lines[i]};
+      expect(unique.length, lines.length);
+    });
+
+    test('a line holding an anchor is not reused', () {
+      final terminal = fullTerminal();
+      final lines = terminal.buffer.lines;
+      final anchor = terminal.buffer.createAnchor(0, 0);
+      final anchored = lines[0];
+
+      terminal.write('\r\n');
+
+      expect(identical(lines[lines.length - 1], anchored), isFalse);
+      expect(anchor.attached, isFalse);
+      expect(anchored.getText(), isNotEmpty, reason: 'left as it was');
+    });
+
+    test('a reused line takes the current width after a resize', () {
+      final terminal = fullTerminal(width: 20);
+      terminal.resize(33, 5);
+      for (var i = 0; i < 100; i++) {
+        terminal.write('after resize $i\r\n');
+      }
+      final lines = terminal.buffer.lines;
+      expect(lines[lines.length - 1].length, 33);
+      expect(lines[lines.length - 2].getText(), 'after resize 99');
+    });
+  });
 }

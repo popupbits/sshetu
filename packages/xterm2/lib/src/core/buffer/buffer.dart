@@ -925,7 +925,7 @@ class Buffer {
     if (_canScrollUpByPushingLines) {
       final linesToPush = min(count, viewHeight);
       for (var i = 0; i < linesToPush; i++) {
-        lines.push(_newEmptyLine());
+        lines.push(_newLineForPush());
       }
       return;
     }
@@ -957,7 +957,13 @@ class Buffer {
       if (!isInHorizontalMarginOrPendingWrap) return;
       if (_cursorY == _marginBottom) {
         if (marginTop == 0 && !isAltBuffer) {
-          lines.insert(absoluteMarginBottom + 1, _newEmptyLine());
+          final at = absoluteMarginBottom + 1;
+          // An insert at the end is a push; only then is the line it evicts
+          // the one being reused. See [_newLineForPush].
+          lines.insert(
+            at,
+            at == lines.length ? _newLineForPush() : _newEmptyLine(),
+          );
         } else {
           scrollUp(1);
         }
@@ -973,7 +979,7 @@ class Buffer {
       if (isAltBuffer) {
         scrollUp(1);
       } else {
-        lines.push(_newEmptyLine());
+        lines.push(_newLineForPush());
       }
     } else {
       // there're still lines so we simply move cursor down.
@@ -1698,6 +1704,27 @@ class Buffer {
   BufferLine _newEmptyLine([int? width]) {
     final line = BufferLine(width ?? viewWidth);
     return line;
+  }
+
+  /// A blank line of [viewWidth] cells for `lines.push`.
+  ///
+  /// DIVERGENCE (see VENDORED.md). Once the scrollback is full, every push
+  /// evicts `lines[0]`, and upstream allocates a fresh line for every push —
+  /// so a newline flood (`seq`, `find /`, `tail -f` of a busy log) spends
+  /// most of its time allocating one ~2 KB line per `\n` and collecting the
+  /// one that fell off. Reusing the line being evicted instead is the same
+  /// result without the garbage. Only a line nothing points at is reused: one
+  /// holding an anchor (a selection end, a search highlight) is left to be
+  /// detached as before, so the anchor still reads as detached.
+  BufferLine _newLineForPush() {
+    if (lines.isFull) {
+      final oldest = lines[0];
+      if (oldest.anchors.isEmpty) {
+        oldest.resetForReuse(viewWidth);
+        return oldest;
+      }
+    }
+    return _newEmptyLine();
   }
 
   static final defaultWordSeparators = <int>{

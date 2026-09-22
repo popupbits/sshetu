@@ -450,9 +450,19 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
           if (_findOpen)
             TerminalFindBar(key: _findBarKey, find: _find, onClose: _closeFind),
           Expanded(
-            child: ContextMenuRegion(
-              actions: () => _terminalActions(context, session),
-              child: child!,
+            // Tight constraints all the way down, which makes the terminal's
+            // render object a relayout boundary. It relays itself out
+            // whenever output grows the scrollback or moves the viewport;
+            // under this Column's loose width that layout climbed to the
+            // nearest boundary above — the whole screen — and every output
+            // frame repainted the tab strip, pane header and status bar with
+            // it. Same size either way: the terminal always takes the
+            // biggest size it is offered.
+            child: SizedBox.expand(
+              child: ContextMenuRegion(
+                actions: () => _terminalActions(context, session),
+                child: child!,
+              ),
             ),
           ),
           // An accessory to the software keyboard: present only with one, and

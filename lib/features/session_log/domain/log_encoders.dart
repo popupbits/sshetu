@@ -184,18 +184,24 @@ class AsciicastEncoder implements SessionLogEncoder {
     required int columns,
     required int rows,
   }) {
-    final out = <int>[];
     final time = _time(elapsed);
+    List<int>? resized;
     if (columns != _columns || rows != _rows) {
       _columns = columns;
       _rows = rows;
-      out.addAll(_line([time, 'r', '${columns}x$rows']));
+      resized = _line([time, 'r', '${columns}x$rows']);
     }
     _decoder.add(bytes);
     final text = _decoded.toString();
     _decoded.clear();
-    if (text.isNotEmpty) out.addAll(_line([time, 'o', text]));
-    return out;
+    final output = text.isEmpty ? null : _line([time, 'o', text]);
+    // The encoded lines are returned as they are, not copied byte by byte
+    // into a growable list: that copy cost more than the JSON encoding, and
+    // held a `cat` being logged to ~45 MB/s (now ~170; see
+    // test/session_log/log_encoder_perf_test.dart).
+    if (resized == null) return output ?? const [];
+    if (output == null) return resized;
+    return [...resized, ...output];
   }
 
   @override

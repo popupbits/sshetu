@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/scheduler.dart';
 
@@ -95,9 +97,23 @@ class OutputCoalescer {
   final WatchdogCanceller _cancelWatchdog;
   final MonotonicClock _clock;
 
-  final List<int> _pending = [];
+  /// The chunks waiting to be decoded, oldest first, kept as the byte arrays
+  /// they arrived in.
+  ///
+  /// Not one growable `List<int>`: appending to one copies every byte
+  /// individually, taking a flush off the front shifts everything behind it,
+  /// and the UTF-8 decoder's fast path only runs on typed data. Measured, that
+  /// bookkeeping cost as much as xterm2's whole parse — a `cat` ran at half
+  /// the speed the parser could take it. See `throughput_bench_test.dart`.
+  final ListQueue<Uint8List> _chunks = ListQueue<Uint8List>();
+
+  /// How much of `_chunks.first` has already been decoded or dropped.
+  int _headOffset = 0;
+
+  int _pendingBytes = 0;
+
   final StringBuffer _decoded = StringBuffer();
-  late final Sink<List<int>> _decoderSink;
+  late final ByteConversionSink _decoderSink;
 
   Object? _watchdog;
   bool _scheduled = false;
@@ -105,7 +121,7 @@ class OutputCoalescer {
   Duration _lastFlushAt = Duration.zero;
 
   /// Bytes waiting to be decoded. For tests and diagnostics.
-  int get pendingBytes => _pending.length;
+  int get pendingBytes => _pendingBytes;
 
   /// How many bytes have been dropped because the buffer was full.
   ///
@@ -122,11 +138,14 @@ class OutputCoalescer {
     final now = _clock();
     final wasIdle = now - _lastFlushAt >= idleThreshold;
 
-    _pending.addAll(bytes);
+    // Copied: the caller's array may be a view onto a buffer it reuses, and
+    // for typed data the copy is a single block move.
+    _chunks.add(Uint8List.fromList(bytes));
+    _pendingBytes += bytes.length;
 
-    if (_pending.length > maxPendingBytes) {
-      final excess = _pending.length - maxPendingBytes;
-      _pending.removeRange(0, excess);
+    if (_pendingBytes > maxPendingBytes) {
+      final excess = _pendingBytes - maxPendingBytes;
+      _discard(excess);
       droppedBytes += excess;
     }
 
@@ -161,15 +180,19 @@ class OutputCoalescer {
 
   /// Decodes and delivers what is buffered, up to [maxFlushBytes].
   void flush() {
-    if (_disposed || _pending.isEmpty) return;
+    if (_disposed || _pendingBytes == 0) return;
 
-    final take = _pending.length > maxFlushBytes
-        ? maxFlushBytes
-        : _pending.length;
-    final chunk = _pending.sublist(0, take);
-    _pending.removeRange(0, take);
+    var budget = _pendingBytes > maxFlushBytes ? maxFlushBytes : _pendingBytes;
+    _pendingBytes -= budget;
+    while (budget > 0) {
+      final head = _chunks.first;
+      final available = head.length - _headOffset;
+      final take = available > budget ? budget : available;
+      _decoderSink.addSlice(head, _headOffset, _headOffset + take, false);
+      budget -= take;
+      _advanceHead(take, available);
+    }
 
-    _decoderSink.add(chunk);
     final text = _decoded.toString();
     _decoded.clear();
 
@@ -178,7 +201,28 @@ class OutputCoalescer {
 
     // Carried remainder: come back for it next frame rather than blowing the
     // budget now.
-    if (_pending.isNotEmpty) _schedule();
+    if (_pendingBytes > 0) _schedule();
+  }
+
+  /// Drops the oldest [count] pending bytes, undecoded.
+  void _discard(int count) {
+    _pendingBytes -= count;
+    while (count > 0) {
+      final available = _chunks.first.length - _headOffset;
+      final take = available > count ? count : available;
+      count -= take;
+      _advanceHead(take, available);
+    }
+  }
+
+  /// Consumes [taken] of the head chunk's [available] remaining bytes.
+  void _advanceHead(int taken, int available) {
+    if (taken == available) {
+      _chunks.removeFirst();
+      _headOffset = 0;
+    } else {
+      _headOffset += taken;
+    }
   }
 
   void dispose() {
@@ -187,7 +231,9 @@ class OutputCoalescer {
     final handle = _watchdog;
     if (handle != null) _cancelWatchdog(handle);
     _watchdog = null;
-    _pending.clear();
+    _chunks.clear();
+    _headOffset = 0;
+    _pendingBytes = 0;
     // Not closed: closing a chunked UTF-8 decoder mid-sequence throws, and a
     // session torn down between two bytes of a character is ordinary.
   }

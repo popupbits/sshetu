@@ -534,6 +534,27 @@ class BufferLine with IndexedItem {
     }
   }
 
+  /// Makes this line what `BufferLine(length)` would be — blank, not wrapped,
+  /// no combining characters or underline colours — keeping its storage when
+  /// it is already the right size.
+  ///
+  /// DIVERGENCE (see VENDORED.md): for `Buffer._newLineForPush`, which reuses
+  /// the line a full scrollback is about to evict. Only for a line nothing
+  /// else refers to, hence no anchors.
+  void resetForReuse(int length) {
+    assert(_anchors.isEmpty);
+    final size = _calcCapacity(length) * _cellSize;
+    if (_data.length == size) {
+      _data.fillRange(0, size, 0);
+    } else {
+      _data = Uint32List(size);
+    }
+    _length = length;
+    isWrapped = false;
+    _combiningCharacters = null;
+    _underlineColors = null;
+  }
+
   void resize(int length) {
     assert(length >= 0);
 

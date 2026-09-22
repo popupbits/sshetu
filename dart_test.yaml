@@ -11,3 +11,8 @@ tags:
   # catch a regression rather than a slow runner. They are cheap, so they run
   # by default; exclude with --exclude-tags perf if a machine is pathological.
   perf:
+
+  # Full-size benchmarks: minutes, not seconds. Skipped by default; run with
+  # `flutter test --run-skipped --tags bench`.
+  bench:
+    skip: "full-size benchmark; run with: flutter test --run-skipped --tags bench"
