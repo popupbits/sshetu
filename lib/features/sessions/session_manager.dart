@@ -324,7 +324,11 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       startupCommand: host.startupCommand,
       // A tab picking up a kept session keeps it, whatever the setting says
       // now: turning it off is about new tabs, not about abandoning old ones.
-      keepOnServer: tmuxName != null || settings.keepSessionsOnServer,
+      // A new tab follows the host's own choice, which defaults to the
+      // app-wide setting.
+      keepOnServer:
+          tmuxName != null ||
+          host.tmuxMode.resolve(globalDefault: settings.keepSessionsOnServer),
       tmuxName: tmuxName ?? newTmuxSessionName(ref.read(deviceIdProvider)),
       env: host.envVars,
       resuming: resuming && tmuxName != null,
@@ -338,6 +342,7 @@ class SessionManager extends Notifier<List<TerminalSession>> {
         reconnected: l10n.terminalNoticeReconnected,
         tmuxUnavailable: l10n.terminalNoticeTmuxUnavailable,
         tmuxSessionGone: l10n.terminalNoticeTmuxSessionGone,
+        restartedInTmux: l10n.terminalNoticeRestartedInTmux,
       ),
     );
 
@@ -363,6 +368,17 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       );
     }
     return session;
+  }
+
+  /// Reopens [id]'s shell inside tmux — once tmux has been installed, or
+  /// when the user asks from the tab's menu. The plain shell, and whatever
+  /// was running in it, is closed; the caller has already said so.
+  Future<void> restartInTmux(String id) async {
+    final session = byId(id);
+    if (session == null) return;
+    await session.restartInTmux();
+    // Its tmux name is now worth remembering for the next launch.
+    _publish();
   }
 
   /// An open tab's connection to [hostId], if one is live.

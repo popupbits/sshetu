@@ -121,6 +121,7 @@ void main() {
       expect(merged.label, 'web-1');
       expect(merged.notes, web.notes);
       expect(merged.envVars, web.envVars);
+      expect(merged.tmuxMode, web.tmuxMode);
       // History: the older record's creation, the later connection.
       expect(merged.createdAt, DateTime.utc(2025));
       expect(merged.lastConnectedAt, DateTime.utc(2027));

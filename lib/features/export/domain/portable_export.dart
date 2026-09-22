@@ -271,6 +271,7 @@ class PortableExport {
     'jumpHostId': h.jumpHostId,
     'allowLegacyAlgorithms': h.allowLegacyAlgorithms,
     'forwardAgent': h.forwardAgent,
+    'tmuxMode': h.tmuxMode.exportValue,
     'keepaliveSeconds': h.keepaliveSeconds,
     'startupCommand': h.startupCommand,
     'terminalTheme': h.terminalTheme,
@@ -363,6 +364,8 @@ class PortableExport {
       jumpHostId: r.optString('jumpHostId'),
       allowLegacyAlgorithms: r.optBool('allowLegacyAlgorithms') ?? false,
       forwardAgent: r.optBool('forwardAgent') ?? false,
+      // Missing (a file from before v7) or unknown follows the setting.
+      tmuxMode: HostTmuxMode.fromStorage(r.optString('tmuxMode')),
       keepaliveSeconds: r.optInt('keepaliveSeconds') ?? 30,
       startupCommand: r.optString('startupCommand'),
       terminalTheme: r.optString('terminalTheme'),

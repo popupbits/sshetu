@@ -56,6 +56,10 @@ abstract interface class RemoteShell {
 abstract interface class ShellLauncher {
   Future<RemoteShell> open({required int columns, required int rows});
 
+  /// Makes every later [open] try tmux, for a tab whose shell is being
+  /// restarted inside it.
+  void enableTmux();
+
   /// Ends what [open] left running on the server, if anything outlives the
   /// connection. Called when the user closes the tab or disconnects on
   /// purpose — never when the link merely drops.
@@ -66,7 +70,7 @@ abstract interface class ShellLauncher {
 class SshShellLauncher implements ShellLauncher {
   SshShellLauncher({
     required this.connection,
-    required this.keepOnServer,
+    required this._keepOnServer,
     required this.tmuxName,
     this.env = const {},
     this.ownsSession = true,
@@ -78,8 +82,12 @@ class SshShellLauncher implements ShellLauncher {
 
   /// Whether to try tmux at all. Decided once per tab: turning the setting
   /// off does not orphan a tab that is already running in tmux, because its
-  /// reconnects still reattach.
-  final bool keepOnServer;
+  /// reconnects still reattach. Only ever turned on later — see [enableTmux].
+  bool get keepOnServer => _keepOnServer;
+  bool _keepOnServer;
+
+  @override
+  void enableTmux() => _keepOnServer = true;
 
   /// This tab's tmux session name. See [tmuxSessionName].
   final String tmuxName;

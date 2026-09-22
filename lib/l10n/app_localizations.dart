@@ -5975,6 +5975,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More ways to import'**
   String get importMoreSources;
+
+  /// No description provided for @hostEditorTmuxMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep sessions running on this server (tmux)'**
+  String get hostEditorTmuxMode;
+
+  /// No description provided for @hostEditorTmuxModeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs each tab inside tmux, so a dropped connection picks up where it left off. Default follows the setting in Settings → Terminal.'**
+  String get hostEditorTmuxModeHelp;
+
+  /// No description provided for @hostEditorTmuxModeDefaultOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (currently on)'**
+  String get hostEditorTmuxModeDefaultOn;
+
+  /// No description provided for @hostEditorTmuxModeDefaultOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (currently off)'**
+  String get hostEditorTmuxModeDefaultOff;
+
+  /// No description provided for @hostEditorTmuxModeAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get hostEditorTmuxModeAlways;
+
+  /// No description provided for @hostEditorTmuxModeNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get hostEditorTmuxModeNever;
+
+  /// No description provided for @tmuxInstallPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'tmux isn\'t installed on {host}, so this session won\'t survive a dropped connection. Install it?'**
+  String tmuxInstallPrompt(String host);
+
+  /// No description provided for @tmuxInstallCommandLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This command will run on the server:'**
+  String get tmuxInstallCommandLabel;
+
+  /// No description provided for @tmuxInstallCommandLabelTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'This command will run in this terminal:'**
+  String get tmuxInstallCommandLabelTerminal;
+
+  /// No description provided for @tmuxInstallPasswordNote.
+  ///
+  /// In en, this message translates to:
+  /// **'sudo will ask for your password in the terminal. SSHetu never sees it.'**
+  String get tmuxInstallPasswordNote;
+
+  /// No description provided for @tmuxInstallAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Install'**
+  String get tmuxInstallAction;
+
+  /// No description provided for @tmuxInstallActionTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Run in terminal'**
+  String get tmuxInstallActionTerminal;
+
+  /// No description provided for @tmuxInstallNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get tmuxInstallNotNow;
+
+  /// No description provided for @tmuxInstallNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never for this host'**
+  String get tmuxInstallNever;
+
+  /// No description provided for @tmuxInstallRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing tmux on {host}…'**
+  String tmuxInstallRunning(String host);
+
+  /// No description provided for @tmuxInstallSucceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'tmux is installed. Restart this session in tmux? The shell in this tab closes, and anything running in it stops.'**
+  String get tmuxInstallSucceeded;
+
+  /// No description provided for @tmuxInstallRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart in tmux'**
+  String get tmuxInstallRestart;
+
+  /// No description provided for @tmuxInstallLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get tmuxInstallLater;
+
+  /// No description provided for @tmuxInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing tmux failed:'**
+  String get tmuxInstallFailed;
+
+  /// No description provided for @tmuxInstallFailedStaleLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing tmux failed: the server\'s package lists are out of date. Update them and try again?'**
+  String get tmuxInstallFailedStaleLists;
+
+  /// No description provided for @tmuxInstallUpdateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Update and install'**
+  String get tmuxInstallUpdateAction;
+
+  /// No description provided for @tmuxInstallDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get tmuxInstallDismiss;
+
+  /// No description provided for @tmuxInstallTyped.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your sudo password in the terminal. When the install finishes, restart this session in tmux — the shell in this tab closes, and anything running in it stops.'**
+  String get tmuxInstallTyped;
+
+  /// No description provided for @tmuxInstallUnknownManager.
+  ///
+  /// In en, this message translates to:
+  /// **'tmux isn\'t installed on {host}, and SSHetu doesn\'t recognise its package manager. Install tmux with the server\'s own tools to keep sessions running.'**
+  String tmuxInstallUnknownManager(String host);
+
+  /// No description provided for @tmuxInstallNoPrivilege.
+  ///
+  /// In en, this message translates to:
+  /// **'tmux isn\'t installed on {host}. Installing it needs root, and this account has no sudo. Ask the server\'s administrator to install tmux.'**
+  String tmuxInstallNoPrivilege(String host);
+
+  /// No description provided for @terminalRestartInTmux.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart in tmux'**
+  String get terminalRestartInTmux;
+
+  /// No description provided for @terminalNoticeRestartedInTmux.
+  ///
+  /// In en, this message translates to:
+  /// **'[restarted in tmux]'**
+  String get terminalNoticeRestartedInTmux;
+
+  /// No description provided for @tmuxRestartConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart this session in tmux?'**
+  String get tmuxRestartConfirmTitle;
+
+  /// No description provided for @tmuxRestartConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The shell in this tab closes, and anything running in it stops. A new shell opens inside tmux, so it survives a dropped connection.'**
+  String get tmuxRestartConfirmBody;
+
+  /// No description provided for @tmuxRestartConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart'**
+  String get tmuxRestartConfirmAction;
 }
 
 class _AppLocalizationsDelegate

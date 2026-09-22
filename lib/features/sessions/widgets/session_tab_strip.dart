@@ -14,6 +14,7 @@ import '../../server_info/server_info_dock.dart';
 import '../../session_log/session_log_actions.dart';
 import '../../session_log/session_log_controller.dart';
 import '../../session_log/widgets/session_log_dot.dart';
+import '../restart_in_tmux.dart';
 import '../server_sessions.dart';
 import '../session_manager.dart';
 import '../workspace_pages.dart';
@@ -106,6 +107,14 @@ class SessionTabStrip extends ConsumerWidget {
                         // is still there to read — which is the whole
                         // difference between disconnecting and closing.
                         onSelected: session.disconnect,
+                      ),
+                    if (session.canRestartInTmux)
+                      MenuAction(
+                        label: AppLocalizations.of(context)
+                            .terminalRestartInTmux,
+                        icon: PiconsRegular.arrowsClockwise,
+                        onSelected: () =>
+                            confirmRestartInTmux(context, ref, session),
                       ),
                     MenuAction(
                       label: AppLocalizations.of(context)

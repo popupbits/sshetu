@@ -535,6 +535,7 @@ class JsonImportPlan {
       jumpHostId: jump == existing.id ? null : jump,
       allowLegacyAlgorithms: incoming.allowLegacyAlgorithms,
       forwardAgent: incoming.forwardAgent,
+      tmuxMode: incoming.tmuxMode,
       keepaliveSeconds: incoming.keepaliveSeconds,
       startupCommand: incoming.startupCommand,
       terminalTheme: incoming.terminalTheme,

@@ -1,0 +1,11 @@
+-- v7 — per-host choice of keeping sessions running on the server in tmux.
+--
+-- tmux_mode: NULL follows the app-wide "Keep sessions running on the server"
+-- setting; 'always' tries tmux on this host whatever the setting says;
+-- 'never' never does, and never offers to install it. Any other value is
+-- read as NULL, so a value written by a newer build changes nothing here.
+--
+-- Nullable with no default, so a transfer or backup from v4–v6, whose host
+-- rows have no such column, still inserts cleanly and lands following the
+-- setting — the behaviour those hosts had before this column existed.
+ALTER TABLE hosts ADD COLUMN tmux_mode TEXT;

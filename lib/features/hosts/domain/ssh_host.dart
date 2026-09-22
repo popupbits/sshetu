@@ -1,6 +1,9 @@
 import 'dart:math';
 
 import '../../../core/ssh/ssh_target.dart';
+import 'host_tmux_mode.dart';
+
+export 'host_tmux_mode.dart';
 
 /// A saved server.
 ///
@@ -29,6 +32,7 @@ class SshHost {
     this.tags = const [],
     this.envVars = const {},
     this.forwardAgent = false,
+    this.tmuxMode = HostTmuxMode.followDefault,
     this.lastConnectedAt,
   });
 
@@ -77,6 +81,10 @@ class SshHost {
   /// Whether this server may use the keys this app holds to sign in
   /// elsewhere while connected. Off by default; see [SshTarget.forwardAgent].
   final bool forwardAgent;
+
+  /// Whether this host's tabs are kept running in tmux — the app-wide
+  /// setting, unless overridden here. See [HostTmuxMode].
+  final HostTmuxMode tmuxMode;
 
   /// Whether there is anything in [notes] worth showing.
   bool get hasNotes => notes?.trim().isNotEmpty ?? false;
@@ -182,6 +190,7 @@ class SshHost {
     List<String>? tags,
     Map<String, String>? envVars,
     bool? forwardAgent,
+    HostTmuxMode? tmuxMode,
     DateTime? lastConnectedAt,
     DateTime? updatedAt,
   }) => SshHost(
@@ -207,6 +216,7 @@ class SshHost {
     tags: tags ?? this.tags,
     envVars: envVars ?? this.envVars,
     forwardAgent: forwardAgent ?? this.forwardAgent,
+    tmuxMode: tmuxMode ?? this.tmuxMode,
     lastConnectedAt: lastConnectedAt ?? this.lastConnectedAt,
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,

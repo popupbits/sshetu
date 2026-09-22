@@ -62,6 +62,7 @@ final web = SshHost(
   jumpHostId: 'h-bastion',
   allowLegacyAlgorithms: true,
   forwardAgent: true,
+  tmuxMode: HostTmuxMode.never,
   keepaliveSeconds: 0,
   startupCommand: 'tmux new -A -s main',
   terminalTheme: 'dracula',

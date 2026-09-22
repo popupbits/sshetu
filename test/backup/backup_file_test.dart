@@ -207,6 +207,21 @@ void main() {
     expect(rows.single['forward_agent'], 1);
   });
 
+  test('the v7 tmux choice is backed up and restored', () async {
+    await seed();
+    await source.raw.update('hosts', {
+      'tmux_mode': 'always',
+    }, where: "id = 'h0'");
+
+    final opened = await BackupFile.read(
+      bytes: await backup(),
+      passphrase: 'correct horse battery staple',
+    );
+    await opened.payload.apply(destination.raw, vault: destinationVault);
+    final rows = await destination.raw.query('hosts', where: "id = 'h0'");
+    expect(rows.single['tmux_mode'], 'always');
+  });
+
   test('what it holds is known only after opening it', () async {
     await seed(hosts: 3);
 

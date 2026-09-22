@@ -112,6 +112,7 @@ A saved server.
 | `jumpHostId` | string \| null | another `hosts[].id` to connect through (`ProxyJump`) |
 | `allowLegacyAlgorithms` | boolean | re-enables SHA-1 key exchange, `ssh-rsa` host keys and CBC ciphers for this host only |
 | `forwardAgent` | boolean | `ForwardAgent` |
+| `tmuxMode` | string | keep this host's sessions running on the server in tmux: `default` (follow the app setting), `always` or `never`. Missing or unknown values read as `default`. |
 | `keepaliveSeconds` | integer | `0` turns keepalives off; default `30` |
 | `startupCommand` | string \| null | run once the shell opens |
 | `terminalTheme` | string \| null | a terminal colour preset id; `null` follows the app |

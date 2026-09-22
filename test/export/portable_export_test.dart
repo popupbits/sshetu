@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sshetu/features/export/domain/portable_export.dart';
+import 'package:sshetu/features/hosts/domain/ssh_host.dart';
 
 import 'sample_config.dart';
 
@@ -212,6 +213,46 @@ void main() {
       final host = PortableExport.fromJson(json).hosts
           .firstWhere((h) => h.id == 'h-web');
       expect(host.envVars, {'GOOD': 'yes'});
+    });
+
+    test('a file from before tmuxMode existed follows the setting', () {
+      final json = jsonDecode(sampleExport().encode()) as Map<String, Object?>;
+      for (final host in json['hosts']! as List) {
+        (host as Map).remove('tmuxMode');
+      }
+      final hosts = PortableExport.fromJson(json).hosts;
+      expect(
+        hosts.map((h) => h.tmuxMode),
+        everyElement(HostTmuxMode.followDefault),
+      );
+    });
+
+    test('an unknown tmuxMode follows the setting', () {
+      final json = jsonDecode(sampleExport().encode()) as Map<String, Object?>;
+      ((json['hosts']! as List)[1] as Map)['tmuxMode'] = 'sometimes';
+      final host = PortableExport.fromJson(json).hosts
+          .firstWhere((h) => h.id == 'h-web');
+      expect(host.tmuxMode, HostTmuxMode.followDefault);
+    });
+  });
+
+  group('tmuxMode', () {
+    test('every choice is written by name and read back', () {
+      for (final mode in HostTmuxMode.values) {
+        final json = PortableExport.hostJson(
+          web.copyWith(tmuxMode: mode),
+          null,
+        );
+        expect(json['tmuxMode'], switch (mode) {
+          HostTmuxMode.followDefault => 'default',
+          HostTmuxMode.always => 'always',
+          HostTmuxMode.never => 'never',
+        });
+      }
+      final text = sampleExport().encode();
+      final host = PortableExport.decode(text).hosts
+          .firstWhere((h) => h.id == 'h-web');
+      expect(host.tmuxMode, HostTmuxMode.never);
     });
   });
 }

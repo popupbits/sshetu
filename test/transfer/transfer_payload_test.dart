@@ -427,6 +427,78 @@ void main() {
     });
   });
 
+  group('host column added in v7: tmux_mode', () {
+    test('travels with the host', () async {
+      await seed();
+      await source.raw.update('hosts', {
+        'tmux_mode': 'never',
+      }, where: "id = 'h1'");
+
+      final payload = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      await TransferPayload.fromJson(payload.toJson())
+          .apply(destination.raw, vault: destinationVault);
+
+      final row = (await destination.raw.query('hosts')).single;
+      expect(row['tmux_mode'], 'never');
+    });
+
+    test('a v6 payload still applies', () {
+      expect(TransferPayload.canApply(6), isTrue);
+      expect(TransferPayload.oldestApplicableSchema, lessThanOrEqualTo(6));
+    });
+
+    test('...and its hosts land following the setting', () async {
+      await seed();
+      final current = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      final json = current.toJson();
+      final tables = Map<String, Object?>.from(json['tables']! as Map);
+      tables['hosts'] = [
+        for (final row in tables['hosts']! as List)
+          Map<String, Object?>.from(row as Map)..remove('tmux_mode'),
+      ];
+      final fromV6 = TransferPayload.fromJson({
+        ...json,
+        'schema': 6,
+        'tables': tables,
+      });
+
+      await fromV6.apply(destination.raw, vault: destinationVault);
+
+      final row = (await destination.raw.query('hosts')).single;
+      expect(row['hostname'], 'web.example.com');
+      expect(row['tmux_mode'], isNull);
+    });
+
+    test('an older payload leaves a choice made here alone', () async {
+      await seed();
+      final current = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      // The host already exists here, set to "always".
+      await current.apply(destination.raw, vault: destinationVault);
+      await destination.raw.update('hosts', {'tmux_mode': 'always'});
+
+      final json = current.toJson();
+      final tables = Map<String, Object?>.from(json['tables']! as Map);
+      tables['hosts'] = [
+        for (final row in tables['hosts']! as List)
+          Map<String, Object?>.from(row as Map)..remove('tmux_mode'),
+      ];
+      await TransferPayload.fromJson({...json, 'schema': 6, 'tables': tables})
+          .apply(destination.raw, vault: destinationVault);
+
+      final row = (await destination.raw.query('hosts')).single;
+      expect(row['tmux_mode'], 'always');
+    });
+  });
+
   test('the payload survives JSON, which is how it travels', () async {
     await seed();
     final original = await (await TransferPayload.read(

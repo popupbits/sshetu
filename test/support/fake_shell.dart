@@ -39,6 +39,12 @@ class FakeLauncher implements ShellLauncher {
     return shell;
   }
 
+  /// Whether [enableTmux] was called.
+  var tmuxEnabled = false;
+
+  @override
+  void enableTmux() => tmuxEnabled = true;
+
   @override
   Future<void> discard() async => discards++;
 }

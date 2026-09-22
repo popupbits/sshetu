@@ -3725,4 +3725,109 @@ class AppLocalizationsNe extends AppLocalizations {
 
   @override
   String get importMoreSources => 'आयात गर्ने थप तरिकाहरू';
+
+  @override
+  String get hostEditorTmuxMode => 'यो सर्भरमा सेसनहरू चलिरहन दिनुहोस् (tmux)';
+
+  @override
+  String get hostEditorTmuxModeHelp =>
+      'हरेक ट्याबलाई tmux भित्र चलाउँछ, ताकि जडान टुटे पनि जहाँ छोडिएको थियो त्यहीँबाट सुरु हुन्छ। पूर्वनिर्धारितले सेटिङ → टर्मिनलको सेटिङ पछ्याउँछ।';
+
+  @override
+  String get hostEditorTmuxModeDefaultOn => 'पूर्वनिर्धारित (अहिले चालू)';
+
+  @override
+  String get hostEditorTmuxModeDefaultOff => 'पूर्वनिर्धारित (अहिले बन्द)';
+
+  @override
+  String get hostEditorTmuxModeAlways => 'सधैँ';
+
+  @override
+  String get hostEditorTmuxModeNever => 'कहिल्यै होइन';
+
+  @override
+  String tmuxInstallPrompt(String host) {
+    return '$host मा tmux स्थापना गरिएको छैन, त्यसैले जडान टुटेमा यो सेसन बाँच्दैन। स्थापना गर्ने?';
+  }
+
+  @override
+  String get tmuxInstallCommandLabel => 'सर्भरमा यो कमान्ड चल्नेछ:';
+
+  @override
+  String get tmuxInstallCommandLabelTerminal =>
+      'यो टर्मिनलमा यो कमान्ड चल्नेछ:';
+
+  @override
+  String get tmuxInstallPasswordNote =>
+      'sudo ले टर्मिनलमै तपाईंको पासवर्ड माग्नेछ। SSHetu ले त्यो कहिल्यै देख्दैन।';
+
+  @override
+  String get tmuxInstallAction => 'स्थापना गर्नुहोस्';
+
+  @override
+  String get tmuxInstallActionTerminal => 'टर्मिनलमा चलाउनुहोस्';
+
+  @override
+  String get tmuxInstallNotNow => 'अहिले होइन';
+
+  @override
+  String get tmuxInstallNever => 'यो होस्टमा कहिल्यै होइन';
+
+  @override
+  String tmuxInstallRunning(String host) {
+    return '$host मा tmux स्थापना हुँदैछ…';
+  }
+
+  @override
+  String get tmuxInstallSucceeded =>
+      'tmux स्थापना भयो। यो सेसन tmux मा फेरि सुरु गर्ने? यो ट्याबको शेल बन्द हुन्छ, र त्यसमा चलिरहेको सबै कुरा रोकिन्छ।';
+
+  @override
+  String get tmuxInstallRestart => 'tmux मा फेरि सुरु गर्नुहोस्';
+
+  @override
+  String get tmuxInstallLater => 'पछि';
+
+  @override
+  String get tmuxInstallFailed => 'tmux स्थापना गर्न सकिएन:';
+
+  @override
+  String get tmuxInstallFailedStaleLists =>
+      'tmux स्थापना गर्न सकिएन: सर्भरको प्याकेज सूची पुरानो भइसकेको छ। सूची अद्यावधिक गरेर फेरि प्रयास गर्ने?';
+
+  @override
+  String get tmuxInstallUpdateAction => 'अद्यावधिक गरेर स्थापना गर्नुहोस्';
+
+  @override
+  String get tmuxInstallDismiss => 'हटाउनुहोस्';
+
+  @override
+  String get tmuxInstallTyped =>
+      'टर्मिनलमा आफ्नो sudo पासवर्ड हाल्नुहोस्। स्थापना सकिएपछि यो सेसन tmux मा फेरि सुरु गर्नुहोस् — यो ट्याबको शेल बन्द हुन्छ, र त्यसमा चलिरहेको सबै कुरा रोकिन्छ।';
+
+  @override
+  String tmuxInstallUnknownManager(String host) {
+    return '$host मा tmux स्थापना गरिएको छैन, र SSHetu ले यसको प्याकेज म्यानेजर चिन्दैन। सेसनहरू चलिरहन दिन सर्भरकै उपकरणहरूले tmux स्थापना गर्नुहोस्।';
+  }
+
+  @override
+  String tmuxInstallNoPrivilege(String host) {
+    return '$host मा tmux स्थापना गरिएको छैन। यसलाई स्थापना गर्न root चाहिन्छ, र यो खातामा sudo छैन। सर्भरको प्रशासकलाई tmux स्थापना गर्न भन्नुहोस्।';
+  }
+
+  @override
+  String get terminalRestartInTmux => 'tmux मा फेरि सुरु गर्नुहोस्';
+
+  @override
+  String get terminalNoticeRestartedInTmux => '[tmux मा फेरि सुरु भयो]';
+
+  @override
+  String get tmuxRestartConfirmTitle => 'यो सेसन tmux मा फेरि सुरु गर्ने?';
+
+  @override
+  String get tmuxRestartConfirmBody =>
+      'यो ट्याबको शेल बन्द हुन्छ, र त्यसमा चलिरहेको सबै कुरा रोकिन्छ। tmux भित्र नयाँ शेल खुल्छ, त्यसैले जडान टुटे पनि त्यो बाँच्छ।';
+
+  @override
+  String get tmuxRestartConfirmAction => 'फेरि सुरु गर्नुहोस्';
 }

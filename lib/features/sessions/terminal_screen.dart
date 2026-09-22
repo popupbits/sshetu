@@ -18,6 +18,7 @@ import '../session_log/widgets/session_log_dot.dart';
 import '../server_info/server_info_panel.dart';
 import '../snippets/open_snippets.dart';
 import '../../l10n/app_localizations.dart';
+import 'restart_in_tmux.dart';
 import 'server_sessions.dart';
 import 'session_manager.dart';
 import 'terminal_find_request.dart';
@@ -165,8 +166,23 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
                 _MoreAction.log => unawaited(
                   toggleSessionLog(context, ref, session),
                 ),
+                _MoreAction.restartInTmux => unawaited(
+                  confirmRestartInTmux(context, ref, session),
+                ),
               },
               itemBuilder: (context) => [
+                // A plain shell moved into tmux — after installing tmux in
+                // the terminal, typically. The strip's menu has it too, but
+                // the strip is hidden with a single tab on a phone.
+                if (session.canRestartInTmux)
+                  PopupMenuItem(
+                    key: const Key('terminal.restartInTmux'),
+                    value: _MoreAction.restartInTmux,
+                    child: _MoreItem(
+                      icon: PiconsRegular.arrowsClockwise,
+                      label: l10n.terminalRestartInTmux,
+                    ),
+                  ),
                 // What else SSHetu keeps running on this server — from this
                 // device or another one. The strip, and its menu, is hidden
                 // with a single tab on a phone, so it is reachable here.
@@ -257,7 +273,14 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
   }
 }
 
-enum _MoreAction { runningSessions, serverInfo, ports, keySetup, log }
+enum _MoreAction {
+  runningSessions,
+  serverInfo,
+  ports,
+  keySetup,
+  log,
+  restartInTmux,
+}
 
 /// An icon and a label, the shape of every row in the terminal's More menu.
 class _MoreItem extends StatelessWidget {

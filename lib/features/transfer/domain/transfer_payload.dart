@@ -70,6 +70,11 @@ class TransferPayload {
   /// agent forwarding off. Over a host that already has them here, an older
   /// payload leaves both as they are: rows are written by UPDATE, which sets
   /// only the columns the sender sent.
+  ///
+  /// v7 added `hosts.tmux_mode` (nullable, no default) and did not raise it
+  /// either, for the same reason: an older host row lacks it, inserts
+  /// cleanly, and follows the app-wide tmux setting — which is exactly how
+  /// that host behaved before the column existed.
   /// Dropping or renaming a column, or adding a NOT NULL one without a
   /// default, is the kind of change that must raise it.
   static const int oldestApplicableSchema = 4;

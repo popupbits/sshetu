@@ -472,6 +472,61 @@ void main() {
     });
   });
 
+  group('v7 — per-host tmux choice', () {
+    test('a host without a choice has NULL: follow the setting', () async {
+      await insertHost('h1');
+      final row = (await db.query('hosts')).single;
+      expect(row.containsKey('tmux_mode'), isTrue);
+      expect(row['tmux_mode'], isNull);
+    });
+
+    test('always and never are stored as written', () async {
+      await insertHost('h1');
+      await insertHost('h2');
+      await db.update('hosts', {'tmux_mode': 'always'}, where: "id = 'h1'");
+      await db.update('hosts', {'tmux_mode': 'never'}, where: "id = 'h2'");
+      final rows = await db.query('hosts', orderBy: 'id');
+      expect(rows.map((r) => r['tmux_mode']), ['always', 'never']);
+    });
+
+    test('upgrading a v6 database keeps every host and its columns', () async {
+      final old = await databaseFactory.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(singleInstance: false),
+      );
+      addTearDown(old.close);
+      await old.execute('PRAGMA foreign_keys = ON');
+      Future<String> load(String path) async => File(path).readAsString();
+      for (final migration in migrations.take(6)) {
+        await migration.run(old, load);
+      }
+      await old.insert('hosts', {
+        'id': 'h1',
+        'label': 'h1',
+        'hostname': 'h1.example.com',
+        'username': 'root',
+        'env_vars': '{"A":"1"}',
+        'forward_agent': 1,
+        'created_at': t,
+        'updated_at': t,
+      });
+
+      await migrations[6].run(old, load);
+
+      final row = (await old.query('hosts')).single;
+      expect(row['env_vars'], '{"A":"1"}');
+      expect(row['forward_agent'], 1);
+      expect(row['tmux_mode'], isNull);
+      await old.update('hosts', {'tmux_mode': 'never'});
+      expect((await old.query('hosts')).single['tmux_mode'], 'never');
+    });
+
+    test('is the latest schema', () {
+      expect(kSchemaVersion, 7);
+      expect(migrations, hasLength(7));
+    });
+  });
+
   group('no table stores a secret', () {
     test('no column is named like a credential', () async {
       final tables = (await db.query(

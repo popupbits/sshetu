@@ -3723,4 +3723,110 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importMoreSources => 'More ways to import';
+
+  @override
+  String get hostEditorTmuxMode =>
+      'Keep sessions running on this server (tmux)';
+
+  @override
+  String get hostEditorTmuxModeHelp =>
+      'Runs each tab inside tmux, so a dropped connection picks up where it left off. Default follows the setting in Settings → Terminal.';
+
+  @override
+  String get hostEditorTmuxModeDefaultOn => 'Default (currently on)';
+
+  @override
+  String get hostEditorTmuxModeDefaultOff => 'Default (currently off)';
+
+  @override
+  String get hostEditorTmuxModeAlways => 'Always';
+
+  @override
+  String get hostEditorTmuxModeNever => 'Never';
+
+  @override
+  String tmuxInstallPrompt(String host) {
+    return 'tmux isn\'t installed on $host, so this session won\'t survive a dropped connection. Install it?';
+  }
+
+  @override
+  String get tmuxInstallCommandLabel => 'This command will run on the server:';
+
+  @override
+  String get tmuxInstallCommandLabelTerminal =>
+      'This command will run in this terminal:';
+
+  @override
+  String get tmuxInstallPasswordNote =>
+      'sudo will ask for your password in the terminal. SSHetu never sees it.';
+
+  @override
+  String get tmuxInstallAction => 'Install';
+
+  @override
+  String get tmuxInstallActionTerminal => 'Run in terminal';
+
+  @override
+  String get tmuxInstallNotNow => 'Not now';
+
+  @override
+  String get tmuxInstallNever => 'Never for this host';
+
+  @override
+  String tmuxInstallRunning(String host) {
+    return 'Installing tmux on $host…';
+  }
+
+  @override
+  String get tmuxInstallSucceeded =>
+      'tmux is installed. Restart this session in tmux? The shell in this tab closes, and anything running in it stops.';
+
+  @override
+  String get tmuxInstallRestart => 'Restart in tmux';
+
+  @override
+  String get tmuxInstallLater => 'Later';
+
+  @override
+  String get tmuxInstallFailed => 'Installing tmux failed:';
+
+  @override
+  String get tmuxInstallFailedStaleLists =>
+      'Installing tmux failed: the server\'s package lists are out of date. Update them and try again?';
+
+  @override
+  String get tmuxInstallUpdateAction => 'Update and install';
+
+  @override
+  String get tmuxInstallDismiss => 'Dismiss';
+
+  @override
+  String get tmuxInstallTyped =>
+      'Enter your sudo password in the terminal. When the install finishes, restart this session in tmux — the shell in this tab closes, and anything running in it stops.';
+
+  @override
+  String tmuxInstallUnknownManager(String host) {
+    return 'tmux isn\'t installed on $host, and SSHetu doesn\'t recognise its package manager. Install tmux with the server\'s own tools to keep sessions running.';
+  }
+
+  @override
+  String tmuxInstallNoPrivilege(String host) {
+    return 'tmux isn\'t installed on $host. Installing it needs root, and this account has no sudo. Ask the server\'s administrator to install tmux.';
+  }
+
+  @override
+  String get terminalRestartInTmux => 'Restart in tmux';
+
+  @override
+  String get terminalNoticeRestartedInTmux => '[restarted in tmux]';
+
+  @override
+  String get tmuxRestartConfirmTitle => 'Restart this session in tmux?';
+
+  @override
+  String get tmuxRestartConfirmBody =>
+      'The shell in this tab closes, and anything running in it stops. A new shell opens inside tmux, so it survives a dropped connection.';
+
+  @override
+  String get tmuxRestartConfirmAction => 'Restart';
 }

@@ -44,7 +44,12 @@ class TerminalNotices {
         'dropped connection]',
     this.tmuxSessionGone =
         '[the session kept on the server has ended; this is a new shell]',
+    this.restartedInTmux = '[restarted in tmux]',
   });
+
+  /// The tab's plain shell was closed and reopened inside tmux, at the
+  /// user's request.
+  final String restartedInTmux;
 
   /// The tab expected to pick up a session kept on the server — reopened
   /// from last time, or attached from the server's list — and it was gone.
@@ -89,7 +94,7 @@ class TerminalSession extends ChangeNotifier {
     required this.connection,
     this.startupCommand,
     this.scrollbackLines = kScrollbackLines,
-    this.keepOnServer = false,
+    bool keepOnServer = false,
     String? tmuxName,
     this.env = const {},
     this.resuming = false,
@@ -100,7 +105,8 @@ class TerminalSession extends ChangeNotifier {
     @visibleForTesting Future<bool> Function()? probe,
     @visibleForTesting ReconnectTimerFactory? reconnectTimer,
     @visibleForTesting DateTime Function()? clock,
-  }) : tmuxName = tmuxName ?? tmuxSafeName('$kTmuxNamePrefix$id') {
+  }) : _keepOnServer = keepOnServer,
+       tmuxName = tmuxName ?? tmuxSafeName('$kTmuxNamePrefix$id') {
     _launcher =
         launcher ??
         SshShellLauncher(
@@ -183,8 +189,9 @@ class TerminalSession extends ChangeNotifier {
 
   /// Whether this tab's shell is kept running on the server, in tmux, so a
   /// reconnect reattaches to it. Falls back to a plain shell where the
-  /// server has no tmux.
-  final bool keepOnServer;
+  /// server has no tmux. Turned on later only by [restartInTmux].
+  bool get keepOnServer => _keepOnServer;
+  bool _keepOnServer;
 
   /// The tmux session this tab lives in on the server, when [keepOnServer].
   ///
@@ -310,6 +317,48 @@ class TerminalSession extends ChangeNotifier {
     }
   }
 
+  /// Set while [restartInTmux] is opening the new shell, so it is announced
+  /// as a restart rather than as a reconnect.
+  bool _restarting = false;
+
+  /// Whether this tab's shell is a plain one that [restartInTmux] could move
+  /// into tmux.
+  bool get canRestartInTmux =>
+      isLive &&
+      (_origin == ShellOrigin.plain || _origin == ShellOrigin.plainWithoutTmux);
+
+  /// Closes this tab's plain shell and opens a new one inside tmux — once
+  /// tmux has been installed, or when the user asks for it.
+  ///
+  /// **Whatever was running in the plain shell ends with it.** Only ever
+  /// called after the user has been told that and chosen it. From here on the
+  /// tab behaves as if tmux had been on from the start: a drop reattaches,
+  /// and closing the tab ends the tmux session. Where tmux is still missing,
+  /// the new shell is a plain one again and says so.
+  Future<void> restartInTmux() async {
+    if (_disposed || _restarting) return;
+    if (reconnect.phase == ReconnectPhase.connecting) return;
+    reconnect.stop();
+    _keepOnServer = true;
+    _launcher.enableTmux();
+    _toldNoTmux = false;
+    // Forgotten before it is closed, so its channel closing is not read as a
+    // drop to recover from — see [_onShellDone], which ignores a shell that
+    // is no longer this tab's.
+    final previous = _shell;
+    _shell = null;
+    _detachShell();
+    previous?.close();
+    _restarting = true;
+    try {
+      await _open();
+    } on Object catch (e) {
+      _failWith(e);
+    } finally {
+      _restarting = false;
+    }
+  }
+
   /// One automatic attempt. Throws on failure so the loop can decide what
   /// comes next; the tab goes back to "waiting" meanwhile.
   Future<void> _reconnectOnce() async {
@@ -347,6 +396,8 @@ class TerminalSession extends ChangeNotifier {
         : null;
     if (history != null) {
       _replaceWithHistory(history, reconnecting: reconnecting);
+    } else if (_restarting) {
+      _writeNotice('${notices.restartedInTmux}\r\n');
     } else if (reconnecting) {
       if (shell.origin == ShellOrigin.tmuxReattached) {
         // tmux clears the screen when it attaches and redraws the pane as it

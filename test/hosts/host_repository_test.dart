@@ -152,6 +152,47 @@ void main() {
       expect((await repository.byId('h1'))!.envVars, isEmpty);
     });
 
+    test(
+      'the tmux choice round-trips, and default is stored as NULL',
+      () async {
+        expect(host('h0').tmuxMode, HostTmuxMode.followDefault);
+        Future<Object?> stored() async =>
+            (await database.raw.query('hosts')).single['tmux_mode'];
+
+        await repository.save(host('h1'));
+        expect(await stored(), isNull);
+        expect(
+          (await repository.byId('h1'))!.tmuxMode,
+          HostTmuxMode.followDefault,
+        );
+
+        for (final mode in [HostTmuxMode.always, HostTmuxMode.never]) {
+          final current = (await repository.byId('h1'))!;
+          await repository.save(current.copyWith(tmuxMode: mode));
+          expect(await stored(), mode.storageValue);
+          expect((await repository.byId('h1'))!.tmuxMode, mode);
+        }
+
+        final current = (await repository.byId('h1'))!;
+        await repository.save(
+          current.copyWith(tmuxMode: HostTmuxMode.followDefault),
+        );
+        expect(await stored(), isNull);
+      },
+    );
+
+    test(
+      'a tmux choice this build does not know follows the setting',
+      () async {
+        await repository.save(host('h1'));
+        await database.raw.update('hosts', {'tmux_mode': 'sometimes'});
+        expect(
+          (await repository.byId('h1'))!.tmuxMode,
+          HostTmuxMode.followDefault,
+        );
+      },
+    );
+
     test('a host with no tags reads back with an empty list, not [""]', () async {
       // The join/split round trip is the classic place an empty string becomes
       // a phantom tag that then shows up as a blank chip in the UI.

@@ -88,6 +88,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
   String? _jumpHostId;
   var _allowLegacy = false;
   var _forwardAgent = false;
+  var _tmuxMode = HostTmuxMode.followDefault;
   var _loaded = false;
   SshHost? _existing;
 
@@ -161,6 +162,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
     _jumpHostId = host.jumpHostId;
     _allowLegacy = host.allowLegacyAlgorithms;
     _forwardAgent = host.forwardAgent;
+    _tmuxMode = host.tmuxMode;
     _groupId = host.groupId;
     _tags = [...host.tags];
     _notes.text = host.notes ?? '';
@@ -260,6 +262,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
             jumpHostId: _jumpHostId,
             allowLegacyAlgorithms: _allowLegacy,
             forwardAgent: _forwardAgent,
+            tmuxMode: _tmuxMode,
             startupCommand: _startup.text.trim().isEmpty
                 ? null
                 : _startup.text.trim(),
@@ -285,6 +288,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
             clearJumpHostId: _jumpHostId == null,
             allowLegacyAlgorithms: _allowLegacy,
             forwardAgent: _forwardAgent,
+            tmuxMode: _tmuxMode,
             startupCommand: _startup.text.trim().isEmpty
                 ? null
                 : _startup.text.trim(),
@@ -698,6 +702,14 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                     contentPadding: EdgeInsets.zero,
                   ),
                   const SizedBox(height: Spacing.lg),
+                  _TmuxModeChoice(
+                    // Re-keyed once the host has loaded, like the other
+                    // controls that read their value once.
+                    key: ValueKey('tmux-$_loaded'),
+                    value: _tmuxMode,
+                    onChanged: (mode) => setState(() => _tmuxMode = mode),
+                  ),
+                  const SizedBox(height: Spacing.lg),
                   TextFormField(
                     controller: _keepalive,
                     keyboardType: TextInputType.number,
@@ -866,6 +878,61 @@ class _FontSizeOverride extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Whether this host's tabs are kept running on the server in tmux: the
+/// app-wide setting (named, with what it currently is), or always, or never.
+class _TmuxModeChoice extends ConsumerWidget {
+  const _TmuxModeChoice({
+    required this.value,
+    required this.onChanged,
+    super.key,
+  });
+
+  final HostTmuxMode value;
+  final ValueChanged<HostTmuxMode> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final globalOn = ref.watch(
+      settingsControllerProvider.select((s) => s.keepSessionsOnServer),
+    );
+
+    return DropdownButtonFormField<HostTmuxMode>(
+      key: const Key('hostEditor.tmuxMode'),
+      isExpanded: true,
+      initialValue: value,
+      decoration: InputDecoration(
+        labelText: l10n.hostEditorTmuxMode,
+        helperText: l10n.hostEditorTmuxModeHelp,
+        helperMaxLines: 3,
+        border: const OutlineInputBorder(),
+      ),
+      items: [
+        DropdownMenuItem(
+          value: HostTmuxMode.followDefault,
+          child: Text(
+            globalOn
+                ? l10n.hostEditorTmuxModeDefaultOn
+                : l10n.hostEditorTmuxModeDefaultOff,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        DropdownMenuItem(
+          value: HostTmuxMode.always,
+          child: Text(l10n.hostEditorTmuxModeAlways),
+        ),
+        DropdownMenuItem(
+          value: HostTmuxMode.never,
+          child: Text(l10n.hostEditorTmuxModeNever),
+        ),
+      ],
+      onChanged: (mode) {
+        if (mode != null) onChanged(mode);
+      },
     );
   }
 }

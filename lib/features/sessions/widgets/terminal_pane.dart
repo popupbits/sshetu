@@ -32,6 +32,7 @@ import 'terminal_find_bar.dart';
 import 'terminal_key_bar.dart';
 import 'pane_status_bar.dart';
 import 'terminal_link_sheet.dart';
+import 'tmux_install_banner.dart';
 
 /// One session's terminal, with the chrome that belongs to the pane itself.
 ///
@@ -444,6 +445,8 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
       builder: (context, child) => Column(
         children: [
           if (!session.isLive) PaneStatusBar(session: session),
+          // Offers to install tmux where it was wanted and is missing.
+          TmuxInstallBanner(session: session),
           if (_findOpen)
             TerminalFindBar(key: _findBarKey, find: _find, onClose: _closeFind),
           Expanded(
