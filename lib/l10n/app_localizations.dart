@@ -1168,6 +1168,24 @@ abstract class AppLocalizations {
   /// **'You have no keys yet.'**
   String get secretNoKeys;
 
+  /// Title of the dialog showing questions the SSH server asks during keyboard-interactive sign-in (a password, a one-time code), used when the server gives no title of its own
+  ///
+  /// In en, this message translates to:
+  /// **'Server sign-in'**
+  String get interactiveAuthTitle;
+
+  /// Button that sends the answers typed into the server sign-in dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get interactiveAuthSubmit;
+
+  /// Label for an answer field when the server's question has no text
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get interactiveAuthAnswerLabel;
+
   /// No description provided for @knownHostsTitle.
   ///
   /// In en, this message translates to:
@@ -1227,6 +1245,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Security'**
   String get settingsSecurity;
+
+  /// No description provided for @settingsAppLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Require unlock for saved credentials'**
+  String get settingsAppLock;
+
+  /// Subtitle of the app-lock switch. The PIN fallback is mentioned on purpose: the lock never relies on biometrics alone.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you with a fingerprint, your face or the device PIN before a saved password or key is used.'**
+  String get settingsAppLockBody;
+
+  /// No description provided for @settingsAppLockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a screen lock, fingerprint, face or Windows Hello on this device first.'**
+  String get settingsAppLockUnavailable;
+
+  /// No description provided for @settingsAppLockCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not confirmed, so the setting was not changed.'**
+  String get settingsAppLockCancelled;
+
+  /// No description provided for @settingsAppLockLockedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Unlock your device, then try again.'**
+  String get settingsAppLockLockedOut;
+
+  /// No description provided for @settingsAppLockFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This device could not confirm it\'s you.'**
+  String get settingsAppLockFailed;
+
+  /// Shown by the system's fingerprint, face or PIN prompt when turning the lock on.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you to lock your saved credentials'**
+  String get appLockEnableReason;
+
+  /// No description provided for @appLockDisableReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you to stop locking your saved credentials'**
+  String get appLockDisableReason;
+
+  /// Shown by the system's fingerprint, face or PIN prompt when a connection needs a saved password or key.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock your saved SSH credentials'**
+  String get appLockUnlockReason;
 
   /// No description provided for @filesTitle.
   ///
@@ -1929,6 +2001,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} items are deleted permanently. This cannot be undone.'**
   String filesDeleteSelectedBody(int count);
+
+  /// Row menu action, dialog title and confirm button for renaming a file or folder. F2 does the same on a keyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get filesRename;
+
+  /// Pane header action and dialog title for creating a folder in the pane's current directory.
+  ///
+  /// In en, this message translates to:
+  /// **'New folder'**
+  String get filesNewFolder;
+
+  /// No description provided for @filesCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get filesCreate;
+
+  /// No description provided for @filesNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get filesNameLabel;
+
+  /// No description provided for @filesNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get filesNameEmpty;
+
+  /// No description provided for @filesNameSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **'A name cannot contain a path separator such as /'**
+  String get filesNameSeparator;
+
+  /// No description provided for @filesNameReserved.
+  ///
+  /// In en, this message translates to:
+  /// **'“.” and “..” are reserved and cannot be used as names'**
+  String get filesNameReserved;
+
+  /// No description provided for @filesNameExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Something called {name} is already here'**
+  String filesNameExists(String name);
+
+  /// Shown when a file action fails for a reason the app did not anticipate; the error itself is recorded in the diagnostics log.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not work. Details are in Settings → Diagnostics.'**
+  String get filesActionFailed;
+
+  /// No description provided for @filesConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some files are already there'**
+  String get filesConflictTitle;
+
+  /// Asked once per folder transfer when files with the same names exist at the destination.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 file in {name} already exists at the destination.} other{{count} files in {name} already exist at the destination.}} The choice applies to all of them.'**
+  String filesConflictBody(int count, String name);
+
+  /// No description provided for @filesConflictOverwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite'**
+  String get filesConflictOverwrite;
+
+  /// No description provided for @filesConflictSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip existing'**
+  String get filesConflictSkip;
+
+  /// A folder transfer that is still listing its contents and checking the destination.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing…'**
+  String get filesFolderPreparing;
+
+  /// No description provided for @filesFolderProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} files'**
+  String filesFolderProgress(int done, int total);
+
+  /// A folder transfer that was cancelled or failed partway; the files already finished were kept.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} files transferred'**
+  String filesFolderTransferred(int done, int total);
+
+  /// Symlinks, which a folder transfer never follows, plus folders past its depth limit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} skipped (links or too deep)'**
+  String filesFolderSkipped(int count);
+
+  /// Files a folder transfer did not copy because they already existed and the user chose Skip existing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} already there'**
+  String filesFolderExistingSkipped(int count);
 
   /// No description provided for @importPickKeyFile.
   ///
@@ -2709,6 +2889,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The -i path was ignored. SSHetu uses the keys it holds; choose one under Advanced options.'**
   String get hostEditorIdentityFileIgnored;
+
+  /// No description provided for @hostsNewGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get hostsNewGroup;
+
+  /// No description provided for @hostsShowNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get hostsShowNotes;
+
+  /// No description provided for @hostsTagFilterClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear tag filter'**
+  String get hostsTagFilterClear;
+
+  /// No description provided for @hostGroupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get hostGroupName;
+
+  /// No description provided for @hostGroupCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get hostGroupCreate;
+
+  /// No description provided for @hostGroupRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename group'**
+  String get hostGroupRename;
+
+  /// No description provided for @hostGroupRenameAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get hostGroupRenameAction;
+
+  /// No description provided for @hostGroupDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete group'**
+  String get hostGroupDelete;
+
+  /// No description provided for @hostGroupDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String hostGroupDeleteConfirm(String name);
+
+  /// No description provided for @hostGroupDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The group is removed. Its hosts are kept and move to Ungrouped.'**
+  String get hostGroupDeleteBody;
+
+  /// No description provided for @hostGroupUngrouped.
+  ///
+  /// In en, this message translates to:
+  /// **'Ungrouped'**
+  String get hostGroupUngrouped;
+
+  /// No description provided for @hostGroupEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No hosts in this group yet. Choose it in a host\'s editor.'**
+  String get hostGroupEmpty;
+
+  /// No description provided for @hostGroupCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse {name}'**
+  String hostGroupCollapse(String name);
+
+  /// No description provided for @hostGroupExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand {name}'**
+  String hostGroupExpand(String name);
+
+  /// No description provided for @hostEditorOrganise.
+  ///
+  /// In en, this message translates to:
+  /// **'Organise'**
+  String get hostEditorOrganise;
+
+  /// No description provided for @hostEditorGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get hostEditorGroup;
+
+  /// No description provided for @hostEditorGroupNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No group'**
+  String get hostEditorGroupNone;
+
+  /// No description provided for @hostEditorGroupNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New group…'**
+  String get hostEditorGroupNew;
+
+  /// No description provided for @hostEditorTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get hostEditorTags;
+
+  /// No description provided for @hostEditorTagsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a tag, then Enter or a comma'**
+  String get hostEditorTagsHint;
+
+  /// No description provided for @hostEditorTagAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get hostEditorTagAdd;
+
+  /// No description provided for @hostEditorNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get hostEditorNotes;
+
+  /// No description provided for @hostEditorNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything worth remembering about this server'**
+  String get hostEditorNotesHint;
+
+  /// No description provided for @hostEditorKeepalive.
+  ///
+  /// In en, this message translates to:
+  /// **'Keepalive interval'**
+  String get hostEditorKeepalive;
+
+  /// No description provided for @hostEditorKeepaliveSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'seconds'**
+  String get hostEditorKeepaliveSuffix;
+
+  /// No description provided for @hostEditorKeepaliveHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'0 turns keepalives off. A shorter interval keeps mobile connections from being dropped while idle.'**
+  String get hostEditorKeepaliveHelp;
+
+  /// No description provided for @hostEditorKeepaliveInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'0–3600'**
+  String get hostEditorKeepaliveInvalid;
+
+  /// No description provided for @hostEditorFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal font size'**
+  String get hostEditorFontSize;
+
+  /// No description provided for @hostEditorFontSizeDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the app default ({size})'**
+  String hostEditorFontSizeDefault(String size);
+
+  /// No description provided for @hostEditorFontSizeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Zooming in the terminal changes the app default, not this host.'**
+  String get hostEditorFontSizeHelp;
+
+  /// Terminal context menu item and phone app-bar tooltip that opens the find-in-scrollback bar
+  ///
+  /// In en, this message translates to:
+  /// **'Find'**
+  String get terminalFind;
+
+  /// No description provided for @menuFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find…'**
+  String get menuFind;
+
+  /// No description provided for @terminalFindHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Find in scrollback'**
+  String get terminalFindHint;
+
+  /// Which search match is current, counted from the newest
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String terminalFindCount(int current, int total);
+
+  /// Like terminalFindCount, when the search stopped at its result limit
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}+'**
+  String terminalFindCountCapped(int current, int total);
+
+  /// No description provided for @terminalFindNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get terminalFindNoMatches;
+
+  /// No description provided for @terminalFindInvalidPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid pattern'**
+  String get terminalFindInvalidPattern;
+
+  /// No description provided for @terminalFindCaseSensitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Match case'**
+  String get terminalFindCaseSensitive;
+
+  /// No description provided for @terminalFindRegex.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular expression'**
+  String get terminalFindRegex;
+
+  /// No description provided for @terminalFindOlder.
+  ///
+  /// In en, this message translates to:
+  /// **'Older match (Enter)'**
+  String get terminalFindOlder;
+
+  /// No description provided for @terminalFindNewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Newer match (Shift+Enter)'**
+  String get terminalFindNewer;
+
+  /// No description provided for @terminalFindClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close (Esc)'**
+  String get terminalFindClose;
+
+  /// No description provided for @terminalOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open link'**
+  String get terminalOpenLink;
+
+  /// No description provided for @terminalCopyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get terminalCopyLink;
+
+  /// No description provided for @terminalLinkSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open this link?'**
+  String get terminalLinkSheetTitle;
+
+  /// No description provided for @terminalLinkRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'SSHetu only opens http, https and mailto links.'**
+  String get terminalLinkRefused;
+
+  /// No description provided for @terminalLinkOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link.'**
+  String get terminalLinkOpenFailed;
+
+  /// No description provided for @terminalLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get terminalLinkCopied;
+
+  /// No description provided for @pasteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste and run?'**
+  String get pasteConfirmTitle;
+
+  /// No description provided for @pasteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This text contains a line break, so pasting it will run {count, plural, =1{a command} other{commands}} at a shell prompt.'**
+  String pasteConfirmBody(int count);
+
+  /// No description provided for @pasteConfirmLineCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 line} other{{count} lines}}'**
+  String pasteConfirmLineCount(int count);
+
+  /// No description provided for @pasteConfirmMoreLines.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{…and 1 more line} other{…and {count} more lines}}'**
+  String pasteConfirmMoreLines(int count);
+
+  /// Control characters, escape sequences or invisible direction marks stripped from pasted text
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 hidden character removed} other{{count} hidden characters removed}}'**
+  String pasteHiddenRemoved(int count);
+
+  /// No description provided for @pasteDontAskAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t ask again'**
+  String get pasteDontAskAgain;
+
+  /// No description provided for @pasteConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get pasteConfirmAction;
+
+  /// No description provided for @settingsTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal'**
+  String get settingsTerminal;
+
+  /// No description provided for @settingsConfirmPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm multi-line paste'**
+  String get settingsConfirmPaste;
+
+  /// No description provided for @settingsConfirmPasteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask before pasting text with a line break, which would run commands.'**
+  String get settingsConfirmPasteBody;
 }
 
 class _AppLocalizationsDelegate

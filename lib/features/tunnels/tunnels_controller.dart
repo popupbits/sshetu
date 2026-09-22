@@ -100,6 +100,7 @@ class TunnelRunnerManager extends Notifier<Map<String, TunnelRunnerStatus>> {
     required SshHost host,
     required HostKeyTrustDecision onUnknownHostKey,
     required SecretPrompt prompt,
+    required KeyboardInteractivePrompter interactivePrompt,
   }) async {
     final runner = _runners.putIfAbsent(
       tunnel.id,
@@ -109,6 +110,7 @@ class TunnelRunnerManager extends Notifier<Map<String, TunnelRunnerStatus>> {
           host,
           onUnknownHostKey: onUnknownHostKey,
           prompt: prompt,
+          interactivePrompt: interactivePrompt,
         )).client(),
       ),
     );
@@ -149,6 +151,7 @@ class TunnelRunnerManager extends Notifier<Map<String, TunnelRunnerStatus>> {
     SshHost host, {
     required HostKeyTrustDecision onUnknownHostKey,
     required SecretPrompt prompt,
+    required KeyboardInteractivePrompter interactivePrompt,
   }) async {
     final sessions = ref.read(sessionManagerProvider.notifier);
 
@@ -162,6 +165,7 @@ class TunnelRunnerManager extends Notifier<Map<String, TunnelRunnerStatus>> {
       host,
       onUnknownHostKey: onUnknownHostKey,
       prompt: prompt,
+      interactivePrompt: interactivePrompt,
     );
     _ownedConnections[host.id] = connection;
     return connection;

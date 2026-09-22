@@ -252,6 +252,56 @@ void main() {
     expect(verifiedTarget.identityId, 'k1');
   });
 
+  test('verification refuses keyboard-interactive, even a PAM password prompt '
+      'with a password saved', () async {
+    // The side door: a PAM server with password auth disabled asks for the
+    // password through keyboard-interactive. Answering it here would let
+    // the saved password verify a key that does not work.
+    await vault.write(SecretRef.hostPassword('h1'), 'hunter2');
+    late SshCredentialSource offered;
+    await setUpKey(
+      service(verify: (t, credentials) async => offered = credentials),
+    );
+
+    const passwordRound = KeyboardInteractiveChallenge(
+      prompts: [KeyboardInteractivePrompt('Password: ', echo: false)],
+      round: 0,
+    );
+    const codeRound = KeyboardInteractiveChallenge(
+      prompts: [KeyboardInteractivePrompt('Verification code: ', echo: true)],
+      round: 1,
+    );
+
+    expect(await offered.keyboardInteractive(target, passwordRound), isNull);
+    expect(await offered.keyboardInteractive(target, codeRound), isNull);
+    expect((offered as KeyOnlyCredentials).askedInteractively, isTrue);
+  });
+
+  test('a server that asks interactively is reported as such', () async {
+    await expectLater(
+      service(
+        verify: (t, credentials) async {
+          await credentials.keyboardInteractive(
+            t,
+            const KeyboardInteractiveChallenge(
+              prompts: [KeyboardInteractivePrompt('Code: ', echo: true)],
+              round: 0,
+            ),
+          );
+          throw Exception('auth failed');
+        },
+      ).run_(target: target, publicKey: key, privateKey: privateKey),
+      throwsA(
+        isA<KeySetupException>().having(
+          (e) => e.message,
+          'message',
+          contains('a password or a code'),
+        ),
+      ),
+    );
+    expect(ran, contains(KeySetupScripts.rollback));
+  });
+
   test('a host with no saved password still installs and verifies', () async {
     final result = await service().run_(
       target: target,

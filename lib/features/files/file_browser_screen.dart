@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,7 @@ import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import '../sessions/session_manager.dart';
 import 'file_browser_controller.dart';
+import 'widgets/file_actions.dart';
 import 'widgets/local_pane.dart';
 import 'widgets/remote_pane.dart';
 import 'widgets/transfer_tile.dart';
@@ -148,17 +150,35 @@ class _FileBrowserScreenState extends ConsumerState<FileBrowserScreen> {
             ],
           ),
         ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: context.isCompact
-                    ? _CompactBrowser(controller: controller)
-                    : _WideBrowser(controller: controller),
+        // F2 renames the one selected entry, the key every desktop file
+        // manager uses for it. Bound here rather than per pane so it works
+        // wherever focus sits in the browser, including the path field; with
+        // no hardware keyboard it simply never fires.
+        body: CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.f2): () => unawaited(
+              renameFromShortcut(
+                context,
+                controller,
+                bothPanesVisible: !context.isCompact,
               ),
-              if (controller.transfers.isNotEmpty)
-                _TransfersPanel(controller: controller),
-            ],
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: context.isCompact
+                        ? _CompactBrowser(controller: controller)
+                        : _WideBrowser(controller: controller),
+                  ),
+                  if (controller.transfers.isNotEmpty)
+                    _TransfersPanel(controller: controller),
+                ],
+              ),
+            ),
           ),
         ),
       ),

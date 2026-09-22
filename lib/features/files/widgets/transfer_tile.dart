@@ -56,6 +56,17 @@ class TransferTile extends StatelessWidget {
                   style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(height: Spacing.xxs),
+                if (job.isFolder && !job.preparing) ...[
+                  Text(
+                    folderStatusLine(l10n, job),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.xxs),
+                ],
                 if (job.failed)
                   Text(
                     job.error!,
@@ -82,6 +93,8 @@ class TransferTile extends StatelessWidget {
                 ? l10n.filesTransferCancelled
                 : job.failed
                 ? l10n.filesTransferFailed
+                : job.preparing
+                ? l10n.filesFolderPreparing
                 : total == null
                 ? humanFileSize(job.transferred)
                 : '${humanFileSize(job.transferred)} / ${humanFileSize(total)}',
@@ -100,4 +113,20 @@ class TransferTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The second line of a folder job's row: how many files have moved, and
+/// what the job left alone. A stopped job says "N of M files transferred"
+/// rather than "N of M files", so it reads as a result, not a job still
+/// running.
+String folderStatusLine(AppLocalizations l10n, TransferJob job) {
+  final stopped = job.done && (job.cancelled || job.failed);
+  return [
+    stopped
+        ? l10n.filesFolderTransferred(job.filesDone, job.filesTotal)
+        : l10n.filesFolderProgress(job.filesDone, job.filesTotal),
+    if (job.skippedExisting > 0)
+      l10n.filesFolderExistingSkipped(job.skippedExisting),
+    if (job.skipped > 0) l10n.filesFolderSkipped(job.skipped),
+  ].join(' · ');
 }

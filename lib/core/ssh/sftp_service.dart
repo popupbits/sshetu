@@ -20,6 +20,7 @@ class RemoteEntry {
     this.size,
     this.modified,
     this.permissions,
+    this.isSymlink = false,
   });
 
   final String name;
@@ -40,6 +41,13 @@ class RemoteEntry {
   /// POSIX mode bits (`SftpFileMode.value`), for a future permissions column.
   /// Null when the server sent no permissions flag.
   final int? permissions;
+
+  /// True when the entry is a symbolic link itself. Listings report a link's
+  /// own attributes rather than its target's (OpenSSH's `readdir` uses
+  /// `lstat`), so a link to a directory is *not* [isDirectory] — and a folder
+  /// transfer relies on that to skip links instead of following one back up
+  /// the tree forever.
+  final bool isSymlink;
 
   @override
   String toString() => 'RemoteEntry($path)';
@@ -248,6 +256,7 @@ class SshSftpService implements SftpService {
             size: name.attr.isDirectory ? null : name.attr.size,
             modified: _toDateTime(name.attr.modifyTime),
             permissions: name.attr.mode?.value,
+            isSymlink: name.attr.isSymbolicLink,
           ),
         );
       }

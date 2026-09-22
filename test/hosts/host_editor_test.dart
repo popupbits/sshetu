@@ -28,6 +28,13 @@ void main() {
       'created_at': now,
       'updated_at': now,
     });
+    await database.raw.insert('host_groups', {
+      'id': 'g1',
+      'name': 'Production',
+      'sort_order': 0,
+      'created_at': now,
+      'updated_at': now,
+    });
 
     SharedPreferences.setMockInitialValues({'settings.defaultIdentity': 'k1'});
     final preferences = await SharedPreferences.getInstance();
@@ -47,20 +54,24 @@ void main() {
 
   tearDown(() async => database.raw.close());
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    String? hostId,
+    Size size = const Size(900, 1200),
+  }) async {
     tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = const Size(900, 1200);
+    tester.view.physicalSize = size;
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(
-          localizationsDelegates: [
+        child: MaterialApp(
+          localizationsDelegates: const [
             AppLocalizations.delegate,
             ...GlobalMaterialLocalizations.delegates,
           ],
-          home: HostEditorScreen(),
+          home: HostEditorScreen(hostId: hostId),
         ),
       ),
     );
@@ -168,6 +179,167 @@ void main() {
     final host = (await hosts(tester)).single;
     expect(host['hostname'], '192.168.1.11');
     expect(host['label'], 'production box', reason: 'a typed label is theirs');
+  });
+
+  Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+    await tester.tap(finder);
+    await tester.pumpAndSettle();
+  }
+
+  for (final (name, size) in [
+    ('compact', const Size(390, 900)),
+    ('expanded', const Size(1400, 1000)),
+  ]) {
+    testWidgets('group, tags and notes are saved at $name width', (
+      tester,
+    ) async {
+      await pump(tester, size: size);
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'root@192.168.1.10',
+      );
+      await tester.pumpAndSettle();
+
+      await tapVisible(tester, find.text('Organise'));
+
+      await tapVisible(tester, find.text('No group'));
+      await tester.tap(find.text('Production').last);
+      await tester.pumpAndSettle();
+
+      final tags = find.widgetWithText(TextField, 'Tags');
+      await tester.ensureVisible(tags);
+      // A comma commits; the last one is still being typed.
+      await tester.enterText(tags, 'prod, eu west,');
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(InputChip, 'prod'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'eu west'), findsOneWidget);
+      // Typed and never committed with Enter — Save still keeps it.
+      await tester.enterText(tags, 'Prod');
+      await tester.pumpAndSettle();
+      await tester.enterText(tags, 'db');
+      await tester.pumpAndSettle();
+
+      final notes = find.widgetWithText(TextFormField, 'Notes');
+      await tester.ensureVisible(notes);
+      await tester.enterText(notes, 'behind the VPN\nport 2222 for ssh');
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final host = (await hosts(tester)).single;
+      expect(host['group_id'], 'g1');
+      expect(host['tags'], 'prod,eu west,db');
+      expect(host['notes'], 'behind the VPN\nport 2222 for ssh');
+      // Untouched advanced fields keep their defaults.
+      expect(host['keepalive_seconds'], 30);
+      expect(host['font_size'], isNull);
+    });
+  }
+
+  testWidgets('keepalive and a font size override are saved', (tester) async {
+    await pump(tester);
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'root@192.168.1.10',
+    );
+    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Advanced'));
+
+    final keepalive = find.widgetWithText(TextFormField, 'Keepalive interval');
+    await tester.ensureVisible(keepalive);
+    await tester.enterText(keepalive, '0');
+    await tester.pumpAndSettle();
+
+    // Off by default: following the app setting.
+    await tapVisible(tester, find.text('Terminal font size'));
+    await tapVisible(tester, find.byTooltip('Larger'));
+    await tapVisible(tester, find.byTooltip('Larger'));
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final host = (await hosts(tester)).single;
+    expect(host['keepalive_seconds'], 0);
+    expect(host['font_size'], 15.0);
+  });
+
+  testWidgets('a keepalive out of range is refused', (tester) async {
+    await pump(tester);
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'root@192.168.1.10',
+    );
+    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Advanced'));
+
+    final keepalive = find.widgetWithText(TextFormField, 'Keepalive interval');
+    await tester.ensureVisible(keepalive);
+    await tester.enterText(keepalive, '99999');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(await hosts(tester), isEmpty);
+    expect(find.text('0–3600'), findsOneWidget);
+  });
+
+  testWidgets('an existing host opens with its organisation filled in', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026).millisecondsSinceEpoch;
+    await tester.runAsync(
+      () => database.raw.insert('hosts', {
+        'id': 'h1',
+        'group_id': 'g1',
+        'label': 'web',
+        'hostname': 'web.example.com',
+        'port': 22,
+        'username': 'root',
+        'auth_method': 'publicKey',
+        'keepalive_seconds': 45,
+        'font_size': 18.0,
+        'tags': 'prod,eu',
+        'notes': 'the one behind the bastion',
+        'created_at': now,
+        'updated_at': now,
+      }),
+    );
+
+    await pump(tester, hostId: 'h1');
+
+    // Organise opens on its own because there is something in it.
+    expect(find.text('Production'), findsOneWidget);
+    expect(find.widgetWithText(InputChip, 'prod'), findsOneWidget);
+    expect(find.widgetWithText(InputChip, 'eu'), findsOneWidget);
+    expect(find.text('the one behind the bastion'), findsOneWidget);
+    await tester.ensureVisible(find.text('45'));
+    expect(find.text('45'), findsOneWidget);
+    await tester.ensureVisible(find.text('18 pt'));
+    expect(find.text('18 pt'), findsOneWidget);
+
+    // Removing a chip and saving clears it from the column.
+    await tapVisible(
+      tester,
+      find.descendant(
+        of: find.widgetWithText(InputChip, 'eu'),
+        matching: find.byType(Icon),
+      ),
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final host = (await hosts(tester)).single;
+    expect(host['tags'], 'prod');
+    expect(host['group_id'], 'g1');
+    expect(host['font_size'], 18.0);
   });
 
   testWidgets('nonsense is refused rather than saved', (tester) async {

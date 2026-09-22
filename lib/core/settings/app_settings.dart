@@ -38,6 +38,8 @@ class AppSettings {
     this.panelWidth = WorkspaceLayout.defaultPanel,
     this.defaultIdentityId,
     this.terminalFontSize = defaultTerminalFontSize,
+    this.requireUnlock = false,
+    this.confirmMultilinePaste = true,
   });
 
   /// The terminal grid's own size, in logical pixels.
@@ -76,6 +78,20 @@ class AppSettings {
   /// first.
   final double terminalFontSize;
 
+  /// Whether reading a saved password or key needs the user to confirm it is
+  /// them — fingerprint, face, or the device PIN.
+  ///
+  /// **Off by default, always.** A prompt nobody asked for, on an app someone
+  /// needs in a hurry, is how people get locked out of their own servers.
+  /// Turning it on goes through `AppLockController`, which insists on one
+  /// successful unlock first.
+  final bool requireUnlock;
+
+  /// Whether a paste that would press Enter — one containing a line break —
+  /// asks first. On by default: a trailing newline copied off a web page runs
+  /// the command before anyone has read it.
+  final bool confirmMultilinePaste;
+
   AccentOption get accent => Accents.byId(accentId);
 
   Locale? get locale => localeCode == null ? null : Locale(localeCode!);
@@ -90,6 +106,8 @@ class AppSettings {
     String? defaultIdentityId,
     bool clearDefaultIdentity = false,
     double? terminalFontSize,
+    bool? requireUnlock,
+    bool? confirmMultilinePaste,
   }) {
     return AppSettings(
       accentId: accentId ?? this.accentId,
@@ -101,6 +119,9 @@ class AppSettings {
           ? null
           : (defaultIdentityId ?? this.defaultIdentityId),
       terminalFontSize: terminalFontSize ?? this.terminalFontSize,
+      requireUnlock: requireUnlock ?? this.requireUnlock,
+      confirmMultilinePaste:
+          confirmMultilinePaste ?? this.confirmMultilinePaste,
     );
   }
 
@@ -113,7 +134,9 @@ class AppSettings {
       other.textScale == textScale &&
       other.panelWidth == panelWidth &&
       other.defaultIdentityId == defaultIdentityId &&
-      other.terminalFontSize == terminalFontSize;
+      other.terminalFontSize == terminalFontSize &&
+      other.requireUnlock == requireUnlock &&
+      other.confirmMultilinePaste == confirmMultilinePaste;
 
   @override
   int get hashCode => Object.hash(
@@ -124,6 +147,8 @@ class AppSettings {
     panelWidth,
     defaultIdentityId,
     terminalFontSize,
+    requireUnlock,
+    confirmMultilinePaste,
   );
 }
 

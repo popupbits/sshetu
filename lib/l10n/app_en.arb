@@ -253,6 +253,18 @@
   "secretPickKey": "Choose a key",
   "secretPickKeyBody": "This key is saved on the host, so it is used from now on.",
   "secretNoKeys": "You have no keys yet.",
+  "interactiveAuthTitle": "Server sign-in",
+  "@interactiveAuthTitle": {
+    "description": "Title of the dialog showing questions the SSH server asks during keyboard-interactive sign-in (a password, a one-time code), used when the server gives no title of its own"
+  },
+  "interactiveAuthSubmit": "Submit",
+  "@interactiveAuthSubmit": {
+    "description": "Button that sends the answers typed into the server sign-in dialog"
+  },
+  "interactiveAuthAnswerLabel": "Answer",
+  "@interactiveAuthAnswerLabel": {
+    "description": "Label for an answer field when the server's question has no text"
+  },
   "knownHostsTitle": "Trusted host keys",
   "knownHostsSubtitle": "Server identities this device has accepted",
   "knownHostsEmptyTitle": "No trusted hosts yet",
@@ -270,6 +282,24 @@
     }
   },
   "settingsSecurity": "Security",
+  "settingsAppLock": "Require unlock for saved credentials",
+  "settingsAppLockBody": "Confirm it's you with a fingerprint, your face or the device PIN before a saved password or key is used.",
+  "@settingsAppLockBody": {
+    "description": "Subtitle of the app-lock switch. The PIN fallback is mentioned on purpose: the lock never relies on biometrics alone."
+  },
+  "settingsAppLockUnavailable": "Set up a screen lock, fingerprint, face or Windows Hello on this device first.",
+  "settingsAppLockCancelled": "Not confirmed, so the setting was not changed.",
+  "settingsAppLockLockedOut": "Too many attempts. Unlock your device, then try again.",
+  "settingsAppLockFailed": "This device could not confirm it's you.",
+  "appLockEnableReason": "Confirm it's you to lock your saved credentials",
+  "@appLockEnableReason": {
+    "description": "Shown by the system's fingerprint, face or PIN prompt when turning the lock on."
+  },
+  "appLockDisableReason": "Confirm it's you to stop locking your saved credentials",
+  "appLockUnlockReason": "Unlock your saved SSH credentials",
+  "@appLockUnlockReason": {
+    "description": "Shown by the system's fingerprint, face or PIN prompt when a connection needs a saved password or key."
+  },
   "filesTitle": "Files",
   "filesRemote": "Remote",
   "filesLocal": "This device",
@@ -487,6 +517,100 @@
       }
     }
   },
+  "filesRename": "Rename",
+  "@filesRename": {
+    "description": "Row menu action, dialog title and confirm button for renaming a file or folder. F2 does the same on a keyboard."
+  },
+  "filesNewFolder": "New folder",
+  "@filesNewFolder": {
+    "description": "Pane header action and dialog title for creating a folder in the pane's current directory."
+  },
+  "filesCreate": "Create",
+  "filesNameLabel": "Name",
+  "filesNameEmpty": "Enter a name",
+  "filesNameSeparator": "A name cannot contain a path separator such as /",
+  "filesNameReserved": "“.” and “..” are reserved and cannot be used as names",
+  "filesNameExists": "Something called {name} is already here",
+  "@filesNameExists": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.txt"
+      }
+    }
+  },
+  "filesActionFailed": "That did not work. Details are in Settings → Diagnostics.",
+  "@filesActionFailed": {
+    "description": "Shown when a file action fails for a reason the app did not anticipate; the error itself is recorded in the diagnostics log."
+  },
+  "filesConflictTitle": "Some files are already there",
+  "filesConflictBody": "{count, plural, =1{1 file in {name} already exists at the destination.} other{{count} files in {name} already exist at the destination.}} The choice applies to all of them.",
+  "@filesConflictBody": {
+    "description": "Asked once per folder transfer when files with the same names exist at the destination.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      },
+      "name": {
+        "type": "String",
+        "example": "projects"
+      }
+    }
+  },
+  "filesConflictOverwrite": "Overwrite",
+  "filesConflictSkip": "Skip existing",
+  "filesFolderPreparing": "Preparing…",
+  "@filesFolderPreparing": {
+    "description": "A folder transfer that is still listing its contents and checking the destination."
+  },
+  "filesFolderProgress": "{done} of {total} files",
+  "@filesFolderProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "filesFolderTransferred": "{done} of {total} files transferred",
+  "@filesFolderTransferred": {
+    "description": "A folder transfer that was cancelled or failed partway; the files already finished were kept.",
+    "placeholders": {
+      "done": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "filesFolderSkipped": "{count} skipped (links or too deep)",
+  "@filesFolderSkipped": {
+    "description": "Symlinks, which a folder transfer never follows, plus folders past its depth limit.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "filesFolderExistingSkipped": "{count} already there",
+  "@filesFolderExistingSkipped": {
+    "description": "Files a folder transfer did not copy because they already existed and the user chose Skip existing.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
   "importPickKeyFile": "Choose a key file",
   "importKeyAdded": "Added {label}",
   "@importKeyAdded": {
@@ -677,5 +801,129 @@
   "hostEditorConnectionHint": "root@192.168.1.10",
   "hostEditorConnectionHelp": "Paste an address or a whole ssh command \u2014 user, host and port are read from it.",
   "hostEditorConnectionInvalid": "That does not look like an address SSHetu can reach.",
-  "hostEditorIdentityFileIgnored": "The -i path was ignored. SSHetu uses the keys it holds; choose one under Advanced options."
+  "hostEditorIdentityFileIgnored": "The -i path was ignored. SSHetu uses the keys it holds; choose one under Advanced options.",
+  "hostsNewGroup": "New group",
+  "hostsShowNotes": "Notes",
+  "hostsTagFilterClear": "Clear tag filter",
+  "hostGroupName": "Group name",
+  "hostGroupCreate": "Create",
+  "hostGroupRename": "Rename group",
+  "hostGroupRenameAction": "Rename",
+  "hostGroupDelete": "Delete group",
+  "hostGroupDeleteConfirm": "Delete \"{name}\"?",
+  "@hostGroupDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "hostGroupDeleteBody": "The group is removed. Its hosts are kept and move to Ungrouped.",
+  "hostGroupUngrouped": "Ungrouped",
+  "hostGroupEmpty": "No hosts in this group yet. Choose it in a host's editor.",
+  "hostGroupCollapse": "Collapse {name}",
+  "@hostGroupCollapse": {"placeholders": {"name": {"type": "String"}}},
+  "hostGroupExpand": "Expand {name}",
+  "@hostGroupExpand": {"placeholders": {"name": {"type": "String"}}},
+  "hostEditorOrganise": "Organise",
+  "hostEditorGroup": "Group",
+  "hostEditorGroupNone": "No group",
+  "hostEditorGroupNew": "New group…",
+  "hostEditorTags": "Tags",
+  "hostEditorTagsHint": "Type a tag, then Enter or a comma",
+  "hostEditorTagAdd": "Add tag",
+  "hostEditorNotes": "Notes",
+  "hostEditorNotesHint": "Anything worth remembering about this server",
+  "hostEditorKeepalive": "Keepalive interval",
+  "hostEditorKeepaliveSuffix": "seconds",
+  "hostEditorKeepaliveHelp": "0 turns keepalives off. A shorter interval keeps mobile connections from being dropped while idle.",
+  "hostEditorKeepaliveInvalid": "0–3600",
+  "hostEditorFontSize": "Terminal font size",
+  "hostEditorFontSizeDefault": "Use the app default ({size})",
+  "@hostEditorFontSizeDefault": {"placeholders": {"size": {"type": "String"}}},
+  "hostEditorFontSizeHelp": "Zooming in the terminal changes the app default, not this host.",
+  "terminalFind": "Find",
+  "@terminalFind": {
+    "description": "Terminal context menu item and phone app-bar tooltip that opens the find-in-scrollback bar"
+  },
+  "menuFind": "Find…",
+  "terminalFindHint": "Find in scrollback",
+  "terminalFindCount": "{current} of {total}",
+  "@terminalFindCount": {
+    "description": "Which search match is current, counted from the newest",
+    "placeholders": {
+      "current": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "17"
+      }
+    }
+  },
+  "terminalFindCountCapped": "{current} of {total}+",
+  "@terminalFindCountCapped": {
+    "description": "Like terminalFindCount, when the search stopped at its result limit",
+    "placeholders": {
+      "current": {
+        "type": "int",
+        "example": "3"
+      },
+      "total": {
+        "type": "int",
+        "example": "1000"
+      }
+    }
+  },
+  "terminalFindNoMatches": "No matches",
+  "terminalFindInvalidPattern": "Invalid pattern",
+  "terminalFindCaseSensitive": "Match case",
+  "terminalFindRegex": "Regular expression",
+  "terminalFindOlder": "Older match (Enter)",
+  "terminalFindNewer": "Newer match (Shift+Enter)",
+  "terminalFindClose": "Close (Esc)",
+  "terminalOpenLink": "Open link",
+  "terminalCopyLink": "Copy link",
+  "terminalLinkSheetTitle": "Open this link?",
+  "terminalLinkRefused": "SSHetu only opens http, https and mailto links.",
+  "terminalLinkOpenFailed": "Could not open the link.",
+  "terminalLinkCopied": "Link copied",
+  "pasteConfirmTitle": "Paste and run?",
+  "pasteConfirmBody": "This text contains a line break, so pasting it will run {count, plural, =1{a command} other{commands}} at a shell prompt.",
+  "@pasteConfirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "pasteConfirmLineCount": "{count, plural, =1{1 line} other{{count} lines}}",
+  "@pasteConfirmLineCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "pasteConfirmMoreLines": "{count, plural, =1{…and 1 more line} other{…and {count} more lines}}",
+  "@pasteConfirmMoreLines": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "pasteHiddenRemoved": "{count, plural, =1{1 hidden character removed} other{{count} hidden characters removed}}",
+  "@pasteHiddenRemoved": {
+    "description": "Control characters, escape sequences or invisible direction marks stripped from pasted text",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "pasteDontAskAgain": "Don't ask again",
+  "pasteConfirmAction": "Paste",
+  "settingsTerminal": "Terminal",
+  "settingsConfirmPaste": "Confirm multi-line paste",
+  "settingsConfirmPasteBody": "Ask before pasting text with a line break, which would run commands."
 }

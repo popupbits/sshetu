@@ -26,4 +26,30 @@ void main() {
           'count, and without it a release build can reach no server at all',
     );
   });
+
+  // The credential lock's two Android requirements. Both compile and pass
+  // every Dart test without being there; the lock then fails only on a phone.
+  test('the manifest grants USE_BIOMETRIC for the credential lock', () {
+    final manifest = File('android/app/src/main/AndroidManifest.xml');
+    expect(
+      manifest.readAsStringSync(),
+      contains('android.permission.USE_BIOMETRIC'),
+    );
+  });
+
+  test(
+    'MainActivity is a FlutterFragmentActivity, as BiometricPrompt needs',
+    () {
+      final activity = File(
+        'android/app/src/main/kotlin/com/popupbits/sshetu/MainActivity.kt',
+      );
+      expect(activity.existsSync(), isTrue);
+      expect(
+        activity.readAsStringSync(),
+        contains(': FlutterFragmentActivity()'),
+        reason:
+            'local_auth cannot show its prompt from a plain FlutterActivity',
+      );
+    },
+  );
 }

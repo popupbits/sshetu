@@ -67,6 +67,23 @@ void main() {
         reason: 'weakened algorithms must never be the default',
       );
     });
+
+    test('a zero keepalive reaches dartssh2 as null, which is off', () {
+      // dartssh2 only disables keepalives on null; zero would build a
+      // zero-period timer and ping as fast as the event loop turns.
+      const off = SshTarget(
+        hostname: 'h',
+        username: 'u',
+        keepaliveInterval: Duration.zero,
+      );
+      const on = SshTarget(
+        hostname: 'h',
+        username: 'u',
+        keepaliveInterval: Duration(seconds: 15),
+      );
+      expect(off.keepaliveOrNull, isNull);
+      expect(on.keepaliveOrNull, const Duration(seconds: 15));
+    });
   });
 
   group('SshAlgorithmPolicy', () {

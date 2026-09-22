@@ -68,6 +68,53 @@ void main() {
       expect(loaded.tags, ['prod', 'eu']);
     });
 
+    test('organisation fields round-trip, and clear back to null', () async {
+      await database.raw.insert('host_groups', {
+        'id': 'g1',
+        'name': 'Production',
+        'sort_order': 0,
+        'created_at': now.millisecondsSinceEpoch,
+        'updated_at': now.millisecondsSinceEpoch,
+      });
+      final saved = host('h1').copyWith(
+        groupId: 'g1',
+        notes: 'behind the VPN\nrestart with systemctl',
+        fontSize: 16,
+        keepaliveSeconds: 0,
+      );
+      await repository.save(saved);
+
+      final loaded = (await repository.byId('h1'))!;
+      expect(loaded.groupId, 'g1');
+      expect(loaded.notes, 'behind the VPN\nrestart with systemctl');
+      expect(loaded.fontSize, 16);
+      expect(loaded.keepaliveSeconds, 0);
+
+      await repository.save(
+        loaded.copyWith(
+          clearGroupId: true,
+          clearNotes: true,
+          clearFontSize: true,
+        ),
+      );
+      final cleared = (await repository.byId('h1'))!;
+      expect(cleared.groupId, isNull);
+      expect(cleared.notes, isNull);
+      expect(cleared.fontSize, isNull);
+    });
+
+    test('tags are sanitized on the way into the column', () async {
+      // An import or a transfer can hand over anything; a comma inside a tag
+      // would come back out as two.
+      await repository.save(
+        host('h1').copyWith(tags: const [' prod ', 'eu,west', 'Prod', '']),
+      );
+
+      final row = (await database.raw.query('hosts')).single;
+      expect(row['tags'], 'prod,eu west');
+      expect((await repository.byId('h1'))!.tags, ['prod', 'eu west']);
+    });
+
     test('a host with no tags reads back with an empty list, not [""]', () async {
       // The join/split round trip is the classic place an empty string becomes
       // a phantom tag that then shows up as a blank chip in the UI.

@@ -1,4 +1,11 @@
+import 'keyboard_interactive.dart';
 import 'ssh_target.dart';
+
+export 'keyboard_interactive.dart'
+    show
+        KeyboardInteractiveAnswers,
+        KeyboardInteractiveChallenge,
+        KeyboardInteractivePrompt;
 
 /// One private key, ready to be offered to a server.
 class SshPrivateKey {
@@ -70,6 +77,23 @@ abstract interface class SshCredentialSource {
   /// The login password for [target], asked for only if key authentication
   /// was not offered or was refused.
   Future<String?> password(SshTarget target);
+
+  /// Answers one round of keyboard-interactive authentication for [target] —
+  /// a PAM `Password:`, a one-time code, whatever the server asks.
+  ///
+  /// Called once per round, so a password round followed by a code round is
+  /// two calls, each with its own [KeyboardInteractiveChallenge.round]. Each
+  /// hop of a jump chain gets its own calls with its own [target], so a prompt
+  /// can always say which machine is asking.
+  ///
+  /// Null declines, and authentication fails promptly with a message saying
+  /// so. A source that must never supply a password — key verification — has
+  /// to decline here too, or keyboard-interactive becomes the side door that
+  /// lets a password satisfy a connection meant to prove a key.
+  Future<KeyboardInteractiveAnswers?> keyboardInteractive(
+    SshTarget target,
+    KeyboardInteractiveChallenge challenge,
+  );
 }
 
 /// A source that has nothing.
@@ -85,4 +109,10 @@ class NoCredentials implements SshCredentialSource {
 
   @override
   Future<String?> password(SshTarget target) async => null;
+
+  @override
+  Future<KeyboardInteractiveAnswers?> keyboardInteractive(
+    SshTarget target,
+    KeyboardInteractiveChallenge challenge,
+  ) async => null;
 }

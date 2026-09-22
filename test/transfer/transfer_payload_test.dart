@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sshetu/core/db/database.dart';
 import 'package:sshetu/core/secrets/secret_ref.dart';
 import 'package:sshetu/core/secrets/secret_vault.dart';
+import 'package:sshetu/features/hosts/data/host_group_repository.dart';
 import 'package:sshetu/features/transfer/domain/transfer_payload.dart';
 
 import '../support/test_database.dart';
@@ -193,6 +194,43 @@ void main() {
     expect(await destination.raw.query('hosts'), hasLength(1));
     expect(await destination.raw.query('tunnels'), hasLength(1));
   });
+
+  test('re-sending keeps hosts in their groups', () async {
+    // `apply` replaces by id, and REPLACE deletes the old row first — which
+    // fires `hosts.group_id ON DELETE SET NULL`. The hosts are re-inserted
+    // after the groups, so they must come out filed, not orphaned.
+    await seed();
+    final payload = await TransferPayload.read(
+      source.raw,
+      includeSecrets: false,
+    );
+
+    await payload.apply(destination.raw, vault: destinationVault);
+    await payload.apply(destination.raw, vault: destinationVault);
+
+    final host = (await destination.raw.query('hosts')).single;
+    expect(host['group_id'], 'g1');
+    expect(await destination.raw.query('host_groups'), hasLength(1));
+  });
+
+  test(
+    'a deleted group does not travel, and its hosts arrive unfiled',
+    () async {
+      await seed();
+      await HostGroupRepository(database: source.raw)
+          .delete('g1', now: DateTime.utc(2026, 2));
+
+      final payload = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      await payload.apply(destination.raw, vault: destinationVault);
+
+      expect(await destination.raw.query('host_groups'), isEmpty);
+      final host = (await destination.raw.query('hosts')).single;
+      expect(host['group_id'], isNull);
+    },
+  );
 
   test('a schema mismatch is refused with something actionable', () async {
     await seed();

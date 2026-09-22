@@ -81,11 +81,13 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     SshHost host, {
     required HostKeyTrustDecision onUnknownHostKey,
     required SecretPrompt prompt,
+    required KeyboardInteractivePrompter interactivePrompt,
   }) async {
     final connection = await _buildConnection(
       host,
       onUnknownHostKey: onUnknownHostKey,
       prompt: prompt,
+      interactivePrompt: interactivePrompt,
     );
 
     final session = TerminalSession(
@@ -137,11 +139,13 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     SshHost host, {
     required HostKeyTrustDecision onUnknownHostKey,
     required SecretPrompt prompt,
+    required KeyboardInteractivePrompter interactivePrompt,
   }) async {
     final connection = await _buildConnection(
       host,
       onUnknownHostKey: onUnknownHostKey,
       prompt: prompt,
+      interactivePrompt: interactivePrompt,
     );
     // Establishes the session now rather than lazily on first use, so a bad
     // host key or a rejected credential surfaces to the caller immediately
@@ -157,6 +161,7 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     SshHost host, {
     required HostKeyTrustDecision onUnknownHostKey,
     required SecretPrompt prompt,
+    required KeyboardInteractivePrompter interactivePrompt,
   }) async {
     final knownHosts = await ref.read(knownHostsProvider.future);
     final hosts = ref.read(hostRepositoryProvider);
@@ -191,6 +196,7 @@ class SessionManager extends Notifier<List<TerminalSession>> {
             ),
         ],
         prompt: prompt,
+        interactivePrompt: interactivePrompt,
       ),
     );
   }

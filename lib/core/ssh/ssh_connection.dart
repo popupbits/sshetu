@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:dartssh2/dartssh2.dart';
 
+import '../secrets/locked_secret_vault.dart';
 import 'host_key.dart';
 import 'host_key_verifier.dart';
+import 'keyboard_interactive.dart';
 import 'resilient_ssh_socket.dart';
 import 'ssh_algorithm_policy.dart';
 import 'ssh_connection_state.dart';
@@ -103,6 +105,12 @@ class SshConnection {
 
   Future<SSHClient>? _connecting;
   bool _closed = false;
+
+  /// Hops, by address, that refused the saved password when it was sent
+  /// through keyboard-interactive without asking. From then on this
+  /// connection asks the user instead — the saved password is tried once, not
+  /// replayed at the server on every attempt.
+  final Set<String> _savedPasswordRefused = {};
   SshConnectionState _state = const SshConnectionState.idle();
 
   SshConnectionState get state => _state;
@@ -191,6 +199,14 @@ class SshConnection {
           _fail(e);
           rethrow;
         }
+      } on VaultLockedException catch (e) {
+        // The user declined the credential lock's prompt. Not retried — asking
+        // again in half a second is nagging, not resilience — and reported as
+        // a failure so the tab says why instead of spinning on "connecting".
+        await _teardown();
+        final failure = SshConnectionException(e.message, cause: e);
+        _fail(failure);
+        throw failure;
       }
     }
     final failure = SshConnectionException(
@@ -267,6 +283,13 @@ class SshConnection {
     final identities = await _identities(hop);
     final verifier = verifierFactory(hop.hostname, hop.port);
 
+    // Fresh per client: rounds count from zero on every attempt, and each hop
+    // of a chain answers for itself with its own target.
+    final interactive = KeyboardInteractiveSession(
+      (challenge) => credentials.keyboardInteractive(hop, challenge),
+      allowSavedPassword: !_savedPasswordRefused.contains(hop.address),
+    );
+
     final client = SSHClient(
       socket,
       username: hop.username,
@@ -291,7 +314,19 @@ class SshConnection {
           (throw SshConnectionException(
             'No password supplied for ${hop.address}.',
           )),
-      keepAliveInterval: hop.keepaliveInterval,
+      // Keyboard-interactive: PAM's `Password:`, a one-time code, a second
+      // factor after a key. Like the password, invoked only when the server
+      // actually asks — and a decline returns null, which dartssh2 turns into
+      // a prompt authentication failure rather than a wait.
+      onUserInfoRequest: (request) => interactive.respond(
+        name: request.name,
+        instruction: request.instruction,
+        prompts: [
+          for (final prompt in request.prompts)
+            KeyboardInteractivePrompt(prompt.promptText, echo: prompt.echo),
+        ],
+      ),
+      keepAliveInterval: hop.keepaliveOrNull,
       // Not [connectTimeout]: both of these can be waiting on a dialog.
       handshakeTimeout: interactiveTimeout,
       authTimeout: interactiveTimeout,
@@ -324,6 +359,28 @@ class SshConnection {
         throw SshConnectionException(
           presentation.describe(),
           cause: HostKeyRejected(presentation),
+        );
+      }
+      // A saved password behind the credential lock, and the user declined.
+      if (e is VaultLockedException) {
+        throw SshConnectionException(e.message, cause: e);
+      }
+      if (e is SSHAuthFailError && interactive.declined) {
+        throw SshConnectionException(
+          'Sign-in to ${hop.address} stopped: the server asked for an answer '
+          '(a password or a code) and none was given.',
+          cause: e,
+        );
+      }
+      if (e is SSHAuthFailError && interactive.usedSavedPassword) {
+        // The saved password was sent without asking and refused. One more
+        // attempt, which asks the user — the only retry an auth failure gets,
+        // because it is the only one that changes what is sent.
+        _savedPasswordRefused.add(hop.address);
+        throw SshConnectionException(
+          'The saved password for ${hop.address} was refused.',
+          cause: e,
+          retryable: true,
         );
       }
       if (e is SSHAuthFailError) {

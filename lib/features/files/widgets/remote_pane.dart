@@ -14,6 +14,7 @@ import '../domain/permissions.dart';
 import '../file_browser_controller.dart';
 import 'chmod_dialog.dart';
 import 'entry_row.dart';
+import 'file_actions.dart';
 import 'pane_header.dart';
 import 'path_bar.dart';
 import 'selection_bar.dart';
@@ -53,6 +54,12 @@ class RemotePane extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
                 onPressed: () => _uploadFromDevice(context, controller),
               ),
+            IconButton(
+              tooltip: l10n.filesNewFolder,
+              icon: const Icon(PiconsRegular.folderPlus, size: 16),
+              visualDensity: VisualDensity.compact,
+              onPressed: () => createRemoteFolder(context, controller),
+            ),
           ],
         ),
         controller.remoteSelectionMode
@@ -64,7 +71,9 @@ class RemotePane extends StatelessWidget {
                   SelectionAction(
                     label: l10n.filesDownloadSelected,
                     icon: PiconsRegular.downloadSimple,
-                    onSelected: controller.downloadSelected,
+                    onSelected: () => controller.downloadSelected(
+                      onConflict: conflictResolverFor(context),
+                    ),
                   ),
                   SelectionAction(
                     label: l10n.filesDeleteSelected,
@@ -133,12 +142,15 @@ class RemotePane extends StatelessWidget {
                         // entry as it is then rather than as it was when the
                         // list was laid out.
                         actions: () => [
-                          if (!entry.isDirectory)
-                            MenuAction(
-                              label: l10n.filesDownload,
-                              icon: PiconsRegular.downloadSimple,
-                              onSelected: () => controller.download(entry),
+                          // A folder downloads whole, as one job.
+                          MenuAction(
+                            label: l10n.filesDownload,
+                            icon: PiconsRegular.downloadSimple,
+                            onSelected: () => controller.download(
+                              entry,
+                              onConflict: conflictResolverFor(context),
                             ),
+                          ),
                           // A plain download on a phone puts the file where
                           // only this app can see it, which is not what
                           // anybody means by "download".
@@ -149,6 +161,12 @@ class RemotePane extends StatelessWidget {
                               onSelected: () =>
                                   _saveToDevice(context, controller, entry),
                             ),
+                          MenuAction(
+                            label: l10n.filesRename,
+                            icon: PiconsRegular.pencilSimple,
+                            onSelected: () =>
+                                renameRemoteEntry(context, controller, entry),
+                          ),
                           MenuAction(
                             label: l10n.filesChmod,
                             icon: PiconsRegular.lockSimple,

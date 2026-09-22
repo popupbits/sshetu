@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../../../core/ssh/ssh_target.dart';
 
 /// A saved server.
@@ -49,11 +51,22 @@ class SshHost {
   /// which is also the best answer to a phone killing a backgrounded session.
   final String? startupCommand;
 
+  /// Seconds between keepalives; 0 turns them off.
   final int keepaliveSeconds;
+
   final String? terminalTheme;
+
+  /// This host's terminal font size, or null to follow the app setting.
   final double? fontSize;
+
+  /// Free text the user keeps about this server. Plain text, never rendered.
   final String? notes;
+
+  /// Stored comma-separated; see `HostTags` for the rules a tag obeys.
   final List<String> tags;
+
+  /// Whether there is anything in [notes] worth showing.
+  bool get hasNotes => notes?.trim().isNotEmpty ?? false;
   final DateTime? lastConnectedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -97,7 +110,7 @@ class SshHost {
 
   /// Whether [query] matches this host, for the search field.
   ///
-  /// Deliberately searches the address and tags too, not just the label:
+  /// Deliberately searches the address, tags and notes too, not just the label:
   /// people remember "the box on 10.0.0.4" as often as they remember what
   /// they named it.
   bool matches(String query) {
@@ -106,7 +119,8 @@ class SshHost {
     return label.toLowerCase().contains(needle) ||
         hostname.toLowerCase().contains(needle) ||
         username.toLowerCase().contains(needle) ||
-        tags.any((t) => t.toLowerCase().contains(needle));
+        tags.any((t) => t.toLowerCase().contains(needle)) ||
+        (notes?.toLowerCase().contains(needle) ?? false);
   }
 
   /// The transport's view of this host, with [jumpTarget] already resolved.
@@ -125,7 +139,8 @@ class SshHost {
     credentialId: id,
     jumpTarget: jumpTarget,
     allowLegacyAlgorithms: allowLegacyAlgorithms,
-    keepaliveInterval: Duration(seconds: keepaliveSeconds),
+    // Negative is nonsense from a hand-edited row; it means off, like zero.
+    keepaliveInterval: Duration(seconds: max(0, keepaliveSeconds)),
   );
 
   SshHost copyWith({
@@ -146,7 +161,9 @@ class SshHost {
     int? keepaliveSeconds,
     String? terminalTheme,
     double? fontSize,
+    bool clearFontSize = false,
     String? notes,
+    bool clearNotes = false,
     List<String>? tags,
     DateTime? lastConnectedAt,
     DateTime? updatedAt,
@@ -166,8 +183,8 @@ class SshHost {
         : (startupCommand ?? this.startupCommand),
     keepaliveSeconds: keepaliveSeconds ?? this.keepaliveSeconds,
     terminalTheme: terminalTheme ?? this.terminalTheme,
-    fontSize: fontSize ?? this.fontSize,
-    notes: notes ?? this.notes,
+    fontSize: clearFontSize ? null : (fontSize ?? this.fontSize),
+    notes: clearNotes ? null : (notes ?? this.notes),
     tags: tags ?? this.tags,
     lastConnectedAt: lastConnectedAt ?? this.lastConnectedAt,
     createdAt: createdAt,

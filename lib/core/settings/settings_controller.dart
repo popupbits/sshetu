@@ -29,6 +29,8 @@ const _keyTextScale = 'settings.textScale';
 const _keyPanelWidth = 'settings.panelWidth';
 const _keyDefaultIdentity = 'settings.defaultIdentity';
 const _keyTerminalFontSize = 'settings.terminalFontSize';
+const _keyRequireUnlock = 'settings.requireUnlock';
+const _keyConfirmMultilinePaste = 'settings.confirmMultilinePaste';
 
 /// Read persisted settings, falling back to defaults for anything missing or
 /// corrupt. Called from bootstrap before the first frame.
@@ -49,7 +51,21 @@ AppSettings readSettings(SharedPreferences preferences) {
       preferences.getDouble(_keyTerminalFontSize) ??
           AppSettings.defaultTerminalFontSize,
     ),
+    // Anything but a stored `true` is off: a lock is turned on deliberately,
+    // never by a corrupt or foreign value.
+    requireUnlock: _readBool(preferences, _keyRequireUnlock) ?? false,
+    confirmMultilinePaste:
+        _readBool(preferences, _keyConfirmMultilinePaste) ?? true,
   );
+}
+
+bool? _readBool(SharedPreferences preferences, String key) {
+  try {
+    return preferences.getBool(key);
+  } on Object {
+    // A value of another type under this key; treat it as unset.
+    return null;
+  }
 }
 
 double _clampTerminalFontSize(double size) => size.clamp(
@@ -111,6 +127,24 @@ class SettingsController extends Notifier<AppSettings> {
   void resetTerminalFontSize() =>
       setTerminalFontSize(AppSettings.defaultTerminalFontSize);
 
+  /// Stores whether saved credentials need an unlock to be read.
+  ///
+  /// Call it through `AppLockController`: turning the lock on without first
+  /// proving the device can satisfy it is the lockout that controller exists
+  /// to prevent.
+  void setRequireUnlock(bool enabled) => _update(
+    state.copyWith(requireUnlock: enabled),
+    _keyRequireUnlock,
+    enabled,
+  );
+
+  /// Whether a paste containing a line break asks before it is sent.
+  void setConfirmMultilinePaste(bool confirm) => _update(
+    state.copyWith(confirmMultilinePaste: confirm),
+    _keyConfirmMultilinePaste,
+    confirm,
+  );
+
   /// Sets how wide the desktop list panel should be.
   ///
   /// Called continuously while a divider is dragged, so it writes to disk
@@ -143,6 +177,8 @@ class SettingsController extends Notifier<AppSettings> {
           await preferences.setString(key, text);
         case final double number:
           await preferences.setDouble(key, number);
+        case final bool flag:
+          await preferences.setBool(key, flag);
         default:
           await preferences.setString(key, value.toString());
       }

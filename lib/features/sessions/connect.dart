@@ -15,6 +15,7 @@ import '../../core/ssh/ssh_target.dart';
 import '../hosts/domain/ssh_host.dart';
 import '../hosts/hosts_controller.dart';
 import '../hosts/widgets/host_key_dialog.dart';
+import '../hosts/widgets/keyboard_interactive_dialog.dart';
 import '../hosts/widgets/secret_dialog.dart';
 import '../tunnels/tunnel_connect.dart';
 import 'session_manager.dart';
@@ -59,6 +60,10 @@ Future<void> connectToHost(
           }(),
           null => null,
         };
+      },
+      interactivePrompt: (request) async {
+        if (!context.mounted) return null;
+        return showKeyboardInteractiveDialog(context, request);
       },
     );
   } on Object catch (error, stackTrace) {

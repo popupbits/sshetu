@@ -12,10 +12,15 @@ import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/settings/app_settings.dart';
 import '../keys/keys_controller.dart';
 import 'domain/connection_string.dart';
+import 'domain/host_group.dart';
+import 'domain/host_tags.dart';
 import 'domain/ssh_host.dart';
 import 'hosts_controller.dart';
+import 'widgets/group_actions.dart';
+import 'widgets/tag_editor.dart';
 
 /// Add or edit one host.
 class HostEditorScreen extends ConsumerStatefulWidget {
@@ -51,6 +56,18 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
   final _port = TextEditingController(text: '22');
   final _username = TextEditingController();
   final _startup = TextEditingController();
+  final _tagInput = TextEditingController();
+  final _notes = TextEditingController();
+  final _keepalive = TextEditingController(text: '30');
+
+  String? _groupId;
+  var _tags = <String>[];
+
+  /// This host's terminal font size; null follows the app setting.
+  double? _fontSize;
+
+  /// Open when editing a host that already has a group, tags or notes.
+  var _organiseOpen = false;
 
   SshAuthMethod _auth = SshAuthMethod.publicKey;
   String? _identityId;
@@ -99,6 +116,9 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
     _port.dispose();
     _username.dispose();
     _startup.dispose();
+    _tagInput.dispose();
+    _notes.dispose();
+    _keepalive.dispose();
     super.dispose();
   }
 
@@ -125,7 +145,40 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
     _identityId = host.identityId;
     _jumpHostId = host.jumpHostId;
     _allowLegacy = host.allowLegacyAlgorithms;
+    _groupId = host.groupId;
+    _tags = [...host.tags];
+    _notes.text = host.notes ?? '';
+    _keepalive.text = '${host.keepaliveSeconds}';
+    _fontSize = host.fontSize;
+    _organiseOpen =
+        host.groupId != null || host.tags.isNotEmpty || host.hasNotes;
   }
+
+  /// The tags to save: the chips, plus anything typed and not yet committed.
+  ///
+  /// Typing `prod` and pressing Save is a perfectly clear request; making it
+  /// vanish because Enter was not pressed first would be the form's fault.
+  List<String> get _tagsToSave =>
+      HostTags.normalize([..._tags, ..._tagInput.text.split(',')]);
+
+  Future<void> _pickGroup(String? value) async {
+    if (value != _newGroupValue) {
+      setState(() => _groupId = value);
+      return;
+    }
+    final created = await createGroupFlow(context, ref);
+    if (!mounted) return;
+    // Cancelling "New group…" leaves the previous choice, not the sentinel.
+    setState(() => _groupId = created?.id ?? _groupId);
+  }
+
+  /// The dropdown value standing for "create one". Not a valid group id —
+  /// generated ids are lowercase alphanumerics — so it cannot collide.
+  static const _newGroupValue = '+new';
+
+  /// An hour. Anything longer is not keeping a connection alive; it is
+  /// hoping.
+  static const _maxKeepalive = 3600;
 
   /// Reads the connection field into the fields below it.
   ///
@@ -152,6 +205,15 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final now = DateTime.now().toUtc();
     final existing = _existing;
+    final notes = _notes.text.trim();
+    // Parsed defensively rather than trusting the validator: a folded
+    // disclosure takes its fields out of the form, so a bad value typed and
+    // then hidden is never validated.
+    final keepalive =
+        int.tryParse(_keepalive.text.trim())?.clamp(0, _maxKeepalive) ??
+        existing?.keepaliveSeconds ??
+        30;
+    final tags = _tagsToSave;
 
     final host = existing == null
         ? SshHost(
@@ -167,6 +229,11 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
             startupCommand: _startup.text.trim().isEmpty
                 ? null
                 : _startup.text.trim(),
+            groupId: _groupId,
+            tags: tags,
+            notes: notes.isEmpty ? null : notes,
+            keepaliveSeconds: keepalive,
+            fontSize: _fontSize,
             createdAt: now,
             updatedAt: now,
           )
@@ -185,6 +252,14 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                 ? null
                 : _startup.text.trim(),
             clearStartupCommand: _startup.text.trim().isEmpty,
+            groupId: _groupId,
+            clearGroupId: _groupId == null,
+            tags: tags,
+            notes: notes.isEmpty ? null : notes,
+            clearNotes: notes.isEmpty,
+            keepaliveSeconds: keepalive,
+            fontSize: _fontSize,
+            clearFontSize: _fontSize == null,
             updatedAt: now,
           );
 
@@ -201,6 +276,7 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
 
     hostsAsync.whenData(_load);
     final allHosts = hostsAsync.value ?? const [];
+    final groups = ref.watch(hostGroupsProvider).value ?? const <HostGroup>[];
 
     return Scaffold(
       appBar: AppBar(
@@ -297,7 +373,76 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                 ),
 
               const SizedBox(height: Spacing.md),
+              // Its own fold, ahead of Advanced: where a server is filed and
+              // what it is tagged is organisation, not configuration, and
+              // someone tidying thirty hosts should not wade through auth
+              // settings to get to it.
               _Advanced(
+                // Re-keyed once the host has loaded: `initiallyExpanded` is
+                // read on first build, which for an existing host happens
+                // before its row arrives.
+                key: ValueKey('organise-$_loaded'),
+                title: l10n.hostEditorOrganise,
+                open: _organiseOpen,
+                onChanged: (open) => setState(() => _organiseOpen = open),
+                children: [
+                  DropdownButtonFormField<String?>(
+                    // Re-keyed on the choice so a group created from here is
+                    // shown selected; `initialValue` is read once.
+                    key: ValueKey('group-$_groupId-${groups.length}'),
+                    isExpanded: true,
+                    // A group deleted since this host was filed reads as none.
+                    initialValue: groups.any((g) => g.id == _groupId)
+                        ? _groupId
+                        : null,
+                    decoration: InputDecoration(
+                      labelText: l10n.hostEditorGroup,
+                      prefixIcon: const Icon(PiconsRegular.folderSimple),
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      DropdownMenuItem(child: Text(l10n.hostEditorGroupNone)),
+                      for (final group in groups)
+                        DropdownMenuItem(
+                          value: group.id,
+                          child: Text(
+                            group.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      DropdownMenuItem(
+                        value: _newGroupValue,
+                        child: Text(l10n.hostEditorGroupNew),
+                      ),
+                    ],
+                    onChanged: _pickGroup,
+                  ),
+                  const SizedBox(height: Spacing.lg),
+                  TagEditor(
+                    tags: _tags,
+                    controller: _tagInput,
+                    suggestions: ref.watch(hostTagsProvider),
+                    onChanged: (tags) => setState(() => _tags = tags),
+                  ),
+                  const SizedBox(height: Spacing.lg),
+                  TextFormField(
+                    controller: _notes,
+                    minLines: 3,
+                    maxLines: 8,
+                    keyboardType: TextInputType.multiline,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      labelText: l10n.hostEditorNotes,
+                      hintText: l10n.hostEditorNotesHint,
+                      alignLabelWithHint: true,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              _Advanced(
+                key: ValueKey('advanced-$_loaded'),
+                title: l10n.hostEditorAdvanced,
                 open: _advancedOpen,
                 onChanged: (open) => setState(() => _advancedOpen = open),
                 children: [
@@ -490,6 +635,32 @@ class _HostEditorScreenState extends ConsumerState<HostEditorScreen> {
                     isThreeLine: true,
                     contentPadding: EdgeInsets.zero,
                   ),
+                  const SizedBox(height: Spacing.lg),
+                  TextFormField(
+                    controller: _keepalive,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: l10n.hostEditorKeepalive,
+                      suffixText: l10n.hostEditorKeepaliveSuffix,
+                      helperText: l10n.hostEditorKeepaliveHelp,
+                      helperMaxLines: 3,
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      final seconds = int.tryParse(value?.trim() ?? '');
+                      if (seconds == null ||
+                          seconds < 0 ||
+                          seconds > _maxKeepalive) {
+                        return l10n.hostEditorKeepaliveInvalid;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: Spacing.md),
+                  _FontSizeOverride(
+                    value: _fontSize,
+                    onChanged: (size) => setState(() => _fontSize = size),
+                  ),
                 ],
               ),
             ],
@@ -560,6 +731,78 @@ class _ParsedSummary extends StatelessWidget {
   }
 }
 
+/// An optional per-host terminal font size.
+///
+/// Off by default — following the app setting is right for nearly every host —
+/// and the same smaller/larger steps as the Settings tile when on, so the two
+/// controls for one idea look like one control.
+class _FontSizeOverride extends ConsumerWidget {
+  const _FontSizeOverride({required this.value, required this.onChanged});
+
+  final double? value;
+  final ValueChanged<double?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final appDefault = ref.watch(
+      settingsControllerProvider.select((s) => s.terminalFontSize),
+    );
+    final size = value;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SwitchListTile(
+          value: size == null,
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.hostEditorFontSize),
+          subtitle: Text(
+            l10n.hostEditorFontSizeDefault(
+              l10n.terminalTextSizePoints(appDefault.round()),
+            ),
+          ),
+          // Turning the default off starts from the default, so the first
+          // thing the switch does is nothing visible — then the steps adjust.
+          onChanged: (useDefault) => onChanged(useDefault ? null : appDefault),
+        ),
+        if (size != null)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(PiconsRegular.terminalWindow),
+            title: Text(l10n.terminalTextSizePoints(size.round())),
+            subtitle: Text(
+              l10n.hostEditorFontSizeHelp,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(PiconsRegular.magnifyingGlassMinus),
+                  tooltip: l10n.terminalTextSizeSmaller,
+                  onPressed: size <= AppSettings.minTerminalFontSize
+                      ? null
+                      : () => onChanged(size - 1),
+                ),
+                IconButton(
+                  icon: const Icon(PiconsRegular.magnifyingGlassPlus),
+                  tooltip: l10n.terminalTextSizeLarger,
+                  onPressed: size >= AppSettings.maxTerminalFontSize
+                      ? null
+                      : () => onChanged(size + 1),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 /// Everything most hosts never need, folded away.
 ///
 /// A disclosure rather than a second screen: the settings in here are edited
@@ -567,18 +810,20 @@ class _ParsedSummary extends StatelessWidget {
 /// somewhere else to set a port is a form that has forgotten what it is for.
 class _Advanced extends StatelessWidget {
   const _Advanced({
+    required this.title,
+    super.key,
     required this.open,
     required this.onChanged,
     required this.children,
   });
 
+  final String title;
   final bool open;
   final ValueChanged<bool> onChanged;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Theme(
@@ -592,7 +837,7 @@ class _Advanced extends StatelessWidget {
         childrenPadding: const EdgeInsets.only(top: Spacing.md),
         expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
         title: Text(
-          l10n.hostEditorAdvanced,
+          title,
           style: theme.textTheme.titleSmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

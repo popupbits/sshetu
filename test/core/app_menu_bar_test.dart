@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -152,6 +153,11 @@ void main() {
 
         expect(itemFor('Close Session')?.onSelected, isNull);
         expect(itemFor('Close Tab')?.onSelected, isNull);
+        expect(itemFor('Find…'), isNotNull);
+        expect(itemFor('Find…')?.onSelected, isNull);
+        final findShortcut = itemFor('Find…')!.shortcut! as SingleActivator;
+        expect(findShortcut.trigger, LogicalKeyboardKey.keyF);
+        expect(findShortcut.meta, isTrue, reason: 'Command+F on macOS');
         expect(itemFor('New Server…')?.onSelected, isNotNull);
       });
     });

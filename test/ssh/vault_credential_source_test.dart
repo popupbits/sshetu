@@ -233,4 +233,143 @@ void main() {
       expect(await source.password(target), isNull);
     });
   });
+
+  group('keyboard-interactive', () {
+    const passwordRound = KeyboardInteractiveChallenge(
+      prompts: [KeyboardInteractivePrompt('Password: ', echo: false)],
+      round: 0,
+    );
+    const codeRound = KeyboardInteractiveChallenge(
+      name: 'Two-factor',
+      prompts: [KeyboardInteractivePrompt('Verification code: ', echo: true)],
+      round: 1,
+    );
+    const passwordRef = SecretRef.hostPassword('host-1');
+
+    test('the saved password answers a first-round PAM password prompt, '
+        'without asking', () async {
+      final asked = <KeyboardInteractiveRequest>[];
+      final source = VaultCredentialSource(
+        vault: _CountingVault({'host/host-1/password': 'secret'}),
+        interactivePrompt: (request) async {
+          asked.add(request);
+          return null;
+        },
+      );
+
+      final answers = await source.keyboardInteractive(target, passwordRound);
+
+      expect(answers?.answers, ['secret']);
+      expect(answers?.fromSavedPassword, isTrue);
+      expect(asked, isEmpty);
+    });
+
+    test('a one-time code is asked for, never read from the vault and never '
+        'saved', () async {
+      final vault = _CountingVault({'host/host-1/password': 'secret'});
+      final asked = <KeyboardInteractiveRequest>[];
+      final source = VaultCredentialSource(
+        vault: vault,
+        interactivePrompt: (request) async {
+          asked.add(request);
+          // Even if a UI tried to remember it, the source refuses.
+          return const KeyboardInteractiveReply(['123456'], remember: true);
+        },
+      );
+
+      final answers = await source.keyboardInteractive(target, codeRound);
+
+      expect(answers?.answers, ['123456']);
+      expect(answers?.fromSavedPassword, isFalse);
+      expect(asked.single.canRemember, isFalse);
+      expect(asked.single.address, target.address);
+      expect(asked.single.challenge.name, 'Two-factor');
+      expect(vault.reads, isEmpty, reason: 'no lookup for a code prompt');
+      expect(await vault.read(passwordRef), 'secret');
+    });
+
+    test('once the saved password was refused, the user is asked', () async {
+      final asked = <KeyboardInteractiveRequest>[];
+      final source = VaultCredentialSource(
+        vault: _CountingVault({'host/host-1/password': 'wrong'}),
+        interactivePrompt: (request) async {
+          asked.add(request);
+          return const KeyboardInteractiveReply(['right']);
+        },
+      );
+
+      final answers = await source.keyboardInteractive(
+        target,
+        const KeyboardInteractiveChallenge(
+          prompts: [KeyboardInteractivePrompt('Password:', echo: false)],
+          round: 0,
+          allowSavedPassword: false,
+        ),
+      );
+
+      expect(answers?.answers, ['right']);
+      expect(asked, hasLength(1));
+      expect(asked.single.canRemember, isTrue);
+    });
+
+    test(
+      'a typed password prompt answer is saved only when asked to',
+      () async {
+        final vault = _CountingVault({});
+        var remember = false;
+        final source = VaultCredentialSource(
+          vault: vault,
+          interactivePrompt: (request) async =>
+              KeyboardInteractiveReply(const ['typed'], remember: remember),
+        );
+
+        await source.keyboardInteractive(target, passwordRound);
+        expect(await vault.contains(passwordRef), isFalse);
+
+        remember = true;
+        await source.keyboardInteractive(target, passwordRound);
+        expect(await vault.read(passwordRef), 'typed');
+      },
+    );
+
+    test(
+      'a quick connect has nowhere to save, so offers no remember',
+      () async {
+        const quick = SshTarget(hostname: 'example.com', username: 'deploy');
+        final asked = <KeyboardInteractiveRequest>[];
+        final source = VaultCredentialSource(
+          vault: _CountingVault({}),
+          interactivePrompt: (request) async {
+            asked.add(request);
+            return const KeyboardInteractiveReply(['typed'], remember: true);
+          },
+        );
+
+        expect(
+          (await source.keyboardInteractive(quick, passwordRound))?.answers,
+          ['typed'],
+        );
+        expect(asked.single.canRemember, isFalse);
+      },
+    );
+
+    test(
+      'with no prompt wired, an unanswerable round declines, never hangs',
+      () async {
+        final source = VaultCredentialSource(vault: _CountingVault({}));
+
+        expect(await source.keyboardInteractive(target, codeRound), isNull);
+        expect(await source.keyboardInteractive(target, passwordRound), isNull);
+      },
+    );
+
+    test('cancelling declines the round', () async {
+      final source = VaultCredentialSource(
+        vault: _CountingVault({}),
+        interactivePrompt: (_) async => null,
+      );
+
+      expect(await source.keyboardInteractive(target, codeRound), isNull);
+    });
+  });
 }

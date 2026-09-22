@@ -4,6 +4,8 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>To scan the QR code shown by your other device, so your servers and keys can be sent straight between them without going through a server.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>To confirm it is you before a saved password or key is used, when you turn on the credential lock in Settings.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

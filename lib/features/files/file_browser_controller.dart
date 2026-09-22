@@ -7,10 +7,25 @@ import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import '../../core/error/error_logger.dart';
 import '../../core/ssh/sftp_service.dart';
 import '../../core/util/sort_entries.dart';
 import 'data/local_fs_service.dart';
 import 'domain/browse_path.dart';
+import 'domain/entry_name.dart';
+import 'domain/transfer_plan.dart';
+
+/// Asks the user, once per folder job, what to do about [conflictCount]
+/// files in [folderName] that already exist at the destination. The UI
+/// supplies this as a dialog; the controller only awaits the answer.
+typedef ConflictResolver = Future<ConflictChoice> Function(
+  String folderName,
+  int conflictCount,
+);
+
+/// Where an error nobody expected goes — `ErrorLogger.instance.record` in
+/// the app, a list in a test.
+typedef ErrorRecorder = void Function(Object error, StackTrace stack);
 
 /// Which side of the dual-pane browser is showing on a phone, where there is
 /// only room for one at a time.
@@ -50,6 +65,12 @@ class TransferJob {
     this.done = false,
     this.cancelled = false,
     this.cancelToken,
+    this.isFolder = false,
+    this.preparing = false,
+    this.filesTotal = 0,
+    this.filesDone = 0,
+    this.skipped = 0,
+    this.skippedExisting = 0,
   });
 
   final String id;
@@ -78,6 +99,28 @@ class TransferJob {
   /// a lie.
   final SftpCancelToken? cancelToken;
 
+  /// A whole folder moving as one job. [transferred] and [total] are then
+  /// summed across every file in it, and the file counts below apply.
+  final bool isFolder;
+
+  /// Folder jobs only: still walking the tree and checking the destination,
+  /// before any file has started. The row shows an indeterminate bar.
+  final bool preparing;
+
+  /// Folder jobs only: files this job will copy, and how many have finished.
+  /// A cancelled or failed job reports "[filesDone] of [filesTotal]" so it is
+  /// clear which part of the folder made it.
+  final int filesTotal;
+  final int filesDone;
+
+  /// Folder jobs only: entries the walk left alone — symlinks, which are
+  /// never followed, and folders past the depth limit.
+  final int skipped;
+
+  /// Folder jobs only: files not copied because they already existed and the
+  /// user chose to skip them.
+  final int skippedExisting;
+
   bool get failed => error != null;
   bool get canCancel => !done && cancelToken != null;
 
@@ -87,6 +130,11 @@ class TransferJob {
     String? error,
     bool? done,
     bool? cancelled,
+    bool? preparing,
+    int? filesTotal,
+    int? filesDone,
+    int? skipped,
+    int? skippedExisting,
   }) => TransferJob(
     id: id,
     name: name,
@@ -97,6 +145,12 @@ class TransferJob {
     done: done ?? this.done,
     cancelled: cancelled ?? this.cancelled,
     cancelToken: (done ?? this.done) ? null : cancelToken,
+    isFolder: isFolder,
+    preparing: preparing ?? this.preparing,
+    filesTotal: filesTotal ?? this.filesTotal,
+    filesDone: filesDone ?? this.filesDone,
+    skipped: skipped ?? this.skipped,
+    skippedExisting: skippedExisting ?? this.skippedExisting,
   );
 }
 
@@ -122,7 +176,14 @@ class FileBrowserController extends ChangeNotifier {
     // general, so the pane is confined to a directory it actually has
     // access to rather than silently showing an empty root.
     String? localBoundary,
-  }) : // `this._sftp`/`this._localFs` are not an option here even though the
+    // Where an unexpected failure is recorded. Defaults to the app's
+    // on-device log; a test passes its own to assert on what was recorded.
+    ErrorRecorder? recordError,
+  }) : _recordError =
+           recordError ??
+           ((error, stack) =>
+               ErrorLogger.instance.record(error, stack, source: 'files')),
+       // `this._sftp`/`this._localFs` are not an option here even though the
        // field name matches: an initializing formal for a *named* parameter
        // takes the field's own (private) identifier as its external name,
        // which no caller outside this library could then spell.
@@ -148,6 +209,7 @@ class FileBrowserController extends ChangeNotifier {
   final BrowsePath _remoteNav;
   final BrowsePath _localNav;
   final String? _localBoundary;
+  final ErrorRecorder _recordError;
 
   bool _disposed = false;
 
@@ -453,11 +515,34 @@ class FileBrowserController extends ChangeNotifier {
 
   /// Downloads [entry] into the local pane's current directory.
   ///
-  /// Directories are skipped rather than attempted: SFTP has no "download a
-  /// tree" primitive, and silently downloading just the one file a user
-  /// expected to recurse into would be a worse surprise than doing nothing.
-  Future<void> download(RemoteEntry entry) async {
-    if (entry.isDirectory) return;
+  /// A directory is downloaded whole, as one job — see [_runFolderTransfer].
+  /// [onConflict] is asked once if any of its files already exist locally;
+  /// without one, existing files are skipped rather than overwritten, the
+  /// choice that cannot lose anything.
+  Future<void> download(
+    RemoteEntry entry, {
+    ConflictResolver? onConflict,
+  }) async {
+    if (entry.isDirectory) {
+      return _runFolderTransfer(
+        name: entry.name,
+        direction: TransferDirection.download,
+        sourceRoot: entry.path,
+        targetRoot: _localNav.join(_localPath, entry.name),
+        listSource: _listRemoteForWalk,
+        listTarget: _listLocalForWalk,
+        joinTarget: _localNav.join,
+        ensureTargetDir: _localFs.ensureDirectory,
+        copy: (file, token, onProgress) => _sftp.download(
+          remotePath: file.source,
+          localPath: file.target,
+          cancelToken: token,
+          onProgress: onProgress,
+        ),
+        onConflict: onConflict,
+        refreshTarget: refreshLocal,
+      );
+    }
     final localTarget = _localNav.join(_localPath, entry.name);
     final cancelToken = SftpCancelToken();
     final job = _startTransfer(
@@ -477,14 +562,34 @@ class FileBrowserController extends ChangeNotifier {
       await refreshLocal();
     } on SftpCancelledException {
       _finishTransfer(job.id, cancelled: true);
-    } on Object catch (e) {
-      _finishTransfer(job.id, error: '$e');
+    } on Object catch (e, st) {
+      _failTransfer(job.id, e, st);
     }
   }
 
-  /// Uploads [entry] into the remote pane's current directory.
-  Future<void> upload(LocalEntry entry) async {
-    if (entry.isDirectory) return;
+  /// Uploads [entry] into the remote pane's current directory — a directory
+  /// whole, as one job, the mirror of [download].
+  Future<void> upload(LocalEntry entry, {ConflictResolver? onConflict}) async {
+    if (entry.isDirectory) {
+      return _runFolderTransfer(
+        name: entry.name,
+        direction: TransferDirection.upload,
+        sourceRoot: entry.path,
+        targetRoot: _remoteNav.join(_remotePath, entry.name),
+        listSource: _listLocalForWalk,
+        listTarget: _listRemoteForWalk,
+        joinTarget: _remoteNav.join,
+        ensureTargetDir: _ensureRemoteDirectory,
+        copy: (file, token, onProgress) => _sftp.upload(
+          localPath: file.source,
+          remotePath: file.target,
+          cancelToken: token,
+          onProgress: onProgress,
+        ),
+        onConflict: onConflict,
+        refreshTarget: refreshRemote,
+      );
+    }
     final remoteTarget = _remoteNav.join(_remotePath, entry.name);
     final cancelToken = SftpCancelToken();
     final job = _startTransfer(
@@ -504,8 +609,8 @@ class FileBrowserController extends ChangeNotifier {
       await refreshRemote();
     } on SftpCancelledException {
       _finishTransfer(job.id, cancelled: true);
-    } on Object catch (e) {
-      _finishTransfer(job.id, error: '$e');
+    } on Object catch (e, st) {
+      _failTransfer(job.id, e, st);
     }
   }
 
@@ -544,8 +649,8 @@ class FileBrowserController extends ChangeNotifier {
       await refreshRemote();
     } on SftpCancelledException {
       _finishTransfer(job.id, cancelled: true);
-    } on Object catch (e) {
-      _finishTransfer(job.id, error: '$e');
+    } on Object catch (e, st) {
+      _failTransfer(job.id, e, st);
     }
   }
 
@@ -584,8 +689,8 @@ class FileBrowserController extends ChangeNotifier {
     } on SftpCancelledException {
       _finishTransfer(job.id, cancelled: true);
       return null;
-    } on Object catch (e) {
-      _finishTransfer(job.id, error: '$e');
+    } on Object catch (e, st) {
+      _failTransfer(job.id, e, st);
       return null;
     }
   }
@@ -595,20 +700,20 @@ class FileBrowserController extends ChangeNotifier {
   /// does not stop the rest — `download` already reports each job's outcome
   /// on its own row, so the batch's job here is only to fire all of them,
   /// not to gate one on another.
-  Future<void> downloadSelected() async {
+  Future<void> downloadSelected({ConflictResolver? onConflict}) async {
     final entries = remoteEntries.value ?? const <RemoteEntry>[];
     final targets = entries.where((e) => _remoteSelection.contains(e.path));
     for (final entry in targets) {
-      await download(entry);
+      await download(entry, onConflict: onConflict);
     }
     toggleRemoteSelectionMode();
   }
 
-  Future<void> uploadSelected() async {
+  Future<void> uploadSelected({ConflictResolver? onConflict}) async {
     final entries = localEntries.value ?? const <LocalEntry>[];
     final targets = entries.where((e) => _localSelection.contains(e.path));
     for (final entry in targets) {
-      await upload(entry);
+      await upload(entry, onConflict: onConflict);
     }
     toggleLocalSelectionMode();
   }
@@ -675,20 +780,329 @@ class FileBrowserController extends ChangeNotifier {
     await refreshRemote();
   }
 
+  // --- Rename and new folder ---------------------------------------------
+  //
+  // Validation runs against the *raw* listing, hidden entries included: a
+  // `.env` the pane is not currently showing still occupies that name, and
+  // "no such conflict" from a filtered view would be a lie the server then
+  // contradicts.
+
+  Set<String> get _remoteNames => {
+    for (final e in _remoteEntries.value ?? const <RemoteEntry>[]) e.name,
+  };
+
+  Set<String> get _localNames => {
+    for (final e in _localEntries.value ?? const <LocalEntry>[]) e.name,
+  };
+
+  /// `/` everywhere, and the platform's own separator too — `\` on Windows,
+  /// where either one splits a path.
+  Set<String> get _localSeparators => {'/', _localNav.context.separator};
+
+  /// Checks [input] as a name in the remote pane's current folder. [current]
+  /// is the entry's own name when renaming. See [validateEntryName].
+  EntryNameError? validateRemoteName(String input, {String? current}) =>
+      validateEntryName(input, siblings: _remoteNames, current: current);
+
+  EntryNameError? validateLocalName(String input, {String? current}) =>
+      validateEntryName(
+        input,
+        siblings: _localNames,
+        current: current,
+        separators: _localSeparators,
+      );
+
+  /// Renames [entry] to [newName] within its folder, then reloads the pane —
+  /// on failure too, since a failed rename is often a sign the listing is
+  /// already out of date. Renaming to the same name does nothing.
+  ///
+  /// Throws [InvalidEntryNameException] for a name [validateRemoteName]
+  /// rejects, and [SftpException] when the server refuses.
+  Future<void> renameRemote(RemoteEntry entry, String newName) async {
+    if (isUnchangedName(newName, entry.name)) return;
+    final error = validateRemoteName(newName, current: entry.name);
+    if (error != null) throw InvalidEntryNameException(error);
+    final target = _remoteNav.join(
+      _remoteNav.context.dirname(entry.path),
+      newName.trim(),
+    );
+    try {
+      await _sftp.rename(entry.path, target);
+      // The old path no longer names anything; leaving it selected would
+      // make the next batch action act on a ghost.
+      _remoteSelection.remove(entry.path);
+    } finally {
+      await refreshRemote();
+    }
+  }
+
+  /// Creates a folder called [name] in the remote pane's current folder.
+  Future<void> createRemoteFolder(String name) async {
+    final error = validateRemoteName(name);
+    if (error != null) throw InvalidEntryNameException(error);
+    try {
+      await _sftp.mkdir(_remoteNav.join(_remotePath, name.trim()));
+    } finally {
+      await refreshRemote();
+    }
+  }
+
+  /// See [renameRemote]; throws [LocalFsException] when the filesystem
+  /// refuses.
+  Future<void> renameLocal(LocalEntry entry, String newName) async {
+    if (isUnchangedName(newName, entry.name)) return;
+    final error = validateLocalName(newName, current: entry.name);
+    if (error != null) throw InvalidEntryNameException(error);
+    final target = _localNav.join(
+      _localNav.context.dirname(entry.path),
+      newName.trim(),
+    );
+    try {
+      await _localFs.rename(entry.path, target);
+      _localSelection.remove(entry.path);
+    } finally {
+      await refreshLocal();
+    }
+  }
+
+  Future<void> createLocalFolder(String name) async {
+    final error = validateLocalName(name);
+    if (error != null) throw InvalidEntryNameException(error);
+    try {
+      await _localFs.mkdir(_localNav.join(_localPath, name.trim()));
+    } finally {
+      await refreshLocal();
+    }
+  }
+
+  /// The one checked remote entry, when exactly one is — what F2 renames.
+  RemoteEntry? get singleSelectedRemote {
+    if (!_remoteSelectionMode || _remoteSelection.length != 1) return null;
+    final path = _remoteSelection.single;
+    return (_remoteEntries.value ?? const <RemoteEntry>[])
+        .where((e) => e.path == path)
+        .firstOrNull;
+  }
+
+  LocalEntry? get singleSelectedLocal {
+    if (!_localSelectionMode || _localSelection.length != 1) return null;
+    final path = _localSelection.single;
+    return (_localEntries.value ?? const <LocalEntry>[])
+        .where((e) => e.path == path)
+        .firstOrNull;
+  }
+
+  /// Which pane the rename shortcut acts on, or null when neither has
+  /// exactly one entry selected.
+  ///
+  /// With one pane on screen ([bothPanesVisible] false) only the one showing
+  /// counts — renaming something in a pane the user cannot see would be a
+  /// surprise. With both, whichever has a single selection; if both do, the
+  /// active pane breaks the tie.
+  BrowserPane? renameShortcutPane({required bool bothPanesVisible}) {
+    final remote = singleSelectedRemote != null;
+    final local = singleSelectedLocal != null;
+    if (!bothPanesVisible) {
+      return switch (_activePane) {
+        BrowserPane.remote => remote ? BrowserPane.remote : null,
+        BrowserPane.local => local ? BrowserPane.local : null,
+      };
+    }
+    if (remote && local) return _activePane;
+    if (remote) return BrowserPane.remote;
+    if (local) return BrowserPane.local;
+    return null;
+  }
+
+  // --- Folder transfers --------------------------------------------------
+
+  Future<List<WalkEntry>> _listRemoteForWalk(String path) async => [
+    for (final e in await _sftp.list(path))
+      WalkEntry(
+        name: e.name,
+        path: e.path,
+        isDirectory: e.isDirectory,
+        isSymlink: e.isSymlink,
+        size: e.size,
+      ),
+  ];
+
+  Future<List<WalkEntry>> _listLocalForWalk(String path) async => [
+    for (final e in await _localFs.list(path))
+      WalkEntry(
+        name: e.name,
+        path: e.path,
+        isDirectory: e.isDirectory,
+        isSymlink: e.isSymlink,
+        size: e.size,
+      ),
+  ];
+
+  /// `mkdir` that tolerates the folder already being there — SFTP has no
+  /// "create if missing", and the protocol's generic failure for "exists"
+  /// is indistinguishable from any other, so the only honest check is to ask
+  /// what is at the path after the refusal.
+  Future<void> _ensureRemoteDirectory(String path) async {
+    try {
+      await _sftp.mkdir(path);
+    } on SftpException {
+      if (await _sftp.statPath(path) == RemotePathKind.directory) return;
+      rethrow;
+    }
+  }
+
+  /// Copies a whole folder as one [TransferJob]: walk, check the
+  /// destination, ask once about conflicts, create the folders, then copy the
+  /// files one at a time with progress summed across all of them.
+  ///
+  /// **Cancelling** stops at the file in flight. That file's partial copy is
+  /// removed — by the service, which never leaves a truncated file under a
+  /// real name (see [SftpService.download]) — and every file already
+  /// finished stays, so the job reports "N of M files transferred" and the
+  /// user can see exactly what arrived. Deleting completed files on cancel
+  /// was the alternative, and it would turn "stop, that's enough" into data
+  /// loss when the destination folder already held files of its own.
+  ///
+  /// **A failure** stops the job the same way, with the same count: carrying
+  /// on past a permission error would bury it under a row of later ones.
+  Future<void> _runFolderTransfer({
+    required String name,
+    required TransferDirection direction,
+    required String sourceRoot,
+    required String targetRoot,
+    required DirectoryLister listSource,
+    required DirectoryLister listTarget,
+    required PathJoin joinTarget,
+    required Future<void> Function(String path) ensureTargetDir,
+    required Future<void> Function(
+      PlannedFile file,
+      SftpCancelToken token,
+      SftpProgress onProgress,
+    )
+    copy,
+    required Future<void> Function() refreshTarget,
+    ConflictResolver? onConflict,
+  }) async {
+    final token = SftpCancelToken();
+    final job = _startTransfer(
+      name: name,
+      direction: direction,
+      cancelToken: token,
+      isFolder: true,
+    );
+    var filesDone = 0;
+    try {
+      final plan = await planFolderTransfer(
+        sourceRoot: sourceRoot,
+        targetRoot: targetRoot,
+        listSource: listSource,
+        joinTarget: joinTarget,
+        isCancelled: () => token.isCancelled,
+      );
+      final existing = await scanExistingNames(plan, listTarget);
+      if (token.isCancelled) throw const SftpCancelledException();
+
+      final conflicts = findConflicts(plan, existing);
+      final choice = conflicts.isEmpty
+          ? ConflictChoice.overwrite
+          : await (onConflict?.call(name, conflicts.length) ??
+                Future.value(ConflictChoice.skipExisting));
+      final files = applyConflictChoice(plan, conflicts, choice);
+      _replaceTransfer(
+        job.id,
+        (j) => j.copyWith(
+          preparing: false,
+          filesTotal: choice == ConflictChoice.cancel
+              ? plan.files.length
+              : files.length,
+          total: TransferPlan.bytesOf(files),
+          skipped: plan.skipped,
+          skippedExisting: choice == ConflictChoice.skipExisting
+              ? conflicts.length
+              : 0,
+        ),
+      );
+      if (choice == ConflictChoice.cancel || token.isCancelled) {
+        throw const SftpCancelledException();
+      }
+
+      for (final dir in plan.directories) {
+        if (token.isCancelled) throw const SftpCancelledException();
+        // Listed during the conflict scan, so it is already there.
+        if (existing.containsKey(dir.target)) continue;
+        await ensureTargetDir(dir.target);
+      }
+
+      var bytesDone = 0;
+      for (final file in files) {
+        if (token.isCancelled) throw const SftpCancelledException();
+        var fileBytes = 0;
+        await copy(file, token, (transferred, _) {
+          fileBytes = transferred;
+          _replaceTransfer(
+            job.id,
+            (j) => j.copyWith(transferred: bytesDone + transferred),
+          );
+        });
+        bytesDone += file.size ?? fileBytes;
+        filesDone++;
+        _replaceTransfer(
+          job.id,
+          (j) => j.copyWith(transferred: bytesDone, filesDone: filesDone),
+        );
+      }
+      _finishTransfer(job.id);
+      await refreshTarget();
+    } on SftpCancelledException {
+      _finishTransfer(job.id, cancelled: true);
+      if (filesDone > 0) await refreshTarget();
+    } on Object catch (e, st) {
+      _failTransfer(job.id, e, st);
+      if (filesDone > 0) await refreshTarget();
+    }
+  }
+
   TransferJob _startTransfer({
     required String name,
     required TransferDirection direction,
     SftpCancelToken? cancelToken,
+    bool isFolder = false,
   }) {
     final job = TransferJob(
       id: '${_transferCounter++}',
       name: name,
       direction: direction,
       cancelToken: cancelToken,
+      isFolder: isFolder,
+      preparing: isFolder,
     );
     _transfers.add(job);
     _notify();
     return job;
+  }
+
+  void _replaceTransfer(String id, TransferJob Function(TransferJob) update) {
+    final index = _transfers.indexWhere((t) => t.id == id);
+    if (index < 0) return;
+    _transfers[index] = update(_transfers[index]);
+    _notify();
+  }
+
+  /// Ends [id] as failed. [SftpException] and [LocalFsException] are failures
+  /// the app anticipated — a dropped connection, a full disk, a permission —
+  /// and carry a message meant for the user. Anything else is a bug in this
+  /// code, so it is also recorded where Settings → Diagnostics can show it.
+  void _failTransfer(String id, Object error, StackTrace stack) {
+    final String message;
+    if (error is SftpException) {
+      message = error.message;
+    } else if (error is LocalFsException) {
+      message = error.message;
+    } else {
+      message = '$error';
+      _recordError(error, stack);
+    }
+    _finishTransfer(id, error: message);
   }
 
   void _updateTransfer(String id, {required int transferred, int? total}) {

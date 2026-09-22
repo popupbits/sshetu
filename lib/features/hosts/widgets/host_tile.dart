@@ -12,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../sessions/connect.dart';
 import '../domain/ssh_host.dart';
 import '../hosts_controller.dart';
+import 'host_notes_dialog.dart';
 
 /// One saved server, as a row.
 ///
@@ -45,6 +46,12 @@ class HostTile extends ConsumerWidget {
           icon: PiconsRegular.pencilSimple,
           onSelected: () => openHostEditor(context, ref, hostId: host.id),
         ),
+        if (host.hasNotes)
+          MenuAction(
+            label: l10n.hostsShowNotes,
+            icon: PiconsRegular.note,
+            onSelected: () => showHostNotes(context, ref, host),
+          ),
         MenuAction(
           label: l10n.hostsDelete,
           icon: PiconsRegular.trash,
@@ -82,6 +89,7 @@ class HostTile extends ConsumerWidget {
         title: Row(
           children: [
             Flexible(
+              flex: 3,
               child: Text(
                 host.label,
                 maxLines: 1,
@@ -111,6 +119,26 @@ class HostTile extends ConsumerWidget {
                   color: scheme.error,
                 ),
               ),
+            ],
+            if (host.hasNotes) ...[
+              const SizedBox(width: Spacing.xs),
+              // A marker, not a button: it is far too small to tap. Hover
+              // shows the note on a desktop; the row's menu opens it anywhere.
+              Tooltip(
+                message: _notePreview(host.notes!),
+                child: Icon(
+                  PiconsRegular.note,
+                  size: 13,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (host.tags.isNotEmpty) ...[
+              const SizedBox(width: Spacing.sm),
+              // Flex 2 against the name's 3: tags may shrink and ellipsise,
+              // but never take the row from the name, which is what the eye
+              // is scanning for.
+              Flexible(flex: 2, child: _TagPills(tags: host.tags)),
             ],
           ],
         ),
@@ -162,6 +190,13 @@ class HostTile extends ConsumerWidget {
         trailing: _HostMenu(host: host),
       ),
     );
+  }
+
+  /// The first few lines of a note, for a tooltip.
+  static String _notePreview(String notes) {
+    final text = notes.trim();
+    const limit = 280;
+    return text.length <= limit ? text : '${text.substring(0, limit)}…';
   }
 
   /// A short relative age — `2h`, `3d`, `—`.
@@ -245,6 +280,64 @@ class _Monogram extends StatelessWidget {
   }
 }
 
+/// At most two tags as small pills, then `+N`.
+///
+/// Two, not all: a row carrying five tags is a row whose name has been
+/// crowded out, and the filter row above the list is where every tag lives.
+class _TagPills extends StatelessWidget {
+  const _TagPills({required this.tags});
+
+  final List<String> tags;
+
+  static const _shown = 2;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final style = theme.textTheme.labelSmall?.copyWith(
+      color: scheme.onSecondaryContainer,
+    );
+    final extra = tags.length - _shown;
+
+    Widget pill(String text) => Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.xs + Spacing.xxs,
+        vertical: Spacing.xxs / 2,
+      ),
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(Radii.pill),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      ),
+    );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (i, tag) in tags.take(_shown).indexed) ...[
+          if (i > 0) const SizedBox(width: Spacing.xs),
+          Flexible(child: pill(tag)),
+        ],
+        if (extra > 0) ...[
+          const SizedBox(width: Spacing.xs),
+          Text(
+            '+$extra',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _HostMenu extends ConsumerWidget {
   const _HostMenu({required this.host});
 
@@ -262,6 +355,12 @@ class _HostMenu extends ConsumerWidget {
           onPressed: () => openHostEditor(context, ref, hostId: host.id),
           child: Text(l10n.hostsEdit),
         ),
+        if (host.hasNotes)
+          MenuItemButton(
+            leadingIcon: const Icon(PiconsRegular.note),
+            onPressed: () => showHostNotes(context, ref, host),
+            child: Text(l10n.hostsShowNotes),
+          ),
         MenuItemButton(
           leadingIcon: Icon(PiconsRegular.trash, color: scheme.error),
           onPressed: () async {

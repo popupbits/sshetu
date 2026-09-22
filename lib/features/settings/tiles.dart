@@ -14,6 +14,8 @@ import '../backup/presentation/open_backup.dart';
 import 'widgets/default_key_tile.dart';
 import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
+import 'widgets/app_lock_tile.dart';
+import 'widgets/confirm_paste_tile.dart';
 import 'widgets/language_tile.dart';
 import 'widgets/terminal_font_size_tile.dart';
 import 'widgets/text_scale_tile.dart';
@@ -48,6 +50,10 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
     ),
     SettingsSection(title: l10n.settingsGeneral, tiles: const [LanguageTile()]),
     SettingsSection(
+      title: l10n.settingsTerminal,
+      tiles: const [ConfirmPasteTile()],
+    ),
+    SettingsSection(
       title: l10n.hostsTitle,
       tiles: [
         ListTile(
@@ -70,6 +76,7 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
       title: l10n.settingsSecurity,
       tiles: [
         const DefaultKeyTile(),
+        const AppLockTile(),
         ListTile(
           leading: const Icon(PiconsRegular.shieldCheck),
           title: Text(l10n.knownHostsTitle),

@@ -63,9 +63,24 @@ class FakeSftpService implements SftpService {
   /// (e.g. a path nobody has listed yet).
   final Map<String, RemotePathKind> statOverrides = {};
 
+  /// Runs at the start of every [download], with the remote path, before
+  /// anything else — a folder-transfer test's way to cancel partway through
+  /// (cancel the job, then let this file proceed and see the token) or to fail
+  /// one specific file of many.
+  Future<void> Function(String remotePath)? beforeDownload;
+
+  /// The same, for [upload].
+  Future<void> Function(String remotePath)? beforeUpload;
+
+  /// Set by a test to make [rename] / [mkdir] fail.
+  Object? renameError;
+  Object? mkdirError;
+
   final List<String> downloadedRemotePaths = [];
   final List<String> uploadedRemotePaths = [];
   final List<String> deletedPaths = [];
+  final List<(String, String)> renameCalls = [];
+  final List<String> mkdirPaths = [];
   final Map<String, int> chmodCalls = {};
   var closeCallCount = 0;
 
@@ -77,8 +92,21 @@ class FakeSftpService implements SftpService {
         kind: failListKind,
       );
     }
-    return directories[path] ?? const [];
+    final listing = directories[path];
+    if (listing == null && missingDirectoriesFail) {
+      throw SftpException(
+        'Could not read $path: no such file.',
+        kind: SftpFailureKind.notFound,
+      );
+    }
+    return listing ?? const [];
   }
+
+  /// When true, [list] on a path that is not in [directories] fails with
+  /// "not found" the way a real server does, instead of the lenient empty
+  /// listing most tests rely on. A folder upload's destination scan needs the
+  /// real behaviour to tell a folder that exists from one it must create.
+  bool missingDirectoriesFail = false;
 
   @override
   Future<void> download({
@@ -87,6 +115,7 @@ class FakeSftpService implements SftpService {
     SftpProgress? onProgress,
     SftpCancelToken? cancelToken,
   }) async {
+    await beforeDownload?.call(remotePath);
     downloadedRemotePaths.add(remotePath);
     final gate = downloadGate;
     if (gate != null) await gate;
@@ -107,6 +136,7 @@ class FakeSftpService implements SftpService {
     SftpProgress? onProgress,
     SftpCancelToken? cancelToken,
   }) async {
+    await beforeUpload?.call(remotePath);
     uploadedRemotePaths.add(remotePath);
     final error = uploadError;
     if (error != null) throw error;
@@ -120,18 +150,48 @@ class FakeSftpService implements SftpService {
     // the remote pane after an upload, instead of just trusting it did.
     final dir = p.posix.dirname(remotePath);
     final list = directories.putIfAbsent(dir, () => []);
-    list.add(
-      RemoteEntry(
-        name: p.posix.basename(remotePath),
-        path: remotePath,
-        isDirectory: false,
-        size: 10,
-      ),
-    );
+    // Replacing, not appending: an overwrite on a real server leaves one
+    // file under the name, not two.
+    list
+      ..removeWhere((e) => e.path == remotePath)
+      ..add(
+        RemoteEntry(
+          name: p.posix.basename(remotePath),
+          path: remotePath,
+          isDirectory: false,
+          size: 10,
+        ),
+      );
   }
 
+  /// Moves the entry within its listing, the way the next `list()` on a real
+  /// server would show it.
   @override
-  Future<void> rename(String fromPath, String toPath) async {}
+  Future<void> rename(String fromPath, String toPath) async {
+    renameCalls.add((fromPath, toPath));
+    final error = renameError;
+    if (error != null) throw error;
+    final list = directories[p.posix.dirname(fromPath)];
+    final index = list?.indexWhere((e) => e.path == fromPath) ?? -1;
+    if (list == null || index < 0) {
+      throw SftpException(
+        'Could not rename: no such file.',
+        kind: SftpFailureKind.notFound,
+      );
+    }
+    final old = list[index];
+    list[index] = RemoteEntry(
+      name: p.posix.basename(toPath),
+      path: toPath,
+      isDirectory: old.isDirectory,
+      size: old.size,
+      modified: old.modified,
+      permissions: old.permissions,
+      isSymlink: old.isSymlink,
+    );
+    final children = directories.remove(fromPath);
+    if (children != null) directories[toPath] = children;
+  }
 
   @override
   Future<void> delete(RemoteEntry entry) async {
@@ -141,8 +201,28 @@ class FakeSftpService implements SftpService {
     directories[dir]?.removeWhere((e) => e.path == entry.path);
   }
 
+  /// Like a real server, refuses a path that is already a directory —
+  /// with the protocol's generic failure, since SFTP v3 has no "exists"
+  /// status — so a test sees the controller cope with that.
   @override
-  Future<void> mkdir(String path) async {}
+  Future<void> mkdir(String path) async {
+    final error = mkdirError;
+    if (error != null) throw error;
+    if (directories.containsKey(path)) {
+      throw SftpException('Could not create: failure.');
+    }
+    mkdirPaths.add(path);
+    directories[path] = [];
+    directories
+        .putIfAbsent(p.posix.dirname(path), () => [])
+        .add(
+          RemoteEntry(
+            name: p.posix.basename(path),
+            path: path,
+            isDirectory: true,
+          ),
+        );
+  }
 
   @override
   Future<void> setPermissions(String path, int mode) async {
@@ -162,6 +242,7 @@ class FakeSftpService implements SftpService {
         size: old.size,
         modified: old.modified,
         permissions: mode,
+        isSymlink: old.isSymlink,
       );
     }
   }

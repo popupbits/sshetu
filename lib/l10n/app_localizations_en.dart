@@ -594,6 +594,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get secretNoKeys => 'You have no keys yet.';
 
   @override
+  String get interactiveAuthTitle => 'Server sign-in';
+
+  @override
+  String get interactiveAuthSubmit => 'Submit';
+
+  @override
+  String get interactiveAuthAnswerLabel => 'Answer';
+
+  @override
   String get knownHostsTitle => 'Trusted host keys';
 
   @override
@@ -626,6 +635,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSecurity => 'Security';
+
+  @override
+  String get settingsAppLock => 'Require unlock for saved credentials';
+
+  @override
+  String get settingsAppLockBody =>
+      'Confirm it\'s you with a fingerprint, your face or the device PIN before a saved password or key is used.';
+
+  @override
+  String get settingsAppLockUnavailable =>
+      'Set up a screen lock, fingerprint, face or Windows Hello on this device first.';
+
+  @override
+  String get settingsAppLockCancelled =>
+      'Not confirmed, so the setting was not changed.';
+
+  @override
+  String get settingsAppLockLockedOut =>
+      'Too many attempts. Unlock your device, then try again.';
+
+  @override
+  String get settingsAppLockFailed =>
+      'This device could not confirm it\'s you.';
+
+  @override
+  String get appLockEnableReason =>
+      'Confirm it\'s you to lock your saved credentials';
+
+  @override
+  String get appLockDisableReason =>
+      'Confirm it\'s you to stop locking your saved credentials';
+
+  @override
+  String get appLockUnlockReason => 'Unlock your saved SSH credentials';
 
   @override
   String get filesTitle => 'Files';
@@ -1014,6 +1057,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String filesDeleteSelectedBody(int count) {
     return '$count items are deleted permanently. This cannot be undone.';
+  }
+
+  @override
+  String get filesRename => 'Rename';
+
+  @override
+  String get filesNewFolder => 'New folder';
+
+  @override
+  String get filesCreate => 'Create';
+
+  @override
+  String get filesNameLabel => 'Name';
+
+  @override
+  String get filesNameEmpty => 'Enter a name';
+
+  @override
+  String get filesNameSeparator =>
+      'A name cannot contain a path separator such as /';
+
+  @override
+  String get filesNameReserved =>
+      '“.” and “..” are reserved and cannot be used as names';
+
+  @override
+  String filesNameExists(String name) {
+    return 'Something called $name is already here';
+  }
+
+  @override
+  String get filesActionFailed =>
+      'That did not work. Details are in Settings → Diagnostics.';
+
+  @override
+  String get filesConflictTitle => 'Some files are already there';
+
+  @override
+  String filesConflictBody(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files in $name already exist at the destination.',
+      one: '1 file in $name already exists at the destination.',
+    );
+    return '$_temp0 The choice applies to all of them.';
+  }
+
+  @override
+  String get filesConflictOverwrite => 'Overwrite';
+
+  @override
+  String get filesConflictSkip => 'Skip existing';
+
+  @override
+  String get filesFolderPreparing => 'Preparing…';
+
+  @override
+  String filesFolderProgress(int done, int total) {
+    return '$done of $total files';
+  }
+
+  @override
+  String filesFolderTransferred(int done, int total) {
+    return '$done of $total files transferred';
+  }
+
+  @override
+  String filesFolderSkipped(int count) {
+    return '$count skipped (links or too deep)';
+  }
+
+  @override
+  String filesFolderExistingSkipped(int count) {
+    return '$count already there';
   }
 
   @override
@@ -1496,4 +1614,229 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get hostEditorIdentityFileIgnored =>
       'The -i path was ignored. SSHetu uses the keys it holds; choose one under Advanced options.';
+
+  @override
+  String get hostsNewGroup => 'New group';
+
+  @override
+  String get hostsShowNotes => 'Notes';
+
+  @override
+  String get hostsTagFilterClear => 'Clear tag filter';
+
+  @override
+  String get hostGroupName => 'Group name';
+
+  @override
+  String get hostGroupCreate => 'Create';
+
+  @override
+  String get hostGroupRename => 'Rename group';
+
+  @override
+  String get hostGroupRenameAction => 'Rename';
+
+  @override
+  String get hostGroupDelete => 'Delete group';
+
+  @override
+  String hostGroupDeleteConfirm(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get hostGroupDeleteBody =>
+      'The group is removed. Its hosts are kept and move to Ungrouped.';
+
+  @override
+  String get hostGroupUngrouped => 'Ungrouped';
+
+  @override
+  String get hostGroupEmpty =>
+      'No hosts in this group yet. Choose it in a host\'s editor.';
+
+  @override
+  String hostGroupCollapse(String name) {
+    return 'Collapse $name';
+  }
+
+  @override
+  String hostGroupExpand(String name) {
+    return 'Expand $name';
+  }
+
+  @override
+  String get hostEditorOrganise => 'Organise';
+
+  @override
+  String get hostEditorGroup => 'Group';
+
+  @override
+  String get hostEditorGroupNone => 'No group';
+
+  @override
+  String get hostEditorGroupNew => 'New group…';
+
+  @override
+  String get hostEditorTags => 'Tags';
+
+  @override
+  String get hostEditorTagsHint => 'Type a tag, then Enter or a comma';
+
+  @override
+  String get hostEditorTagAdd => 'Add tag';
+
+  @override
+  String get hostEditorNotes => 'Notes';
+
+  @override
+  String get hostEditorNotesHint =>
+      'Anything worth remembering about this server';
+
+  @override
+  String get hostEditorKeepalive => 'Keepalive interval';
+
+  @override
+  String get hostEditorKeepaliveSuffix => 'seconds';
+
+  @override
+  String get hostEditorKeepaliveHelp =>
+      '0 turns keepalives off. A shorter interval keeps mobile connections from being dropped while idle.';
+
+  @override
+  String get hostEditorKeepaliveInvalid => '0–3600';
+
+  @override
+  String get hostEditorFontSize => 'Terminal font size';
+
+  @override
+  String hostEditorFontSizeDefault(String size) {
+    return 'Use the app default ($size)';
+  }
+
+  @override
+  String get hostEditorFontSizeHelp =>
+      'Zooming in the terminal changes the app default, not this host.';
+
+  @override
+  String get terminalFind => 'Find';
+
+  @override
+  String get menuFind => 'Find…';
+
+  @override
+  String get terminalFindHint => 'Find in scrollback';
+
+  @override
+  String terminalFindCount(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String terminalFindCountCapped(int current, int total) {
+    return '$current of $total+';
+  }
+
+  @override
+  String get terminalFindNoMatches => 'No matches';
+
+  @override
+  String get terminalFindInvalidPattern => 'Invalid pattern';
+
+  @override
+  String get terminalFindCaseSensitive => 'Match case';
+
+  @override
+  String get terminalFindRegex => 'Regular expression';
+
+  @override
+  String get terminalFindOlder => 'Older match (Enter)';
+
+  @override
+  String get terminalFindNewer => 'Newer match (Shift+Enter)';
+
+  @override
+  String get terminalFindClose => 'Close (Esc)';
+
+  @override
+  String get terminalOpenLink => 'Open link';
+
+  @override
+  String get terminalCopyLink => 'Copy link';
+
+  @override
+  String get terminalLinkSheetTitle => 'Open this link?';
+
+  @override
+  String get terminalLinkRefused =>
+      'SSHetu only opens http, https and mailto links.';
+
+  @override
+  String get terminalLinkOpenFailed => 'Could not open the link.';
+
+  @override
+  String get terminalLinkCopied => 'Link copied';
+
+  @override
+  String get pasteConfirmTitle => 'Paste and run?';
+
+  @override
+  String pasteConfirmBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'commands',
+      one: 'a command',
+    );
+    return 'This text contains a line break, so pasting it will run $_temp0 at a shell prompt.';
+  }
+
+  @override
+  String pasteConfirmLineCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lines',
+      one: '1 line',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pasteConfirmMoreLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '…and $count more lines',
+      one: '…and 1 more line',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pasteHiddenRemoved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hidden characters removed',
+      one: '1 hidden character removed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pasteDontAskAgain => 'Don\'t ask again';
+
+  @override
+  String get pasteConfirmAction => 'Paste';
+
+  @override
+  String get settingsTerminal => 'Terminal';
+
+  @override
+  String get settingsConfirmPaste => 'Confirm multi-line paste';
+
+  @override
+  String get settingsConfirmPasteBody =>
+      'Ask before pasting text with a line break, which would run commands.';
 }

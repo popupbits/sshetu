@@ -16,6 +16,7 @@ class LocalEntry {
     required this.isDirectory,
     this.size,
     this.modified,
+    this.isSymlink = false,
   });
 
   final String name;
@@ -23,6 +24,12 @@ class LocalEntry {
   final bool isDirectory;
   final int? size;
   final DateTime? modified;
+
+  /// True for a symbolic link (or, on Windows, a junction). [isDirectory]
+  /// still describes what it points at, since that is what tapping the row
+  /// opens — a folder transfer checks this first and skips the entry rather
+  /// than following it. See `domain/transfer_plan.dart`.
+  final bool isSymlink;
 
   @override
   String toString() => 'LocalEntry($path)';
@@ -80,6 +87,7 @@ class LocalFsService {
             isDirectory: isDirectory,
             size: isDirectory ? null : stat.size,
             modified: stat.modified,
+            isSymlink: entity is Link,
           ),
         );
       }
@@ -107,6 +115,80 @@ class LocalFsService {
       }
     } on Object catch (e) {
       throw _wrap(e, 'Could not delete ${entry.name}');
+    }
+  }
+
+  /// Renames [fromPath] to [toPath], refusing if something is already at
+  /// [toPath].
+  ///
+  /// The refusal is the point: POSIX `rename()` silently replaces a file at
+  /// the destination, while Windows fails outright — neither is what a
+  /// rename in a file manager should do, and the two platforms should not
+  /// disagree about it. The dialog already checks the listing; this closes
+  /// the gap between that listing and now.
+  Future<void> rename(String fromPath, String toPath) async {
+    final action = 'Could not rename ${p.basename(fromPath)}';
+    try {
+      final existing = await FileSystemEntity.type(toPath, followLinks: false);
+      // `identical` covers a case-only rename (`notes` -> `Notes`) on a
+      // case-insensitive filesystem, where the "existing" target is the very
+      // file being renamed.
+      if (existing != FileSystemEntityType.notFound &&
+          !await FileSystemEntity.identical(fromPath, toPath)) {
+        throw LocalFsException(
+          '$action: ${p.basename(toPath)} already exists.',
+        );
+      }
+      final type = await FileSystemEntity.type(fromPath, followLinks: false);
+      switch (type) {
+        case FileSystemEntityType.notFound:
+          throw LocalFsException(
+            '$action: no such file or directory.',
+            kind: LocalFsFailureKind.notFound,
+          );
+        case FileSystemEntityType.directory:
+          await Directory(fromPath).rename(toPath);
+        case FileSystemEntityType.link:
+          await Link(fromPath).rename(toPath);
+        default:
+          await File(fromPath).rename(toPath);
+      }
+    } on Object catch (e) {
+      throw _wrap(e, action);
+    }
+  }
+
+  /// Creates the folder [path], failing if anything is already there —
+  /// `Directory.create` on its own succeeds quietly when the folder exists,
+  /// which would make "New folder" on a taken name look like it worked. The
+  /// parent must exist; this is one new folder, not `mkdir -p`.
+  Future<void> mkdir(String path) async {
+    final action = 'Could not create ${p.basename(path)}';
+    try {
+      final existing = await FileSystemEntity.type(path, followLinks: false);
+      if (existing != FileSystemEntityType.notFound) {
+        throw LocalFsException('$action: it already exists.');
+      }
+      await Directory(path).create();
+    } on Object catch (e) {
+      throw _wrap(e, action);
+    }
+  }
+
+  /// Makes sure [path] is a folder, creating it if nothing is there — what a
+  /// folder download needs, where merging into a folder that already exists
+  /// is expected rather than a conflict. Fails if a file is in the way.
+  Future<void> ensureDirectory(String path) async {
+    final action = 'Could not create ${p.basename(path)}';
+    try {
+      final existing = await FileSystemEntity.type(path, followLinks: true);
+      if (existing == FileSystemEntityType.directory) return;
+      if (existing != FileSystemEntityType.notFound) {
+        throw LocalFsException('$action: a file with that name is in the way.');
+      }
+      await Directory(path).create();
+    } on Object catch (e) {
+      throw _wrap(e, action);
     }
   }
 

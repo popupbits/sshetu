@@ -9,6 +9,7 @@ import '../../core/ssh/tunnel_runner.dart';
 import '../../core/ui/feedback.dart';
 import '../../l10n/app_localizations.dart';
 import '../hosts/widgets/host_key_dialog.dart';
+import '../hosts/widgets/keyboard_interactive_dialog.dart';
 import '../hosts/widgets/secret_dialog.dart';
 import 'domain/tunnel.dart';
 import 'tunnels_controller.dart';
@@ -52,6 +53,10 @@ Future<void> startTunnel(
               // the host editor is where that choice actually belongs.
               SecretUseIdentity() || null => null,
             };
+          },
+          interactivePrompt: (request) async {
+            if (!context.mounted) return null;
+            return showKeyboardInteractiveDialog(context, request);
           },
         );
   } on SshConnectionException catch (error, stackTrace) {

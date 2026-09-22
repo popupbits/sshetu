@@ -78,6 +78,14 @@ class SshTarget {
   /// being discovered on the next keystroke.
   final Duration keepaliveInterval;
 
+  /// [keepaliveInterval] as dartssh2 wants it: null, not zero, for "off".
+  ///
+  /// dartssh2 disables keepalives only on null. Handed [Duration.zero] it
+  /// builds a zero-period `Timer.periodic` and pings the server as fast as the
+  /// event loop turns — the opposite of what "0 = off" promised.
+  Duration? get keepaliveOrNull =>
+      keepaliveInterval > Duration.zero ? keepaliveInterval : null;
+
   /// `user@host:port`. Carries no secret and is safe to log.
   String get address => '$username@$hostname:$port';
 

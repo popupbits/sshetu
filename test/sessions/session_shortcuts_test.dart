@@ -121,6 +121,43 @@ void main() {
     });
   });
 
+  group('the find shortcut', () {
+    SingleActivator findOn(TargetPlatform platform) =>
+        activatorFor(shortcutsFor(platform), (i) => i is FindInTerminalIntent)!
+            as SingleActivator;
+
+    test('is Command+F on macOS', () {
+      final activator = findOn(TargetPlatform.macOS);
+      expect(activator.trigger, LogicalKeyboardKey.keyF);
+      expect(activator.meta, isTrue);
+      expect(activator.control, isFalse);
+      expect(activator.shift, isFalse);
+    });
+
+    for (final platform in [TargetPlatform.windows, TargetPlatform.linux]) {
+      test('is Control+Shift+F on $platform, leaving Ctrl+F to the shell', () {
+        final activator = findOn(platform);
+        expect(activator.trigger, LogicalKeyboardKey.keyF);
+        expect(activator.control, isTrue);
+        expect(activator.shift, isTrue, reason: 'Ctrl+F is forward-char');
+        expect(activator.meta, isFalse);
+      });
+    }
+
+    test('matches the activator the menu and the terminal use', () {
+      for (final platform in [TargetPlatform.macOS, TargetPlatform.windows]) {
+        debugDefaultTargetPlatformOverride = platform;
+        final shared = findInTerminalActivator();
+        debugDefaultTargetPlatformOverride = null;
+        final installed = findOn(platform);
+        expect(shared.trigger, installed.trigger);
+        expect(shared.control, installed.control);
+        expect(shared.meta, installed.meta);
+        expect(shared.shift, installed.shift);
+      }
+    });
+  });
+
   group('the terminal zoom shortcuts', () {
     Iterable<TerminalFontSizeIntent> zoomOn(TargetPlatform platform) =>
         shortcutsFor(platform).values.whereType<TerminalFontSizeIntent>();

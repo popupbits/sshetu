@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../../../core/secrets/secret_ref.dart';
 import '../../../core/secrets/secret_vault.dart';
 import '../../../core/ssh/ssh_target.dart';
+import '../domain/host_tags.dart';
 import '../domain/ssh_host.dart';
 
 /// Reads and writes saved hosts.
@@ -158,7 +159,10 @@ class HostRepository {
     'terminal_theme': host.terminalTheme,
     'font_size': host.fontSize,
     'notes': host.notes,
-    'tags': host.tags.isEmpty ? null : host.tags.join(','),
+    // Sanitized here as well as in the editor: an import or a transfer can
+    // hand over a tag with a comma in it, and that is one tag on the way in
+    // and two on the way out.
+    'tags': HostTags.join(host.tags),
     'last_connected_at': host.lastConnectedAt?.millisecondsSinceEpoch,
     'created_at': host.createdAt.millisecondsSinceEpoch,
     'updated_at': host.updatedAt.millisecondsSinceEpoch,
@@ -187,10 +191,7 @@ class HostRepository {
     terminalTheme: row['terminal_theme'] as String?,
     fontSize: (row['font_size'] as num?)?.toDouble(),
     notes: row['notes'] as String?,
-    tags: switch (row['tags'] as String?) {
-      null || '' => const [],
-      final value => value.split(',').where((t) => t.isNotEmpty).toList(),
-    },
+    tags: HostTags.parse(row['tags'] as String?),
     lastConnectedAt: _time(row['last_connected_at']),
     createdAt: _time(row['created_at'])!,
     updatedAt: _time(row['updated_at'])!,

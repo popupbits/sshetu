@@ -8,9 +8,12 @@ import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
-import 'domain/ssh_host.dart';
+import 'domain/host_sections.dart';
 import 'hosts_controller.dart';
+import 'widgets/group_actions.dart';
+import 'widgets/host_group_header.dart';
 import 'widgets/host_tile.dart';
+import 'widgets/tag_filter_bar.dart';
 
 /// The Hosts destination: the app's front door.
 class HostsScreen extends ConsumerWidget {
@@ -19,8 +22,11 @@ class HostsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final hosts = ref.watch(filteredHostsProvider);
+    final sections = ref.watch(hostSectionsProvider);
     final query = ref.watch(hostSearchProvider);
+    final filtering =
+        query.isNotEmpty || ref.watch(hostTagFilterProvider).isNotEmpty;
+    final hasGroups = ref.watch(hostGroupsProvider).value?.isNotEmpty ?? false;
 
     // Whether there is anything to search — not whether the *filtered* list
     // has anything in it. A field for narrowing an empty list can do nothing
@@ -46,21 +52,31 @@ class HostsScreen extends ConsumerWidget {
             child: SearchBar(
               hintText: l10n.hostsSearch,
               leading: const Icon(PiconsRegular.magnifyingGlass),
+              // Beside the search rather than in the app bar: it is about
+              // this list, and the app bar is shared by every layout.
+              trailing: [
+                IconButton(
+                  tooltip: l10n.hostsNewGroup,
+                  icon: const Icon(PiconsRegular.folderPlus),
+                  onPressed: () => createGroupFlow(context, ref),
+                ),
+              ],
               onChanged: (value) =>
                   ref.read(hostSearchProvider.notifier).update(value),
             ),
           ),
+        if (showSearch) const TagFilterBar(),
         Expanded(
-          child: hosts.when(
+          child: sections.when(
             loading: () => const LoadingView(),
             error: (error, _) => ErrorView(
               message: '$error',
               onRetry: () => ref.invalidate(hostsProvider),
               retryLabel: l10n.actionRetry,
             ),
-            data: (list) => list.isEmpty
-                ? _Empty(hasQuery: query.isNotEmpty)
-                : _HostList(hosts: list),
+            data: (list) => list.every((s) => s.hosts.isEmpty)
+                ? _Empty(hasQuery: filtering)
+                : _HostList(sections: list, showHeaders: hasGroups),
           ),
         ),
       ],
@@ -113,18 +129,74 @@ class _Empty extends ConsumerWidget {
   }
 }
 
+/// The hosts, in collapsible group sections when there are groups.
+///
+/// Flattened into one lazily-built list of rows — headers and hosts alike —
+/// rather than a column of per-group lists, so two hundred servers still
+/// build only the rows on screen.
 class _HostList extends ConsumerWidget {
-  const _HostList({required this.hosts});
+  const _HostList({required this.sections, required this.showHeaders});
 
-  final List<SshHost> hosts;
+  final List<HostSection> sections;
+
+  /// False when there are no groups: the list then looks exactly as it did
+  /// before groups existed, with no lone "Ungrouped" header over everything.
+  final bool showHeaders;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final collapsed = ref.watch(collapsedHostGroupsProvider);
+    final rows = <Widget Function(BuildContext)>[];
+
+    for (final section in sections) {
+      final isCollapsed = showHeaders && collapsed.contains(section.key);
+      if (showHeaders) {
+        rows.add(
+          (_) => HostGroupHeader(
+            key: ValueKey('group-${section.key}'),
+            section: section,
+            collapsed: isCollapsed,
+          ),
+        );
+      }
+      if (isCollapsed) continue;
+      if (showHeaders && section.hosts.isEmpty) {
+        rows.add((context) => const _EmptyGroupHint());
+      }
+      for (final host in section.hosts) {
+        rows.add((_) => HostTile(key: ValueKey(host.id), host: host));
+      }
+    }
+
     return ContentWidth(
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: Spacing.fabClearance),
-        itemCount: hosts.length,
-        itemBuilder: (context, index) => HostTile(host: hosts[index]),
+        itemCount: rows.length,
+        itemBuilder: (context, index) => rows[index](context),
+      ),
+    );
+  }
+}
+
+/// What an open, empty group says, so it does not look like a broken header.
+class _EmptyGroupHint extends StatelessWidget {
+  const _EmptyGroupHint();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        Spacing.xxxl,
+        0,
+        Spacing.lg,
+        Spacing.md,
+      ),
+      child: Text(
+        AppLocalizations.of(context).hostGroupEmpty,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

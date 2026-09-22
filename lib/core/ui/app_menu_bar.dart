@@ -12,6 +12,7 @@ import '../../features/sessions/open_screens.dart';
 
 import '../../features/sessions/session_manager.dart';
 import '../../features/sessions/session_shortcuts.dart';
+import '../../features/sessions/terminal_find_request.dart';
 import '../../features/sessions/workspace_pages.dart';
 import '../../features/transfer/presentation/open_transfer.dart';
 import '../../l10n/app_localizations.dart';
@@ -153,6 +154,17 @@ class AppMenuBar extends ConsumerWidget {
             PlatformMenuItem(
               label: l10n.menuCloseSession,
               onSelected: _hasSessions(ref) ? () => _closeActive(ref) : null,
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: l10n.menuFind,
+                  shortcut: findInTerminalActivator(),
+                  onSelected: _hasSessions(ref)
+                      ? () => openTerminalFind(ref)
+                      : null,
+                ),
+              ],
             ),
             PlatformMenuItemGroup(
               members: [

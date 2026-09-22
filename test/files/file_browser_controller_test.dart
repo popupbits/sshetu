@@ -140,15 +140,17 @@ void main() {
     },
   );
 
-  test(
-    'directories are skipped by download and upload, not attempted',
-    () async {
-      final controller = build();
-      await controller.download(dirA);
-      expect(controller.transfers, isEmpty);
-      expect(sftp.downloadedRemotePaths, isEmpty);
-    },
-  );
+  test('a directory downloads whole, as a single folder job', () async {
+    // Used to be skipped outright; see `folder_transfer_test.dart` for
+    // the folder behaviour in depth.
+    final controller = build();
+    await controller.download(dirA);
+    final job = controller.transfers.single;
+    expect(job.isFolder, isTrue);
+    expect(job.done, isTrue);
+    expect(sftp.downloadedRemotePaths, [nestedFile.path]);
+    expect(File('${localRoot.path}/projects/main.dart').existsSync(), isTrue);
+  });
 
   test(
     'upload sends the file and the remote pane picks it up on refresh',

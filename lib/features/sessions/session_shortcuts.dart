@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/settings/settings_controller.dart';
 import 'session_manager.dart';
+import 'terminal_find_request.dart';
 import 'workspace_pages.dart';
 
 /// Close whatever tab is showing.
@@ -65,6 +66,31 @@ class SelectSessionIntent extends Intent {
 
   final int position;
 }
+
+/// Open the find bar on the active terminal.
+class FindInTerminalIntent extends Intent {
+  const FindInTerminalIntent();
+}
+
+/// Cmd+F on macOS; **Ctrl+Shift+F** elsewhere.
+///
+/// Not Ctrl+F: that is readline's forward-char and the key half of everyone's
+/// muscle memory in `less` and Emacs sends to the shell. Every Linux and
+/// Windows terminal emulator moves its own find to the shifted chord for the
+/// same reason. Command is not a key a shell ever sees, so macOS keeps the
+/// plain spelling.
+///
+/// Also installed in the terminal view's own shortcut map (see
+/// `TerminalPane`), because a focused terminal claims every Ctrl chord for
+/// the shell before an ancestor's shortcuts are consulted.
+SingleActivator findInTerminalActivator() =>
+    defaultTargetPlatform == TargetPlatform.macOS
+    ? const SingleActivator(LogicalKeyboardKey.keyF, meta: true)
+    : const SingleActivator(
+        LogicalKeyboardKey.keyF,
+        control: true,
+        shift: true,
+      );
 
 /// Wraps the app in the tab shortcuts every desktop application has.
 ///
@@ -141,6 +167,7 @@ class SessionShortcuts extends ConsumerWidget {
         const TerminalFontSizeIntent.decrease(),
     // Digit 0 is free: 1-9 pick a tab, and no tenth tab wants it.
     _primary(LogicalKeyboardKey.digit0): const TerminalFontSizeIntent.reset(),
+    findInTerminalActivator(): const FindInTerminalIntent(),
   };
 
   @override
@@ -166,6 +193,12 @@ class SessionShortcuts extends ConsumerWidget {
           TerminalFontSizeIntent: CallbackAction<TerminalFontSizeIntent>(
             onInvoke: (intent) {
               applyTerminalFontSize(ref, intent.delta);
+              return null;
+            },
+          ),
+          FindInTerminalIntent: CallbackAction<FindInTerminalIntent>(
+            onInvoke: (_) {
+              openTerminalFind(ref);
               return null;
             },
           ),

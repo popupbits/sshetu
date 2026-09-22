@@ -12,6 +12,7 @@ import '../../core/ui/views.dart';
 import '../hosts/widgets/open_key_setup.dart';
 import '../../l10n/app_localizations.dart';
 import 'session_manager.dart';
+import 'terminal_find_request.dart';
 import 'widgets/session_tab_strip.dart';
 import 'widgets/terminal_pane.dart';
 
@@ -103,6 +104,15 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
                 onPressed: () =>
                     unawaited(openKeySetup(context, ref, session.hostId)),
               ),
+            // The phone has no Ctrl+Shift+F and a long-press sheet is a
+            // gesture people have to discover, so find gets a button.
+            IconButton(
+              tooltip: l10n.terminalFind,
+              icon: const Icon(PiconsRegular.magnifyingGlass),
+              onPressed: () => ref
+                  .read(terminalFindRequestProvider.notifier)
+                  .request(session.id),
+            ),
             // Opens the SFTP browser over this session's *existing*
             // connection rather than dialling the host a second time.
             IconButton(

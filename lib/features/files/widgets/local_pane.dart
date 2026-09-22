@@ -11,6 +11,7 @@ import '../data/local_fs_service.dart';
 import '../domain/file_icons.dart';
 import '../file_browser_controller.dart';
 import 'entry_row.dart';
+import 'file_actions.dart';
 import 'pane_header.dart';
 import 'path_bar.dart';
 import 'selection_bar.dart';
@@ -39,6 +40,14 @@ class LocalPane extends StatelessWidget {
           onToggleHidden: controller.toggleLocalShowHidden,
           selectionMode: controller.localSelectionMode,
           onToggleSelectionMode: controller.toggleLocalSelectionMode,
+          extraActions: [
+            IconButton(
+              tooltip: l10n.filesNewFolder,
+              icon: const Icon(PiconsRegular.folderPlus, size: 16),
+              visualDensity: VisualDensity.compact,
+              onPressed: () => createLocalFolder(context, controller),
+            ),
+          ],
         ),
         // See `FileBrowserController._localBoundary` / `file_browser_screen`
         // for what decided this and why — shown for as long as the pane is
@@ -69,7 +78,9 @@ class LocalPane extends StatelessWidget {
                   SelectionAction(
                     label: l10n.filesUploadSelected,
                     icon: PiconsRegular.uploadSimple,
-                    onSelected: controller.uploadSelected,
+                    onSelected: () => controller.uploadSelected(
+                      onConflict: conflictResolverFor(context),
+                    ),
                   ),
                   SelectionAction(
                     label: l10n.filesDeleteSelected,
@@ -135,12 +146,21 @@ class LocalPane extends StatelessWidget {
                         // entry as it is then rather than as it was when the
                         // list was laid out.
                         actions: () => [
-                          if (!entry.isDirectory)
-                            MenuAction(
-                              label: l10n.filesUpload,
-                              icon: PiconsRegular.uploadSimple,
-                              onSelected: () => controller.upload(entry),
+                          // A folder uploads whole, as one job.
+                          MenuAction(
+                            label: l10n.filesUpload,
+                            icon: PiconsRegular.uploadSimple,
+                            onSelected: () => controller.upload(
+                              entry,
+                              onConflict: conflictResolverFor(context),
                             ),
+                          ),
+                          MenuAction(
+                            label: l10n.filesRename,
+                            icon: PiconsRegular.pencilSimple,
+                            onSelected: () =>
+                                renameLocalEntry(context, controller, entry),
+                          ),
                           MenuAction(
                             label: l10n.filesDelete,
                             icon: PiconsRegular.trash,

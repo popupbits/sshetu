@@ -80,6 +80,23 @@ class KeyOnlyCredentials implements SshCredentialSource {
     askedForPassword = true;
     return null;
   }
+
+  /// Whether the server asked a keyboard-interactive question — a PAM
+  /// `Password:`, or a second factor on top of the key.
+  var askedInteractively = false;
+
+  /// Refused, for the same reason as [password]: keyboard-interactive is how
+  /// a PAM server asks for the password, so answering here would let the
+  /// password verify a key that does not work. No saved password is read and
+  /// nobody is prompted.
+  @override
+  Future<KeyboardInteractiveAnswers?> keyboardInteractive(
+    SshTarget target,
+    KeyboardInteractiveChallenge challenge,
+  ) async {
+    askedInteractively = true;
+    return null;
+  }
 }
 
 /// Installs a key on a host, proves it works, then stops using the password.
@@ -145,6 +162,9 @@ class KeySetupService {
           credentials.askedForPassword
               ? 'The server would not accept the key and asked for a password '
                     'instead, so nothing has been changed.'
+              : credentials.askedInteractively
+              ? 'The server asked for a password or a code instead of '
+                    'accepting the key on its own, so nothing has been changed.'
               : 'The key was installed but could not be used to log in, so '
                     'nothing has been changed.',
           detail: '$error',

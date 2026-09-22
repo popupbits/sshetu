@@ -3,6 +3,7 @@ import 'dart:async';
 import '../secrets/secret_ref.dart';
 import '../secrets/secret_vault.dart';
 import 'key_material_cache.dart';
+import 'keyboard_interactive.dart';
 import 'ssh_credentials.dart';
 import 'ssh_target.dart';
 
@@ -46,6 +47,50 @@ class SecretResponse {
 /// Asks the user for a secret. Returning null cancels.
 typedef SecretPrompt = Future<SecretResponse?> Function(SecretRequest request);
 
+/// A keyboard-interactive round the vault could not answer, for the user.
+class KeyboardInteractiveRequest {
+  const KeyboardInteractiveRequest({
+    required this.address,
+    required this.challenge,
+    required this.canRemember,
+  });
+
+  /// `user@host:port` of the hop asking. In a jump chain every hop asks
+  /// separately, and the one-time code for the bastion is not the one for the
+  /// host behind it.
+  final String address;
+
+  /// What the server asked, verbatim.
+  final KeyboardInteractiveChallenge challenge;
+
+  /// Whether offering to save the answer makes sense: only when the round is
+  /// the login password and the host has somewhere to keep it. A one-time code
+  /// is never saved — it is worthless a minute later, and keeping it would
+  /// only teach people that this app stores their second factor.
+  final bool canRemember;
+}
+
+/// The user's answers to one keyboard-interactive round.
+class KeyboardInteractiveReply {
+  const KeyboardInteractiveReply(this.answers, {this.remember = false});
+
+  /// One per prompt, in order.
+  final List<String> answers;
+
+  /// Whether to save the answer as the host's password. Honoured only when
+  /// the request said [KeyboardInteractiveRequest.canRemember].
+  final bool remember;
+
+  @override
+  String toString() => 'KeyboardInteractiveReply(${answers.length})';
+}
+
+/// Asks the user a keyboard-interactive round. Returning null cancels.
+typedef KeyboardInteractivePrompter =
+    Future<KeyboardInteractiveReply?> Function(
+      KeyboardInteractiveRequest request,
+    );
+
 /// Resolves credentials from the [SecretVault], falling back to asking.
 ///
 /// Where the two halves meet: the vault knows what was saved, the prompt knows
@@ -58,6 +103,7 @@ class VaultCredentialSource implements SshCredentialSource {
     required this.vault,
     this.catalog = _noIdentities,
     this.prompt,
+    this.interactivePrompt,
     KeyMaterialCache? keyCache,
   }) : _keyCache = keyCache ?? KeyMaterialCache();
 
@@ -67,6 +113,10 @@ class VaultCredentialSource implements SshCredentialSource {
   final IdentityCatalog catalog;
 
   final SecretPrompt? prompt;
+
+  /// Asks keyboard-interactive rounds. Null, like [prompt], means nobody is
+  /// watching: a round the saved password cannot answer then fails.
+  final KeyboardInteractivePrompter? interactivePrompt;
 
   /// Key material already read.
   ///
@@ -220,6 +270,50 @@ class VaultCredentialSource implements SshCredentialSource {
       ),
       id == null ? null : SecretRef.hostPassword(id),
     );
+  }
+
+  @override
+  Future<KeyboardInteractiveAnswers?> keyboardInteractive(
+    SshTarget target,
+    KeyboardInteractiveChallenge challenge,
+  ) async {
+    final id = target.credentialId;
+    final passwordRef = id == null ? null : SecretRef.hostPassword(id);
+
+    // The PAM shape: password authentication disabled, `Password:` asked
+    // through keyboard-interactive instead. The saved password answers it —
+    // first round only, once, and never a one-time code. The vault is read
+    // only when the round qualifies, so a code prompt costs no lookup.
+    if (passwordRef != null && mayAnswerWithSavedPassword(challenge)) {
+      final answer = answerWithSavedPassword(
+        challenge,
+        await vault.read(passwordRef),
+      );
+      if (answer != null) {
+        return KeyboardInteractiveAnswers(answer, fromSavedPassword: true);
+      }
+    }
+
+    final ask = interactivePrompt;
+    // Same reasoning as [_ask]: nobody watching means fail, never block.
+    if (ask == null) return null;
+
+    final canRemember = passwordRef != null && challenge.asksForPassword;
+    final reply = await ask(
+      KeyboardInteractiveRequest(
+        address: target.address,
+        challenge: challenge,
+        canRemember: canRemember,
+      ),
+    );
+    if (reply == null) return null;
+
+    // Only ever the login password, and only when asked to. Anything else the
+    // server asks — a code, a token — is used for this round and dropped.
+    if (reply.remember && canRemember && reply.answers.length == 1) {
+      await vault.write(passwordRef, reply.answers.single);
+    }
+    return KeyboardInteractiveAnswers(reply.answers);
   }
 
   /// Asks, and saves the answer only if the user said to.
