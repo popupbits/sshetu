@@ -35,6 +35,10 @@ extension ResponsiveContext on BuildContext {
   /// Bottom navigation below this, a rail at or above it.
   bool get useRail => formFactor != FormFactor.compact;
 
+  /// A phone narrower than most: an app bar should move an action into its
+  /// overflow menu so the title keeps some room.
+  bool get isNarrowPhone => screenWidth < Breakpoints.narrowPhone;
+
   /// Whether text is typed on a **software** keyboard on this platform.
   ///
   /// Platform, not window size: a Flutter desktop window narrowed to phone

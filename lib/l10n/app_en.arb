@@ -128,6 +128,10 @@
   "hostsAdd": "Add host",
   "hostsImport": "Import from OpenSSH",
   "hostsSearch": "Search hosts",
+  "hostsNoMatchBody": "Nothing matches the search or the tag filter. Try something else, or clear them.",
+  "@hostsNoMatchBody": {
+    "description": "Host list: message under hostsNoMatches when the search or tag filter matches no host."
+  },
   "hostsConnect": "Connect",
   "hostsEdit": "Edit",
   "hostsDelete": "Delete",

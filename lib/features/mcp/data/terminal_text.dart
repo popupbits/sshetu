@@ -1,5 +1,7 @@
 import 'package:xterm2/xterm.dart';
 
+import '../domain/output_capture.dart';
+
 /// The bottom [lines] lines of [terminal]'s buffer — scrollback and screen —
 /// as plain text, one per line.
 ///
@@ -25,4 +27,28 @@ String terminalTail(Terminal terminal, int lines) {
     i--;
   }
   return out.reversed.join('\n');
+}
+
+/// [terminal]'s screen as an [OutputCapture] starts from: its size, the rows
+/// from the top of the screen down to the cursor's, and the cursor's column.
+/// The cursor's row is cut at the cursor, so a right-hand prompt past it is
+/// not taken for part of the line.
+CaptureSeed captureSeed(Terminal terminal) {
+  final buffer = terminal.buffer;
+  final top = buffer.scrollBack.clamp(0, buffer.height);
+  final cursorRow = buffer.absoluteCursorY.clamp(0, buffer.height - 1);
+  return CaptureSeed(
+    columns: terminal.viewWidth,
+    rows: terminal.viewHeight,
+    cursorX: buffer.cursorX,
+    lines: [
+      for (var i = top; i <= cursorRow; i++)
+        (
+          text: i == cursorRow
+              ? buffer.lines[i].getText(0, buffer.cursorX)
+              : buffer.lines[i].getText(),
+          continues: buffer.lines[i].isWrapped,
+        ),
+    ],
+  );
 }

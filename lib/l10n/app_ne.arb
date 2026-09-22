@@ -85,6 +85,7 @@
   "hostsAdd": "होस्ट थप्नुहोस्",
   "hostsImport": "OpenSSH बाट आयात",
   "hostsSearch": "होस्ट खोज्नुहोस्",
+  "hostsNoMatchBody": "खोज वा ट्याग फिल्टरसँग केही मेल खाएन। अरू केही प्रयास गर्नुहोस्, वा तिनलाई हटाउनुहोस्।",
   "hostsConnect": "जडान गर्नुहोस्",
   "hostsEdit": "सम्पादन",
   "hostsDelete": "मेटाउनुहोस्",

@@ -117,9 +117,18 @@ class TerminalWorkspace extends ConsumerWidget {
 /// One open page, built whether or not it is the one showing.
 ///
 /// Hidden, it keeps its state but does nothing a hidden page should not:
-/// offstage, so it neither paints nor takes pointers; tickers off, so an
-/// animation or a spinner stops costing frames; and focus excluded, so a key
-/// press can never land in a page nobody can see.
+/// offstage, so it neither paints, takes pointers nor appears in the
+/// semantics tree; tickers off, so an animation or a spinner stops costing
+/// frames; and focus excluded, so a key press can never land in a page
+/// nobody can see.
+///
+/// Each page has its own [Overlay], so the menus and tooltips it opens live
+/// inside it. In the app's overlay they outlived the page going offstage: an
+/// open menu stayed on screen over whatever tab was showing, and its
+/// semantics — grafted onto an anchor that had left the tree — were sent to
+/// the platform with no parent, which Windows' accessibility bridge rejects
+/// ("will not be in the tree and is not the new root") and then keeps
+/// rejecting. Dialogs and sheets still go to the navigator's overlay.
 class _KeptPage extends StatelessWidget {
   const _KeptPage({required this.page, required this.visible, super.key});
 
@@ -133,18 +142,20 @@ class _KeptPage extends StatelessWidget {
       enabled: visible,
       child: ExcludeFocus(
         excluding: !visible,
-        // Material, not a ColoredBox. A page is a whole screen, and screens
-        // contain ListTiles, ink and switches — all of which paint onto the
-        // nearest Material ancestor. A bare ColoredBox gives them a
-        // background they cannot draw on, and ListTile asserts about it *on
-        // every frame*: with an animating spinner on the page that is sixty
-        // exceptions a second, each building a full diagnostic tree, which is
-        // what took the window down.
-        child: Material(
-          color: Theme.of(context).colorScheme.surface,
-          child: WorkspacePageScope(
-            id: page.id,
-            child: Builder(builder: page.builder),
+        child: Overlay.wrap(
+          // Material, not a ColoredBox. A page is a whole screen, and screens
+          // contain ListTiles, ink and switches — all of which paint onto the
+          // nearest Material ancestor. A bare ColoredBox gives them a
+          // background they cannot draw on, and ListTile asserts about it *on
+          // every frame*: with an animating spinner on the page that is sixty
+          // exceptions a second, each building a full diagnostic tree, which
+          // is what took the window down.
+          child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: WorkspacePageScope(
+              id: page.id,
+              child: Builder(builder: page.builder),
+            ),
           ),
         ),
       ),

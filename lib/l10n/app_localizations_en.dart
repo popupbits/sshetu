@@ -292,6 +292,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hostsSearch => 'Search hosts';
 
   @override
+  String get hostsNoMatchBody =>
+      'Nothing matches the search or the tag filter. Try something else, or clear them.';
+
+  @override
   String get hostsConnect => 'Connect';
 
   @override

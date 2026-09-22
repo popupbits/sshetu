@@ -102,7 +102,32 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(shell('a').written.join(), 'echo hi\r');
     shell('a').emit('hi\r\nuser@box:~\$ ');
-    expect(await result, 'hi\nuser@box:~\$ ');
+    expect(await result, 'hi\nuser@box:~\$');
+  });
+
+  test('a line editor\'s redraw of the command is not read twice', () async {
+    final a = pane('a');
+    manager.adopt(a);
+    await a.start();
+    const prompt = 'dl@box ~ % ';
+    shell('a').emit(prompt);
+    // However the terminal is fed, the prompt is on screen before typing.
+    for (
+      var i = 0;
+      i < 50 && !a.terminal.buffer.lines[0].getText().contains('%');
+      i++
+    ) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    const command = r'echo mcp-answer-$((6*7))';
+    final result = backend.typeLines('a', command, const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    // zle's echo as it read, then its redraw from the start of the row.
+    shell('a')
+      ..emit(command.substring(0, command.length - 1))
+      ..emit('\r$prompt$command\x1b[K\r\r\n')
+      ..emit('mcp-answer-42\r\n$prompt');
+    expect(await result, '$command\nmcp-answer-42');
   });
 
   test('typing never reaches the other panes of a broadcasting tab', () async {

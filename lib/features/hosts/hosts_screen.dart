@@ -100,8 +100,10 @@ class _Empty extends ConsumerWidget {
     // offering "import your servers" as the way out of a typo would be noise.
     if (hasQuery) {
       return EmptyView(
+        key: const Key('hosts.noMatch'),
         icon: PiconsRegular.magnifyingGlass,
-        title: l10n.hostsEmptyTitle,
+        title: l10n.hostsNoMatches,
+        message: l10n.hostsNoMatchBody,
       );
     }
 

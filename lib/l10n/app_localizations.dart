@@ -608,6 +608,12 @@ abstract class AppLocalizations {
   /// **'Search hosts'**
   String get hostsSearch;
 
+  /// Host list: message under hostsNoMatches when the search or tag filter matches no host.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches the search or the tag filter. Try something else, or clear them.'**
+  String get hostsNoMatchBody;
+
   /// No description provided for @hostsConnect.
   ///
   /// In en, this message translates to:

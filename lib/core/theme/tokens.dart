@@ -85,6 +85,10 @@ abstract final class BorderWidths {
 /// Layout breakpoints. See `core/util/responsive.dart` for the helpers that
 /// read them.
 abstract final class Breakpoints {
+  /// Below this a phone is a narrow one (320 pt, an iPhone SE): an app bar
+  /// there has room for one fewer action before its title disappears.
+  static const double narrowPhone = 360;
+
   /// Below this is a phone: bottom navigation, one column.
   static const double medium = 600;
 

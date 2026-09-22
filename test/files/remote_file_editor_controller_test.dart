@@ -203,6 +203,17 @@ void main() {
       await c.save();
       expect(sftp.files[path], [0xEF, 0xBB, 0xBF, ...utf8.encode('a\nb\n')]);
     });
+
+    test('stray CRs are shown marked and written back as CRs', () async {
+      sftp.putFile(path, text: 'x=1\r\ny=2\rz=3\n');
+      final c = await loaded();
+      final mark = TextDocument.loneCrMark;
+      expect(c.text.text, 'x=1\r\ny=2${mark}z=3\n');
+      expect(c.isDirty, isFalse);
+      c.text.text = c.text.text.replaceFirst('z=3', 'z=4');
+      await c.save();
+      expect(sftp.files[path], utf8.encode('x=1\r\ny=2\rz=4\n'));
+    });
   });
 
   test('disposing closes its own SFTP channel', () async {

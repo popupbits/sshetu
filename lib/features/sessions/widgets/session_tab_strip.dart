@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart'
+    show PointerScrollEvent, PointerSignalEvent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
@@ -25,7 +27,7 @@ import '../workspace_pages.dart';
 /// vertical space, so the strip is not drawn at all when a single session is
 /// open — the screen's own title bar is already that session's header, and a
 /// second row saying the same thing would be pure cost.
-class SessionTabStrip extends ConsumerWidget {
+class SessionTabStrip extends ConsumerStatefulWidget {
   const SessionTabStrip({
     this.actions = const [],
     this.alwaysShow = false,
@@ -48,7 +50,64 @@ class SessionTabStrip extends ConsumerWidget {
   final bool alwaysShow;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SessionTabStrip> createState() => _SessionTabStripState();
+}
+
+class _SessionTabStripState extends ConsumerState<SessionTabStrip> {
+  final _scroll = ScrollController();
+
+  /// One key per tab, by session or page id, so the selected one can be
+  /// found and scrolled to.
+  final _keys = <String, GlobalKey>{};
+
+  /// The tab last scrolled into view; a rebuild that selects nothing new
+  /// leaves the strip where the user put it.
+  String? _revealed;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(String id) => _keys.putIfAbsent(id, GlobalKey.new);
+
+  /// Brings the selected tab into view after this frame — chosen from the
+  /// palette, with Ctrl+Tab or by opening it, it may be far off the edge.
+  /// Only as far as needed: a tab already showing does not move.
+  void _reveal(String? id) {
+    if (id == null || id == _revealed) return;
+    _revealed = id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _keys[id]?.currentContext;
+      if (!mounted || target == null) return;
+      for (final policy in const [
+        ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      ]) {
+        unawaited(Scrollable.ensureVisible(target, alignmentPolicy: policy));
+      }
+    });
+  }
+
+  /// A plain mouse wheel scrolls the strip. A horizontal list otherwise
+  /// only follows Shift+wheel or a trackpad, and a desktop with twenty tabs
+  /// open is exactly where someone reaches for the wheel.
+  void _onWheel(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent || !_scroll.hasClients) return;
+    final delta = event.scrollDelta;
+    if (delta.dx != 0 || delta.dy == 0) return;
+    final position = _scroll.position;
+    final target = (position.pixels + delta.dy).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    if (target != position.pixels) position.jumpTo(target);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = widget.actions;
     final sessions = ref.watch(sessionManagerProvider);
     final manager = ref.read(sessionManagerProvider.notifier);
     final pages = ref.watch(workspacePagesProvider);
@@ -66,9 +125,25 @@ class SessionTabStrip extends ConsumerWidget {
     ref.listen(sessionLogControllerProvider, (_, _) {});
 
     if (sessions.isEmpty && pages.isEmpty) return const SizedBox.shrink();
-    if (tabs.length + pages.length < 2 && !alwaysShow) {
+    if (tabs.length + pages.length < 2 && !widget.alwaysShow) {
       return const SizedBox.shrink();
     }
+
+    String stripId(int index) => index >= tabs.length
+        ? 'page:${pages[index - tabs.length].id}'
+        : 'tab:${tabs[index].panes.first}';
+    final ids = {
+      for (var i = 0; i < tabs.length + pages.length; i++) stripId(i),
+    };
+    _keys.removeWhere((id, _) => !ids.contains(id));
+    final selectedIndex = selectedPageId != null
+        ? tabs.length + pages.indexWhere((p) => p.id == selectedPageId)
+        : tabs.indexWhere((t) => activeId != null && t.contains(activeId));
+    _reveal(
+      selectedIndex >= 0 && selectedIndex < tabs.length + pages.length
+          ? stripId(selectedIndex)
+          : null,
+    );
 
     return Container(
       height: Chrome.tabStrip,
@@ -76,98 +151,134 @@ class SessionTabStrip extends ConsumerWidget {
       child: Row(
         children: [
           Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: tabs.length + pages.length,
-              itemBuilder: (context, index) {
-                // Pages sit after the sessions, so opening one never reorders
-                // the tabs someone is already working in.
-                if (index >= tabs.length) {
-                  final page = pages[index - tabs.length];
-                  return _PageTab(
-                    page: page,
-                    selected: page.id == selectedPageId,
-                    onTap: () => workspace.select(page.id),
-                    onClose: () =>
-                        unawaited(workspace.requestClose(context, page.id)),
-                  );
-                }
-                // A split tab speaks for the pane last used in it.
-                final tab = tabs[index];
-                final session =
-                    manager.byId(tab.focused) ?? manager.byId(tab.panes.first)!;
-                return ContextMenuRegion(
-                  title: session.title,
-                  actions: () => [
-                    if (session.isLive)
-                      MenuAction(
-                        label: AppLocalizations.of(context).sessionDisconnect,
-                        icon: PiconsRegular.plugs,
-                        // Ends the shell but keeps the tab, so the scrollback
-                        // is still there to read — which is the whole
-                        // difference between disconnecting and closing.
-                        onSelected: session.disconnect,
-                      ),
-                    if (session.canRestartInTmux)
-                      MenuAction(
-                        label: AppLocalizations.of(context)
-                            .terminalRestartInTmux,
-                        icon: PiconsRegular.arrowsClockwise,
-                        onSelected: () =>
-                            confirmRestartInTmux(context, ref, session),
-                      ),
-                    MenuAction(
-                      label: AppLocalizations.of(context)
-                          .sessionRunningSessions,
-                      icon: PiconsRegular.stack,
-                      onSelected: () =>
-                          openRunningSessionsForTab(context, ref, session),
-                    ),
-                    ...paneTabMenuActions(context, ref, session.id),
-                    ...sessionLogMenuActions(context, ref, session),
-                    MenuAction(
-                      label: isServerInfoShowing(ref, session)
-                          ? AppLocalizations.of(context).serverInfoHide
-                          : AppLocalizations.of(context).serverInfoShow,
-                      icon: PiconsRegular.gauge,
-                      onSelected: () => openServerInfo(context, ref, session),
-                    ),
-                    MenuAction(
-                      label: AppLocalizations.of(context).terminalCloseTab,
-                      icon: PiconsRegular.x,
-                      onSelected: () => manager.closeTab(session.id),
-                    ),
-                    if (tabs.length > 1)
-                      MenuAction(
-                        label: AppLocalizations.of(context).sessionCloseOthers,
-                        icon: PiconsRegular.xCircle,
-                        isDestructive: true,
-                        onSelected: () {
-                          // Snapshot first: closing mutates the list this
-                          // would otherwise be iterating.
-                          final others = [
-                            for (final other in sessions)
-                              if (!tab.contains(other.id)) other.id,
-                          ];
-                          for (final id in others) {
-                            manager.close(id);
-                          }
-                        },
+            child: Listener(
+              onPointerSignal: _onWheel,
+              child: SingleChildScrollView(
+                controller: _scroll,
+                scrollDirection: Axis.horizontal,
+                // Every tab built, not lazily: the selected one has to exist
+                // to be scrolled to, and a strip is tens of tabs, not
+                // thousands.
+                child: Row(
+                  children: [
+                    for (
+                      var index = 0;
+                      index < tabs.length + pages.length;
+                      index++
+                    )
+                      KeyedSubtree(
+                        key: _keyFor(stripId(index)),
+                        child: Builder(
+                          builder: (context) {
+                            // Pages sit after the sessions, so opening one never reorders
+                            // the tabs someone is already working in.
+                            if (index >= tabs.length) {
+                              final page = pages[index - tabs.length];
+                              return _PageTab(
+                                page: page,
+                                selected: page.id == selectedPageId,
+                                onTap: () => workspace.select(page.id),
+                                onClose: () => unawaited(
+                                  workspace.requestClose(context, page.id),
+                                ),
+                              );
+                            }
+                            // A split tab speaks for the pane last used in it.
+                            final tab = tabs[index];
+                            final session =
+                                manager.byId(tab.focused) ??
+                                manager.byId(tab.panes.first)!;
+                            return ContextMenuRegion(
+                              title: session.title,
+                              actions: () => [
+                                if (session.isLive)
+                                  MenuAction(
+                                    label: AppLocalizations.of(context)
+                                        .sessionDisconnect,
+                                    icon: PiconsRegular.plugs,
+                                    // Ends the shell but keeps the tab, so the scrollback
+                                    // is still there to read — which is the whole
+                                    // difference between disconnecting and closing.
+                                    onSelected: session.disconnect,
+                                  ),
+                                if (session.canRestartInTmux)
+                                  MenuAction(
+                                    label: AppLocalizations.of(context)
+                                        .terminalRestartInTmux,
+                                    icon: PiconsRegular.arrowsClockwise,
+                                    onSelected: () => confirmRestartInTmux(
+                                      context,
+                                      ref,
+                                      session,
+                                    ),
+                                  ),
+                                MenuAction(
+                                  label: AppLocalizations.of(context)
+                                      .sessionRunningSessions,
+                                  icon: PiconsRegular.stack,
+                                  onSelected: () => openRunningSessionsForTab(
+                                    context,
+                                    ref,
+                                    session,
+                                  ),
+                                ),
+                                ...paneTabMenuActions(context, ref, session.id),
+                                ...sessionLogMenuActions(context, ref, session),
+                                MenuAction(
+                                  label: isServerInfoShowing(ref, session)
+                                      ? AppLocalizations.of(context)
+                                            .serverInfoHide
+                                      : AppLocalizations.of(context)
+                                            .serverInfoShow,
+                                  icon: PiconsRegular.gauge,
+                                  onSelected: () =>
+                                      openServerInfo(context, ref, session),
+                                ),
+                                MenuAction(
+                                  label: AppLocalizations.of(context)
+                                      .terminalCloseTab,
+                                  icon: PiconsRegular.x,
+                                  onSelected: () =>
+                                      manager.closeTab(session.id),
+                                ),
+                                if (tabs.length > 1)
+                                  MenuAction(
+                                    label: AppLocalizations.of(context)
+                                        .sessionCloseOthers,
+                                    icon: PiconsRegular.xCircle,
+                                    isDestructive: true,
+                                    onSelected: () {
+                                      // Snapshot first: closing mutates the list this
+                                      // would otherwise be iterating.
+                                      final others = [
+                                        for (final other in sessions)
+                                          if (!tab.contains(other.id)) other.id,
+                                      ];
+                                      for (final id in others) {
+                                        manager.close(id);
+                                      }
+                                    },
+                                  ),
+                              ],
+                              child: _SessionTab(
+                                session: session,
+                                selected:
+                                    activeId != null && tab.contains(activeId),
+                                panes: tab.panes.length,
+                                broadcasting: tab.tree?.broadcast ?? false,
+                                onTap: () {
+                                  workspace.deselect();
+                                  manager.select(session.id);
+                                },
+                                onClose: () => manager.closeTab(session.id),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                   ],
-                  child: _SessionTab(
-                    session: session,
-                    selected: activeId != null && tab.contains(activeId),
-                    panes: tab.panes.length,
-                    broadcasting: tab.tree?.broadcast ?? false,
-                    onTap: () {
-                      workspace.deselect();
-                      manager.select(session.id);
-                    },
-                    onClose: () => manager.closeTab(session.id),
-                  ),
-                );
-              },
+                ),
+              ),
             ),
           ),
           ...actions,

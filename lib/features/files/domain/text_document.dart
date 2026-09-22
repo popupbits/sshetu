@@ -42,12 +42,29 @@ class TextDocument {
     required this.text,
     required this.lineEnding,
     this.hasBom = false,
+    this.marksLoneCr = false,
   });
 
-  /// With `\r\n` turned into `\n` for [LineEnding.crlf]; verbatim otherwise.
+  /// With `\r\n` turned into `\n` for [LineEnding.crlf]; verbatim otherwise,
+  /// except for a lone `\r` (see [marksLoneCr]).
   final String text;
   final LineEnding lineEnding;
   final bool hasBom;
+
+  /// Whether each lone `\r` in the file is shown in [text] as [loneCrMark].
+  ///
+  /// A text field lays a lone carriage return out as a line break, but the
+  /// line-number gutter counts line feeds, so every number below one sat
+  /// beside the wrong line — and the break itself was invisible, an edit
+  /// waiting to go wrong. The mark shows it for what it is, and [encode]
+  /// turns it back into `\r`, so an unedited file saves byte for byte. Only
+  /// done when the file does not already contain the mark itself.
+  final bool marksLoneCr;
+
+  /// How a lone `\r` is shown: U+240D SYMBOL FOR CARRIAGE RETURN.
+  static final loneCrMark = String.fromCharCode(0x240D);
+
+  static final _loneCr = RegExp(r'\r(?!\n)');
 
   /// [edited] (as the editor holds it) back into bytes, with this document's
   /// line endings and byte-order mark restored.
@@ -56,12 +73,13 @@ class TextDocument {
   /// CRLF file gets a CRLF like its neighbours. A `\r\n` already present
   /// (pasted in) is left alone rather than doubled.
   Uint8List encode(String edited) {
+    final restored = marksLoneCr ? edited.replaceAll(loneCrMark, '\r') : edited;
     final body = switch (lineEnding) {
-      LineEnding.crlf => edited.replaceAllMapped(
+      LineEnding.crlf => restored.replaceAllMapped(
         RegExp(r'\r?\n'),
         (_) => '\r\n',
       ),
-      LineEnding.lf || LineEnding.mixed => edited,
+      LineEnding.lf || LineEnding.mixed => restored,
     };
     final bytes = utf8.encode(body);
     if (!hasBom) return bytes;
@@ -87,11 +105,20 @@ class TextDocument {
       return const TextDecodeResult.failure(TextDecodeFailure.notUtf8);
     }
     final ending = detectLineEnding(raw);
+    final mark =
+        ending == LineEnding.mixed &&
+        _loneCr.hasMatch(raw) &&
+        !raw.contains(loneCrMark);
     return TextDecodeResult.success(
       TextDocument(
-        text: ending == LineEnding.crlf ? raw.replaceAll('\r\n', '\n') : raw,
+        text: switch (ending) {
+          LineEnding.crlf => raw.replaceAll('\r\n', '\n'),
+          _ when mark => raw.replaceAll(_loneCr, loneCrMark),
+          _ => raw,
+        },
         lineEnding: ending,
         hasBom: hasBom,
+        marksLoneCr: mark,
       ),
     );
   }

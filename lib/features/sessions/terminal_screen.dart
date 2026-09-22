@@ -10,6 +10,7 @@ import 'open_screens.dart';
 import '../../core/ssh/ssh_target.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
+import '../../core/util/responsive.dart';
 import '../hosts/widgets/open_key_setup.dart';
 import '../server_info/server_info_dock.dart';
 import '../session_log/session_log_actions.dart';
@@ -64,6 +65,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
     final sessions = ref.watch(sessionManagerProvider);
     final manager = ref.read(sessionManagerProvider.notifier);
     final logs = ref.watch(sessionLogControllerProvider);
+    final narrow = context.isNarrowPhone;
 
     // Follows the *active* session rather than the id this route was opened
     // with, so switching tabs in the strip changes what this screen shows
@@ -110,6 +112,8 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
               // more than the label you gave it.
               Text(
                 session.target.address,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -118,7 +122,8 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
           ),
           // Four buttons and a menu, at most five slots: 56 + 5 × 48 fits a
           // 360 pt phone with room for the title. Every action used mid-command
-          // stays one tap away; the rest are one menu away.
+          // stays one tap away; the rest are one menu away. On a 320 pt phone
+          // that left the title 24 pt, so Files moves into the menu there.
           actions: [
             // The phone has no Ctrl+Shift+F and a long-press sheet is a
             // gesture people have to discover, so find gets a button.
@@ -139,16 +144,19 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
             ),
             // Opens the SFTP browser over this session's *existing*
             // connection rather than dialling the host a second time.
-            IconButton(
-              tooltip: l10n.filesTitle,
-              icon: const Icon(PiconsRegular.folderOpen),
-              onPressed: () => openFiles(context, ref, session.id),
-            ),
+            if (!narrow)
+              IconButton(
+                key: const Key('terminal.files'),
+                tooltip: l10n.filesTitle,
+                icon: const Icon(PiconsRegular.folderOpen),
+                onPressed: () => openFiles(context, ref, session.id),
+              ),
             PopupMenuButton<_MoreAction>(
               key: const Key('terminal.more'),
               tooltip: l10n.terminalMoreActions,
               icon: const Icon(PiconsRegular.dotsThreeVertical),
               onSelected: (action) => switch (action) {
+                _MoreAction.files => openFiles(context, ref, session.id),
                 _MoreAction.runningSessions => openRunningSessionsForTab(
                   context,
                   ref,
@@ -171,6 +179,15 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
                 ),
               },
               itemBuilder: (context) => [
+                if (narrow)
+                  PopupMenuItem(
+                    key: const Key('terminal.files'),
+                    value: _MoreAction.files,
+                    child: _MoreItem(
+                      icon: PiconsRegular.folderOpen,
+                      label: l10n.filesTitle,
+                    ),
+                  ),
                 // A plain shell moved into tmux — after installing tmux in
                 // the terminal, typically. The strip's menu has it too, but
                 // the strip is hidden with a single tab on a phone.
@@ -234,6 +251,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
                 if (session.connection.target.authMethod ==
                     SshAuthMethod.password)
                   PopupMenuItem(
+                    key: const Key('terminal.keySetup'),
                     value: _MoreAction.keySetup,
                     child: _MoreItem(
                       icon: PiconsRegular.key,
@@ -274,6 +292,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
 }
 
 enum _MoreAction {
+  files,
   runningSessions,
   serverInfo,
   ports,

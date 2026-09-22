@@ -293,6 +293,10 @@ class AppLocalizationsNe extends AppLocalizations {
   String get hostsSearch => 'होस्ट खोज्नुहोस्';
 
   @override
+  String get hostsNoMatchBody =>
+      'खोज वा ट्याग फिल्टरसँग केही मेल खाएन। अरू केही प्रयास गर्नुहोस्, वा तिनलाई हटाउनुहोस्।';
+
+  @override
   String get hostsConnect => 'जडान गर्नुहोस्';
 
   @override

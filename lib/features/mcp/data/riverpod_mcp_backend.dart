@@ -204,7 +204,9 @@ class RiverpodMcpBackend implements McpBackend {
     Duration wait,
     void Function() send,
   ) async {
-    final capture = OutputCapture();
+    // Seeded with the screen as it stands, so the shell's redraw of the
+    // typed line lands where it did on screen instead of being appended.
+    final capture = OutputCapture(seed: screen.captureSeed(session.terminal));
     session.addOutputListener(capture.add);
     try {
       send();

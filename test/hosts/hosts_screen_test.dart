@@ -93,6 +93,10 @@ void main() {
 
       expect(find.byType(SearchBar), findsOneWidget);
       expect(find.text('bastion'), findsNothing);
+      // And says it found nothing, rather than that there are no servers.
+      expect(find.byKey(const Key('hosts.noMatch')), findsOneWidget);
+      expect(find.text('No hosts match'), findsOneWidget);
+      expect(find.text('No servers yet'), findsNothing);
     });
 
     testWidgets('search reaches into notes', (tester) async {
