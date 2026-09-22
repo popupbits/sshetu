@@ -23,21 +23,82 @@ void main() {
       expect(release.secretKeyPrefix, isEmpty);
     });
 
-    test('keeps the database at exactly <documents>/sshetu.db', () async {
-      var supportAsked = false;
-      final path = await release.databasePath(
-        documentsDirectory: () async => '/home/someone/Documents',
-        supportDirectory: () async {
-          supportAsked = true;
-          return '/elsewhere';
-        },
-      );
-      expect(path, p.join('/home/someone/Documents', 'sshetu.db'));
-      expect(
-        supportAsked,
-        isFalse,
-        reason: 'a release build has no business asking for another folder',
-      );
+    group('database', () {
+      // Phones and the sandboxed Mac: Documents is the app's own container,
+      // private already, and every install's data is there. It stays.
+      for (final platform in const [
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+        TargetPlatform.macOS,
+      ]) {
+        test(
+          '${platform.name}: stays at exactly <documents>/sshetu.db',
+          () async {
+            var supportAsked = false;
+            final path = await release.databasePath(
+              platform: platform,
+              documentsDirectory: () async => '/container/Documents',
+              supportDirectory: () async {
+                supportAsked = true;
+                return '/elsewhere';
+              },
+            );
+            expect(path, p.join('/container/Documents', 'sshetu.db'));
+            expect(
+              supportAsked,
+              isFalse,
+              reason: 'nothing moved here, so no other folder is asked for',
+            );
+            expect(
+              await release.legacyDatabasePath(
+                platform: platform,
+                documentsDirectory: () async => '/container/Documents',
+              ),
+              isNull,
+              reason: 'there is nothing to move on ${platform.name}',
+            );
+          },
+        );
+      }
+
+      // Windows and Linux: Documents is the user's own shared folder —
+      // synced, browsed, cleaned up by other programs. The database moved
+      // out of it into the app's data folder.
+      for (final platform in const [
+        TargetPlatform.windows,
+        TargetPlatform.linux,
+      ]) {
+        test(
+          '${platform.name}: lives in <application support>/sshetu.db',
+          () async {
+            var documentsAsked = false;
+            final path = await release.databasePath(
+              platform: platform,
+              documentsDirectory: () async {
+                documentsAsked = true;
+                return '/home/someone/Documents';
+              },
+              supportDirectory: () async => '/support/SSHetu',
+            );
+            expect(path, p.join('/support/SSHetu', 'sshetu.db'));
+            expect(documentsAsked, isFalse);
+          },
+        );
+
+        test(
+          '${platform.name}: moves from exactly <documents>/sshetu.db',
+          () async {
+            expect(
+              await release.legacyDatabasePath(
+                platform: platform,
+                documentsDirectory: () async => '/home/someone/Documents',
+              ),
+              p.join('/home/someone/Documents', 'sshetu.db'),
+              reason: 'every release before the move kept it there',
+            );
+          },
+        );
+      }
     });
 
     test('is never refused at startup, whatever its folder', () {
@@ -70,20 +131,33 @@ void main() {
     test(
       'keeps its database in its own app folder, under its own name',
       () async {
-        var documentsAsked = false;
-        final path = await debug.databasePath(
-          documentsDirectory: () async {
-            documentsAsked = true;
-            return '/home/someone/Documents';
-          },
-          supportDirectory: () async => '/support/SSHetu Debug',
-        );
-        expect(path, p.join('/support/SSHetu Debug', 'sshetu-debug.db'));
-        expect(
-          documentsAsked,
-          isFalse,
-          reason: 'Documents is shared with the real app on a desktop',
-        );
+        for (final platform in TargetPlatform.values) {
+          var documentsAsked = false;
+          final path = await debug.databasePath(
+            platform: platform,
+            documentsDirectory: () async {
+              documentsAsked = true;
+              return '/home/someone/Documents';
+            },
+            supportDirectory: () async => '/support/SSHetu Debug',
+          );
+          expect(path, p.join('/support/SSHetu Debug', 'sshetu-debug.db'));
+          expect(
+            documentsAsked,
+            isFalse,
+            reason: 'Documents is shared with the real app on a desktop',
+          );
+          expect(
+            await debug.legacyDatabasePath(
+              platform: platform,
+              documentsDirectory: () async => '/home/someone/Documents',
+            ),
+            isNull,
+            reason:
+                'a debug build never moves anything — least of all '
+                "the real app's database",
+          );
+        }
       },
     );
 

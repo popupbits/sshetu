@@ -10,6 +10,7 @@ import 'error/error_logger.dart';
 import 'settings/app_settings.dart';
 import 'settings/settings_controller.dart';
 import 'db/database.dart';
+import 'db/database_move.dart';
 import 'theme/terminal_fonts.dart';
 
 /// Async work that must finish before the first frame.
@@ -76,6 +77,19 @@ Future<void> ensureIdentityIsolated(AppIdentity identity) async {
   if (problem != null) throw StateError(problem);
 }
 
+/// Finds the database — moving it first, if this launch is the one that moves
+/// it (see `DatabaseMove`) — and only then opens it.
+///
+/// [locate] runs to completion before [open] is called, so no connection can
+/// exist while files are being copied and renamed.
+Future<AppDatabase> openAppDatabase({
+  required Future<String> Function() locate,
+  required Future<AppDatabase> Function(String path) open,
+}) async {
+  final path = await locate();
+  return open(path);
+}
+
 /// Open resources, then run the optional steps.
 ///
 /// Throws if a resource cannot be opened — `main` turns that into
@@ -94,7 +108,22 @@ Future<BootstrapResult> runBootstrap() async {
   await ErrorLogger.instance.attachStorage(preferences);
 
   final settings = readSettings(preferences);
-  final database = await AppDatabase.open();
+
+  // Nothing opens the database before this line. On a desktop release the
+  // first launch of this version moves it out of Documents here, and that
+  // must finish — or fail and fall back — before any connection exists.
+  final database = await openAppDatabase(
+    locate: () => locateDatabase(
+      identity: AppIdentity.current,
+      platform: defaultTargetPlatform,
+      preferences: preferences,
+      documentsDirectory: () async =>
+          (await getApplicationDocumentsDirectory()).path,
+      supportDirectory: () async =>
+          (await getApplicationSupportDirectory()).path,
+    ),
+    open: (path) => AppDatabase.open(path: path),
+  );
 
   final failures = <BootstrapFailure>[];
   for (final step in optionalSteps) {

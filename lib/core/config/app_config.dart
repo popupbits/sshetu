@@ -104,12 +104,31 @@ final class AppIdentity {
   /// it in.
   final String secretKeyPrefix;
 
+  /// Whether this build keeps its database in application support on
+  /// [platform], rather than in the documents directory.
+  ///
+  /// Debug always does. Release does on Windows and Linux, where "documents"
+  /// is the user's own shared Documents folder — browsed, synced by OneDrive,
+  /// tidied by other programs — and a database there can simply vanish. On
+  /// Android and iOS the documents directory is the app's private container,
+  /// and so it is on macOS, where the release app is sandboxed
+  /// (`macos/Runner/Release.entitlements`): it stays there, where every
+  /// install's data already is.
+  bool keepsDatabaseInSupport(TargetPlatform platform) =>
+      isDebug ||
+      platform == TargetPlatform.windows ||
+      platform == TargetPlatform.linux;
+
   /// Where the database lives.
   ///
-  /// Release: `<documents>/sshetu.db`, exactly as every version so far has
-  /// put it. On a desktop that is the user's shared Documents folder, which
-  /// is not ideal — but moving it would strand every existing install's data,
-  /// so it stays.
+  /// Release on Windows and Linux: `<application support>/sshetu.db` —
+  /// `%APPDATA%\PopupBits\SSHetu\` beside the settings, and
+  /// `$XDG_DATA_HOME/com.popupbits.sshetu/`. Earlier releases kept it in
+  /// Documents; bootstrap moves it once (see [legacyDatabasePath] and
+  /// `DatabaseMove`).
+  ///
+  /// Release elsewhere: `<documents>/sshetu.db`, exactly as every version so
+  /// far has put it. See [keepsDatabaseInSupport].
   ///
   /// Debug: `<application support>/sshetu-debug.db`. Application support is
   /// app-specific on every platform and follows the debug identity, and the
@@ -119,12 +138,28 @@ final class AppIdentity {
   /// The directories are asked for lazily, so a build only ever touches the
   /// one it uses.
   Future<String> databasePath({
+    required TargetPlatform platform,
     required Future<String> Function() documentsDirectory,
     required Future<String> Function() supportDirectory,
   }) async => p.join(
-    isDebug ? await supportDirectory() : await documentsDirectory(),
+    keepsDatabaseInSupport(platform)
+        ? await supportDirectory()
+        : await documentsDirectory(),
     databaseFileName,
   );
+
+  /// Where releases before the move kept the database on [platform] —
+  /// `<documents>/sshetu.db` — or null when this build has nothing to move
+  /// from.
+  ///
+  /// Null for debug on every platform: a debug build has never lived in
+  /// Documents, and the file there is the real app's.
+  Future<String?> legacyDatabasePath({
+    required TargetPlatform platform,
+    required Future<String> Function() documentsDirectory,
+  }) async => !isDebug && keepsDatabaseInSupport(platform)
+      ? p.join(await documentsDirectory(), databaseFileName)
+      : null;
 
   /// Why a debug build's application support directory is not its own, or
   /// null when it is (or when this platform's path cannot tell).

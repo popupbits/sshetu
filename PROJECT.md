@@ -412,6 +412,8 @@ installed**. The Play listing itself is in the repo under
 There is no backend, no account and no server of any kind. Hosts,
 keys, tunnels and known-host pins live in this device's SQLite database;
 credentials live in this device's keychain and are written nowhere else.
+Where that database file sits on each platform, and the one-time move of a
+desktop's out of Documents, is in §12d.
 
 This is a decision, not a gap — an app holding the keys to someone's production
 infrastructure has no business keeping a copy of them on a server it operates.
@@ -616,8 +618,10 @@ builds are the real app.
 **Release is unchanged, byte for byte, in everything that locates data:** the
 applicationId / bundle id `com.popupbits.sshetu`, the Windows product name
 `SSHetu` (and so `%APPDATA%\PopupBits\SSHetu`), the GTK application id, the
-database at `<documents>/sshetu.db`, and the keychain keys. Changing any of
-them strands every existing install's data on the next update.
+database file name `sshetu.db`, and the keychain keys. Changing any of them
+strands every existing install's data on the next update. (The database's
+*folder* did change once, on Windows and Linux — deliberately, with a
+verified move; see "Database location and the one-time move" below.)
 `test/core/app_identity_test.dart`, `test/native_identity_test.dart` and
 `test/secrets/keychain_secret_vault_identity_test.dart` pin them.
 
@@ -637,9 +641,9 @@ Linux name their folder after the product name / application id,
 `lib/core/config/app_config.dart` (`AppIdentity`) covers what the id does not
 reach:
 
-- **The database.** Release keeps `<documents>/sshetu.db` — on a desktop that
-  is the user's shared Documents folder, which both builds would otherwise
-  open. Debug uses `<application support>/sshetu-debug.db`.
+- **The database.** Debug uses `<application support>/sshetu-debug.db` on
+  every platform — never Documents, which on a desktop is shared with the
+  real app, and never the release file name.
 - **Keychain keys.** Debug prefixes every key with `sshetu-debug.`, in
   `KeychainSecretVault`. On macOS that is the only separation: this app uses
   the legacy login keychain (see `docs/macos-sandbox.md`), which every app
@@ -657,6 +661,53 @@ the build and never appear in one a user installs.
 A first debug build on a physical iPhone or a signed Mac registers the new
 `.debug` bundle id with the team; automatic signing does that on its own.
 Release signing and `match` are untouched — they only ever build Release.
+
+### Database location and the one-time move
+
+| Build | Platform | Database |
+|---|---|---|
+| Release | Windows | `%APPDATA%\PopupBits\SSHetu\sshetu.db`, beside `shared_preferences.json` |
+| Release | Linux | `$XDG_DATA_HOME/com.popupbits.sshetu/sshetu.db` |
+| Release | macOS, Android, iOS | `<documents>/sshetu.db` — the app's private container (the macOS release is sandboxed, `macos/Runner/Release.entitlements`) |
+| Debug | all | `<application support>/sshetu-debug.db` |
+
+The decision is one method, `AppIdentity.keepsDatabaseInSupport`, pinned by
+`test/core/app_identity_test.dart`.
+
+Releases before this kept the Windows and Linux database in the user's
+**Documents** folder — shared, visible, synced by OneDrive and tidied by other
+programs; a real user's database vanished from it. The first launch of a
+version with the move runs `DatabaseMove` (`lib/core/db/database_move.dart`)
+from bootstrap, **before anything opens the database** (`openAppDatabase`;
+`AppDatabase.open` takes a required path so nothing can open a default one):
+
+1. The app folder already has `sshetu.db` → it is used, and nothing is
+   touched. A Documents copy that was never moved is left alone and noted once
+   in Diagnostics — never merged.
+2. Otherwise, if `<documents>/sshetu.db` exists, it and any `-wal`/`-journal`
+   are copied to `sshetu.db.moving` in the app folder and flushed to disk. The
+   copy is opened read-only and must pass `PRAGMA integrity_check`, match the
+   original's `user_version`, and match its row count in `hosts`,
+   `identities`, `tunnels`, `snippets`, `host_groups` and `known_hosts`. Only
+   then is it renamed to `sshetu.db` (atomic, same folder). The original is
+   renamed to **`sshetu.db.moved`** (or `.moved.2`… if one exists) — never
+   deleted — and `db.migratedFrom` / `db.migratedAt` are written to
+   preferences.
+3. Anything failing before that rename removes only the temp copy, records
+   the error in Diagnostics, and opens the database **where it was** for this
+   run; the next launch tries again. Nobody ends up with an empty app.
+4. The original cannot be renamed (locked) → the moved copy is used anyway,
+   the move is recorded, and it is never copied again: once the app folder has
+   a database, Documents is never read over it. A stale copy restored to
+   Documents later is not re-imported either.
+
+**Recovering.** The pre-move database is `sshetu.db.moved` in the Documents
+folder. To go back to it: quit SSHetu, rename or remove `sshetu.db` in the app
+folder above, and copy `sshetu.db.moved` there as `sshetu.db`. (If the app
+folder's database is simply missing on launch, a Documents `sshetu.db` — not
+`.moved` — is brought over again; the `.moved` backup is never restored on its
+own, because it is older than what vanished.) Tests: `test/db/database_move_test.dart`,
+all against temp folders.
 
 ## 12e. MCP integration (desktop)
 
