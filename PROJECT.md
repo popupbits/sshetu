@@ -41,7 +41,7 @@ passing unless you ran it and saw it pass.
 | Material | `package:material_ui` — **not** `package:flutter/material.dart` |
 | State | Riverpod 3, no code generation |
 | Routing | `go_router` with a `StatefulShellRoute` |
-| Localization | `flutter gen-l10n` from `lib/l10n/*.arb` (en) |
+| Localization | `flutter gen-l10n` from `lib/l10n/*.arb` (en, ne) |
 | Icons | `picons` (`PiconsRegular.*`) |
 | Backend | none — device-local, with device-to-device transfer |
 | Local storage | `sqflite` with numbered SQL migrations |
@@ -130,7 +130,7 @@ lib/
     ui/                      shared widgets: views, async_view, feedback
     util/                    responsive, launcher
     db/                      database + numbered migrations
-  l10n/                      app_en.arb, generated output
+  l10n/                      app_en.arb, app_ne.arb, generated output
   features/
     <feature>/               one folder per feature
     settings/
@@ -154,8 +154,9 @@ code. That is what lets two features be added without touching the same lines.
 - **No hardcoded values.** Spacing, radii, durations and border widths come
   from `core/theme/tokens.dart`. Colours come from `Theme.of(context).colorScheme`.
 - **No hardcoded strings.** Everything user-visible goes through
-  `AppLocalizations.of(context)`, with an entry in `app_en.arb`. It is the
-  only locale so far; adding another means adding its `.arb` beside it.
+  `AppLocalizations.of(context)`, with an entry in **every** `.arb` —
+  `app_en.arb` (the template) and `app_ne.arb` (Nepali). See §11 "Add a
+  string".
 - **One widget per file** unless a widget is private to its parent and used
   nowhere else.
 - **Immutable models** with `copyWith`. Use an explicit `clearX` flag to set a
@@ -324,13 +325,27 @@ flutter build appbundle --release
    if it is a shell destination
 2. Add its path to `core/router/routes.dart`
 3. Register it in `core/router/router.dart`
-4. Add its strings to **both** `.arb` files
+4. Add its strings to **both** `.arb` files (see "Add a string")
 
 ### Add a string
 
-Add the key to `lib/l10n/app_en.arb`, then rebuild.
+Add the key to **both** `.arb` files: `lib/l10n/app_en.arb` — the template,
+the only file that carries `@key` metadata (description, placeholders) — and
+`lib/l10n/app_ne.arb`, with the Nepali text only. Keep every `{placeholder}`
+and every plural/select branch structure identical; Nepali plurals are
+`one`/`other`, so mirror the English `=1`/`other`. Then rebuild:
 `generate: true` in `pubspec.yaml` regenerates `AppLocalizations` on the next
 `flutter run`/`build`; `flutter gen-l10n` does it on demand.
+
+`test/l10n_parity_test.dart` fails if a key is in one file and not the other,
+if a placeholder or plural/select branch differs, or if a translation carries
+metadata. That is deliberate: gen-l10n itself would silently show English in
+the Nepali UI. If you cannot write the Nepali, say so in your hand-off rather
+than pasting the English into `app_ne.arb`.
+
+Devanagari is drawn from the platform's own face (Inter and the terminal faces
+are Latin-only): `core/theme/script_fallback.dart` names it on the UI text
+theme and on the terminal's fallback list. Do not drop it from either.
 
 ### Add a database migration
 
@@ -644,7 +659,7 @@ a task matches. See `docs/agent-tooling.md`.
       that you could not, and what is unverified as a result
 - [ ] Changed screens checked at compact *and* expanded widths
 - [ ] Loading, error and empty states handled
-- [ ] New strings in `app_en.arb`
+- [ ] New strings in `app_en.arb` and `app_ne.arb`
 - [ ] No `package:flutter/material.dart` import
 - [ ] No hardcoded colours, sizes or strings
 - [ ] No unrelated refactor, no unnecessary dependency

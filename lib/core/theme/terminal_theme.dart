@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart'
 import 'package:material_ui/material_ui.dart';
 import 'package:xterm2/xterm.dart';
 
+import 'script_fallback.dart';
+
 /// The monospace face, in one place.
 ///
 /// It was spelled out at five call sites with three different fallback lists,
@@ -21,6 +23,11 @@ abstract final class Mono {
     _ => 'monospace',
   };
 
+  /// The monospaced faces first, so a gap in the chosen face is filled by
+  /// something that still keeps the grid; then the platform Devanagari faces,
+  /// so Nepali printed by a remote shell (`echo नमस्ते`) is drawn rather than
+  /// shown as boxes. No Devanagari face is monospaced — none exists — so
+  /// those glyphs are drawn at the cell width the terminal assigns them.
   static const List<String> fallback = [
     'SF Mono', // macOS
     'Menlo', // macOS, older
@@ -29,6 +36,7 @@ abstract final class Mono {
     'DejaVu Sans Mono', // Linux
     'Roboto Mono', // Android
     'monospace',
+    ...ScriptFallback.devanagari,
   ];
 
   /// [style] in the monospace face, with tabular figures.
