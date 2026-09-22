@@ -24,6 +24,12 @@ class KnownHostKey {
 
   final DateTime trustedAt;
 
+  /// An entry imported from a hashed `known_hosts` line: [hostname] is the
+  /// `|1|salt|hash` string itself and [port] is 0, because the real name and
+  /// port are inside the hash and cannot be recovered — only matched, when a
+  /// connection names a host (see `matchingKnownHosts`).
+  bool get isHashed => port == 0 && hostname.startsWith('|1|');
+
   @override
   bool operator ==(Object other) =>
       other is KnownHostKey &&

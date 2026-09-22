@@ -22,6 +22,7 @@ class EntryRow extends StatelessWidget {
     this.selected,
     this.onTap,
     this.onSelectToggle,
+    this.onDoubleTap,
     super.key,
   });
 
@@ -45,13 +46,17 @@ class EntryRow extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onSelectToggle;
 
+  /// Outside selection mode only: what a double-click does. Opens a text
+  /// file in the editor; null for everything else.
+  final VoidCallback? onDoubleTap;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isSelecting = selected != null;
 
-    return ListTile(
+    final tile = ListTile(
       onTap: isSelecting ? onSelectToggle : onTap,
       visualDensity: VisualDensity.compact,
       minVerticalPadding: Spacing.sm,
@@ -87,5 +92,8 @@ class EntryRow extends StatelessWidget {
         ],
       ),
     );
+    final doubleTap = onDoubleTap;
+    if (isSelecting || doubleTap == null) return tile;
+    return GestureDetector(onDoubleTap: doubleTap, child: tile);
   }
 }

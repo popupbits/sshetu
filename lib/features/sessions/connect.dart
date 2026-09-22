@@ -20,6 +20,7 @@ import '../hosts/widgets/host_key_dialog.dart';
 import '../hosts/widgets/keyboard_interactive_dialog.dart';
 import '../hosts/widgets/secret_dialog.dart';
 import '../tunnels/tunnel_connect.dart';
+import 'pane_layouts.dart';
 import 'session_manager.dart';
 
 /// Opens a session to [host] and shows its terminal.
@@ -34,6 +35,7 @@ import 'session_manager.dart';
 /// kept on the server instead of a new one — see [SessionManager.connect].
 /// [connection] hands over one already open to [host]. [navigate] false
 /// leaves the screen where it is, for reopening several tabs in a row.
+/// [split] opens the session as a pane beside an existing one.
 ///
 /// Returns the tab, or null when none was opened.
 Future<TerminalSession?> connectToHost(
@@ -46,6 +48,7 @@ Future<TerminalSession?> connectToHost(
   SshConnection? connection,
   bool navigate = true,
   bool activate = true,
+  PaneSplitRequest? split,
 }) async {
   final manager = ref.read(sessionManagerProvider.notifier);
 
@@ -85,6 +88,7 @@ Future<TerminalSession?> connectToHost(
       ownsTmuxSession: ownsTmuxSession,
       connection: connection,
       activate: activate,
+      split: split,
     );
   } on Object catch (error, stackTrace) {
     // Everything that can fail *before* a session exists lands here — reading
@@ -127,6 +131,7 @@ Future<TerminalSession?> connectToHost(
       ownsTmuxSession: ownsTmuxSession,
       navigate: navigate,
       activate: activate,
+      split: split,
     );
   }
 

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:sshetu/core/ssh/sftp_service.dart';
@@ -227,6 +229,18 @@ class FakeSftpService implements SftpService {
   @override
   Future<void> setPermissions(String path, int mode) async {
     chmodCalls[path] = mode;
+    fileOps.add('chmod $path ${mode.toRadixString(8)}');
+    final stat = fileStats[path];
+    if (stat != null) {
+      fileStats[path] = RemoteFileStat(
+        isDirectory: false,
+        size: stat.size,
+        modified: stat.modified,
+        permissions: mode,
+        userId: stat.userId,
+        groupId: stat.groupId,
+      );
+    }
     // Reflect the change into whatever listing already carries this entry,
     // the same way a real server's next `list()` would — otherwise a
     // controller test could never observe the `drwx...` string it just
@@ -269,6 +283,196 @@ class FakeSftpService implements SftpService {
       }
     }
     return RemotePathKind.missing;
+  }
+
+  // --- File contents, for the editor -------------------------------------
+  //
+  // A small model of a real server's files: bytes, a modification time, a
+  // mode and an owner per path. Every call is logged to [fileOps] in order,
+  // so a test can assert the exact save sequence (temp, chmod, rename).
+
+  /// Path -> contents.
+  final Map<String, Uint8List> files = {};
+
+  /// Path -> (mtime, mode, uid, gid). Filled in by [putFile] and by writes.
+  final Map<String, RemoteFileStat> fileStats = {};
+
+  /// Paths that are symbolic links (to a file also in [files]).
+  final Set<String> symlinks = {};
+
+  /// Whether the server advertises posix-rename.
+  bool atomicRenameSupported = true;
+
+  /// Fails [writeFile] for any path this matches, the way a directory the
+  /// user cannot create files in would.
+  bool Function(String path)? failWriteFor;
+
+  /// Fails [atomicRename].
+  Object? atomicRenameError;
+
+  /// Fails [setOwner] — the ordinary answer for anyone but root.
+  bool setOwnerRefused = false;
+
+  /// Fails [readFile] with this.
+  Object? readError;
+
+  /// The owner a file created by this account gets.
+  int ownUid = 1000;
+  int ownGid = 1000;
+
+  /// The clock for modification times — a test moves it to make a later
+  /// write distinguishable from an earlier one.
+  DateTime now = DateTime.utc(2026, 1, 1, 12);
+
+  final List<String> fileOps = [];
+
+  /// Seeds [path] with [text] as UTF-8 (or [bytes] verbatim).
+  void putFile(
+    String path, {
+    String? text,
+    List<int>? bytes,
+    int mode = 420, // 0644
+    int? uid,
+    int? gid,
+    DateTime? modified,
+  }) {
+    final data = Uint8List.fromList(bytes ?? utf8.encode(text ?? ''));
+    files[path] = data;
+    fileStats[path] = RemoteFileStat(
+      isDirectory: false,
+      size: data.length,
+      modified: modified ?? now,
+      permissions: mode,
+      userId: uid ?? ownUid,
+      groupId: gid ?? ownGid,
+    );
+  }
+
+  /// Someone else editing [path] on the server behind the editor's back.
+  void changeBehindTheScenes(String path, String text) {
+    final old = fileStats[path]!;
+    now = now.add(const Duration(seconds: 5));
+    putFile(
+      path,
+      text: text,
+      mode: old.permissions ?? 420,
+      uid: old.userId,
+      gid: old.groupId,
+    );
+  }
+
+  String textOf(String path) => utf8.decode(files[path]!);
+
+  @override
+  Future<RemoteFileStat> stat(String path, {bool followLink = true}) async {
+    fileOps.add(followLink ? 'stat $path' : 'lstat $path');
+    final stat = fileStats[path];
+    if (stat == null) {
+      if (directories.containsKey(path)) {
+        return const RemoteFileStat(isDirectory: true);
+      }
+      throw SftpException(
+        'Could not read $path: no such file.',
+        kind: SftpFailureKind.notFound,
+      );
+    }
+    if (!followLink && symlinks.contains(path)) {
+      return const RemoteFileStat(isDirectory: false, isSymlink: true);
+    }
+    return stat;
+  }
+
+  @override
+  Future<Uint8List> readFile(String path, {required int maxBytes}) async {
+    fileOps.add('read $path');
+    final error = readError;
+    if (error != null) throw error;
+    final data = files[path];
+    if (data == null) {
+      throw SftpException(
+        'Could not open $path: no such file.',
+        kind: SftpFailureKind.notFound,
+      );
+    }
+    if (data.length > maxBytes) {
+      throw SftpException('Could not open $path: larger than allowed.');
+    }
+    return Uint8List.fromList(data);
+  }
+
+  @override
+  Future<void> writeFile(
+    String path,
+    Uint8List bytes, {
+    bool exclusive = false,
+  }) async {
+    fileOps.add(exclusive ? 'create $path' : 'write $path');
+    if (failWriteFor?.call(path) ?? false) {
+      throw SftpException(
+        'Could not save $path: permission denied.',
+        kind: SftpFailureKind.permissionDenied,
+      );
+    }
+    if (exclusive && files.containsKey(path)) {
+      throw SftpException('Could not save $path: failure.');
+    }
+    final old = fileStats[path];
+    now = now.add(const Duration(seconds: 1));
+    files[path] = Uint8List.fromList(bytes);
+    fileStats[path] = RemoteFileStat(
+      isDirectory: false,
+      size: bytes.length,
+      modified: now,
+      // Writing into an existing file keeps its mode and owner; a new one
+      // gets this account's defaults, the way a real umask would.
+      permissions: old?.permissions ?? 420,
+      userId: old?.userId ?? ownUid,
+      groupId: old?.groupId ?? ownGid,
+    );
+  }
+
+  @override
+  Future<bool> supportsAtomicRename() async => atomicRenameSupported;
+
+  @override
+  Future<void> atomicRename(String fromPath, String toPath) async {
+    fileOps.add('rename $fromPath -> $toPath');
+    final error = atomicRenameError;
+    if (error != null) throw error;
+    files[toPath] = files.remove(fromPath)!;
+    fileStats[toPath] = fileStats.remove(fromPath)!;
+    symlinks.remove(toPath);
+  }
+
+  @override
+  Future<void> removeFile(String path) async {
+    fileOps.add('remove $path');
+    files.remove(path);
+    fileStats.remove(path);
+  }
+
+  @override
+  Future<void> setOwner(
+    String path, {
+    required int userId,
+    required int groupId,
+  }) async {
+    fileOps.add('chown $path $userId:$groupId');
+    if (setOwnerRefused) {
+      throw SftpException(
+        'Could not change the owner of $path: permission denied.',
+        kind: SftpFailureKind.permissionDenied,
+      );
+    }
+    final old = fileStats[path]!;
+    fileStats[path] = RemoteFileStat(
+      isDirectory: false,
+      size: old.size,
+      modified: old.modified,
+      permissions: old.permissions,
+      userId: userId,
+      groupId: groupId,
+    );
   }
 
   @override

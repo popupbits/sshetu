@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,6 +13,7 @@ import '../../core/ui/feedback.dart';
 import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
+import 'widgets/known_hosts_import_dialog.dart';
 
 /// Every server identity this device has accepted, and the only way to revoke
 /// one.
@@ -29,41 +32,82 @@ class KnownHostsScreen extends ConsumerWidget {
   /// title and the way out.
   final bool embedded;
 
+  static const importKey = ValueKey('known-hosts-import');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final store = ref.watch(knownHostsProvider);
+    final importButton = TextButton.icon(
+      key: embedded ? importKey : null,
+      onPressed: () => unawaited(importKnownHosts(context, ref)),
+      icon: const Icon(PiconsRegular.fileArrowDown, size: 18),
+      label: Text(l10n.knownHostsImport),
+    );
+
+    final body = store.when(
+      loading: () => const LoadingView(),
+      error: (error, _) => ErrorView(
+        message: '$error',
+        onRetry: () => ref.invalidate(knownHostsProvider),
+        retryLabel: l10n.actionRetry,
+      ),
+      data: (hosts) {
+        final keys = hosts.all();
+        if (keys.isEmpty) {
+          return EmptyView(
+            icon: PiconsRegular.shieldCheck,
+            title: l10n.knownHostsEmptyTitle,
+            message: l10n.knownHostsEmptyBody,
+          );
+        }
+
+        return ContentWidth(
+          child: ListView.builder(
+            itemCount: keys.length,
+            itemBuilder: (context, index) => _KnownHostTile(entry: keys[index]),
+          ),
+        );
+      },
+    );
 
     return Scaffold(
-      // Embedded, the tab is the title and there are no actions, so a bar
-      // here would be an empty strip stealing height from the content.
-      appBar: embedded ? null : AppBar(title: Text(l10n.knownHostsTitle)),
-      body: store.when(
-        loading: () => const LoadingView(),
-        error: (error, _) => ErrorView(
-          message: '$error',
-          onRetry: () => ref.invalidate(knownHostsProvider),
-          retryLabel: l10n.actionRetry,
-        ),
-        data: (hosts) {
-          final keys = hosts.all();
-          if (keys.isEmpty) {
-            return EmptyView(
-              icon: PiconsRegular.shieldCheck,
-              title: l10n.knownHostsEmptyTitle,
-              message: l10n.knownHostsEmptyBody,
-            );
-          }
-
-          return ContentWidth(
-            child: ListView.builder(
-              itemCount: keys.length,
-              itemBuilder: (context, index) =>
-                  _KnownHostTile(entry: keys[index]),
+      // Embedded, the tab is the title, so the import action sits in a slim
+      // row of its own rather than an app bar that would be mostly empty.
+      // In an app bar the action is an icon: a phone-width bar has no room
+      // for the title and a labelled button both.
+      appBar: embedded
+          ? null
+          : AppBar(
+              title: Text(l10n.knownHostsTitle),
+              actions: [
+                IconButton(
+                  key: importKey,
+                  tooltip: l10n.knownHostsImport,
+                  onPressed: () => unawaited(importKnownHosts(context, ref)),
+                  icon: const Icon(PiconsRegular.fileArrowDown),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+      body: embedded
+          ? Column(
+              children: [
+                ContentWidth(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.sm,
+                      vertical: Spacing.xs,
+                    ),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: importButton,
+                    ),
+                  ),
+                ),
+                Expanded(child: body),
+              ],
+            )
+          : body,
     );
   }
 }
@@ -78,7 +122,11 @@ class _KnownHostTile extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final address = entry.port == 22
+    // A hashed entry's name is a salted hash — showing it would be noise
+    // that looks like a hostname. It is labelled for what it is instead.
+    final address = entry.isHashed
+        ? l10n.knownHostsHashedTitle
+        : entry.port == 22
         ? entry.hostname
         : '${entry.hostname}:${entry.port}';
 

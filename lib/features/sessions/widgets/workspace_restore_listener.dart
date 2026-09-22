@@ -13,6 +13,7 @@ import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../hosts/domain/ssh_host.dart';
 import '../connect.dart';
+import '../pane_layouts.dart';
 import '../session_manager.dart';
 import '../workspace_restore.dart';
 
@@ -148,6 +149,17 @@ class _WorkspaceRestoreListenerState
           return session?.id;
         },
       );
+      // The splits, once their panes exist. A pane that did not reopen is
+      // closed out of its layout; a layout left with one pane is a plain tab.
+      if (mounted) {
+        ref.read(paneLayoutsProvider.notifier).addAll([
+          for (final layout in plan.layouts)
+            ?layout.relabel((index) {
+              final at = int.tryParse(index);
+              return at == null || at >= ids.length ? null : ids[at];
+            }),
+        ]);
+      }
     } finally {
       manager.endRestore();
     }

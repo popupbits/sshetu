@@ -14,6 +14,7 @@ class WorkspacePage {
     required this.title,
     required this.icon,
     required this.builder,
+    this.confirmClose,
   });
 
   /// Stable, so opening the same page twice selects the existing tab rather
@@ -23,6 +24,11 @@ class WorkspacePage {
   final String title;
   final IconData icon;
   final WidgetBuilder builder;
+
+  /// Asked before the tab closes; false keeps it open. For a page holding
+  /// work that closing would throw away — an editor with unsaved changes.
+  /// Null closes without asking.
+  final Future<bool> Function(BuildContext context)? confirmClose;
 }
 
 /// The non-terminal tabs currently open, and which one is showing.
@@ -65,6 +71,18 @@ class WorkspacePages extends Notifier<List<WorkspacePage>> {
   void deselect() {
     _selectedId = null;
     ref.notifyListeners();
+  }
+
+  /// Closes [id] as the user asked to: through the page's [WorkspacePage.
+  /// confirmClose] first, so a tab holding unsaved work is not discarded by
+  /// a click on its ×. Every user-facing close goes through here; [close] is
+  /// for code that has already decided.
+  Future<void> requestClose(BuildContext context, String id) async {
+    final page = state.where((p) => p.id == id).firstOrNull;
+    if (page == null) return;
+    final confirm = page.confirmClose;
+    if (confirm != null && !await confirm(context)) return;
+    close(id);
   }
 
   void close(String id) {

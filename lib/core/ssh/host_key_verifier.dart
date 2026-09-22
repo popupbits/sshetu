@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'host_key.dart';
+import 'known_hosts_file.dart';
 import 'known_hosts_store.dart';
 
 /// Asked when a host presents a key this device has never seen.
@@ -59,13 +60,27 @@ class SshHostKeyVerifier {
 
   /// Classifies [fingerprint] without touching the store's write path or
   /// prompting. Exposed so the UI can show a verdict before connecting.
+  ///
+  /// Every key the store holds for this address is consulted, and any one
+  /// matching is enough: a host imported from a hashed `known_hosts` file
+  /// can have one entry per key type (see [KnownHostsStore.findAll]).
+  /// Key types compare by [hostKeyFamily], so an RSA key pinned as
+  /// `ssh-rsa` still matches when a connection negotiates `rsa-sha2-512` —
+  /// the same key, signed a different way, with the same fingerprint.
   HostKeyPresentation classify(String keyType, String fingerprint) {
-    final known = knownHosts.find(hostname, port);
-    final verdict = known == null
+    final candidates = knownHosts.findAll(hostname, port);
+    final family = hostKeyFamily(keyType);
+    final match = candidates
+        .where(
+          (k) =>
+              k.fingerprint == fingerprint &&
+              hostKeyFamily(k.keyType) == family,
+        )
+        .firstOrNull;
+    final known = match ?? candidates.firstOrNull;
+    final verdict = candidates.isEmpty
         ? HostKeyVerdict.unknown
-        : (known.fingerprint == fingerprint && known.keyType == keyType
-              ? HostKeyVerdict.trusted
-              : HostKeyVerdict.changed);
+        : (match != null ? HostKeyVerdict.trusted : HostKeyVerdict.changed);
     return HostKeyPresentation(
       hostname: hostname,
       port: port,

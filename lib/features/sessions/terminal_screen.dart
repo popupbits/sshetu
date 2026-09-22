@@ -8,15 +8,17 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'open_screens.dart';
 
 import '../../core/ssh/ssh_target.dart';
+import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
 import '../hosts/widgets/open_key_setup.dart';
+import '../server_info/server_info_dock.dart';
 import '../snippets/open_snippets.dart';
 import '../../l10n/app_localizations.dart';
 import 'server_sessions.dart';
 import 'session_manager.dart';
 import 'terminal_find_request.dart';
 import 'widgets/session_tab_strip.dart';
-import 'widgets/terminal_pane.dart';
+import 'widgets/tab_panes.dart';
 
 /// One session, full screen. The phone's terminal.
 ///
@@ -96,16 +98,10 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
               ),
             ],
           ),
+          // Four buttons and a menu, at most five slots: 56 + 5 × 48 fits a
+          // 360 pt phone with room for the title. Every action used mid-command
+          // stays one tap away; the rest are one menu away.
           actions: [
-            // Offered only on a password session: this is the one screen
-            // where the means to install a key — a way in — is already open.
-            if (session.connection.target.authMethod == SshAuthMethod.password)
-              IconButton(
-                tooltip: l10n.keySetupTitle,
-                icon: const Icon(PiconsRegular.key),
-                onPressed: () =>
-                    unawaited(openKeySetup(context, ref, session.hostId)),
-              ),
             // The phone has no Ctrl+Shift+F and a long-press sheet is a
             // gesture people have to discover, so find gets a button.
             IconButton(
@@ -123,21 +119,63 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
               onPressed: () =>
                   openSnippetPicker(context, ref, sessionId: session.id),
             ),
-            // What else SSHetu keeps running on this server — from this
-            // device or another one. The strip, and its menu, is hidden
-            // with a single tab on a phone, so it gets a button here.
-            IconButton(
-              key: const Key('terminal.runningSessions'),
-              tooltip: l10n.sessionRunningSessions,
-              icon: const Icon(PiconsRegular.stack),
-              onPressed: () => openRunningSessionsForTab(context, ref, session),
-            ),
             // Opens the SFTP browser over this session's *existing*
             // connection rather than dialling the host a second time.
             IconButton(
               tooltip: l10n.filesTitle,
               icon: const Icon(PiconsRegular.folderOpen),
               onPressed: () => openFiles(context, ref, session.id),
+            ),
+            PopupMenuButton<_MoreAction>(
+              key: const Key('terminal.more'),
+              tooltip: l10n.terminalMoreActions,
+              icon: const Icon(PiconsRegular.dotsThreeVertical),
+              onSelected: (action) => switch (action) {
+                _MoreAction.runningSessions => openRunningSessionsForTab(
+                  context,
+                  ref,
+                  session,
+                ),
+                _MoreAction.serverInfo => openServerInfo(context, ref, session),
+                _MoreAction.keySetup => unawaited(
+                  openKeySetup(context, ref, session.hostId),
+                ),
+              },
+              itemBuilder: (context) => [
+                // What else SSHetu keeps running on this server — from this
+                // device or another one. The strip, and its menu, is hidden
+                // with a single tab on a phone, so it is reachable here.
+                PopupMenuItem(
+                  key: const Key('terminal.runningSessions'),
+                  value: _MoreAction.runningSessions,
+                  child: _MoreItem(
+                    icon: PiconsRegular.stack,
+                    label: l10n.sessionRunningSessions,
+                  ),
+                ),
+                // CPU, memory, disks and processes of the machine behind
+                // this tab, over its own connection.
+                PopupMenuItem(
+                  key: const Key('terminal.serverInfo'),
+                  value: _MoreAction.serverInfo,
+                  child: _MoreItem(
+                    icon: PiconsRegular.gauge,
+                    label: l10n.serverInfoTitle,
+                  ),
+                ),
+                // Offered only on a password session: this is the one screen
+                // where the means to install a key — a way in — is already
+                // open.
+                if (session.connection.target.authMethod ==
+                    SshAuthMethod.password)
+                  PopupMenuItem(
+                    value: _MoreAction.keySetup,
+                    child: _MoreItem(
+                      icon: PiconsRegular.key,
+                      label: l10n.keySetupTitle,
+                    ),
+                  ),
+              ],
             ),
             IconButton(
               tooltip: l10n.terminalCloseTab,
@@ -160,11 +198,31 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
             // strip is how you move between them on a phone.
             const SessionTabStrip(),
             Expanded(
-              child: TerminalPane(key: ValueKey(session.id), session: session),
+              // One pane at a time here, with a switcher for a split tab.
+              child: TabPanes(active: session),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+enum _MoreAction { runningSessions, serverInfo, keySetup }
+
+/// An icon and a label, the shape of every row in the terminal's More menu.
+class _MoreItem extends StatelessWidget {
+  const _MoreItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(icon, size: 20),
+      const SizedBox(width: Spacing.md),
+      Flexible(child: Text(label)),
+    ],
+  );
 }

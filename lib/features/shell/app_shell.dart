@@ -10,9 +10,11 @@ import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import '../keys/widgets/generate_key_sheet.dart';
 import '../keys/widgets/paste_key_sheet.dart';
+import '../palette/open_command_palette.dart';
 import '../sessions/session_shortcuts.dart';
 import '../sessions/widgets/workspace_restore_listener.dart';
 import '../sessions/widgets/terminal_workspace.dart';
+import '../server_info/server_info_dock.dart';
 import '../snippets/open_snippets.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
@@ -309,7 +311,7 @@ class AppShell extends ConsumerWidget {
   ) {
     // Sessions selected in a narrow window means the terminal *is* the pane.
     if (!layout.showTerminal && index == 1) {
-      return const TerminalWorkspace();
+      return const ServerInfoDock(child: TerminalWorkspace());
     }
 
     final panel = Column(
@@ -334,7 +336,7 @@ class AppShell extends ConsumerWidget {
               .read(settingsControllerProvider.notifier)
               .setPanelWidth(width, persist: done),
         ),
-        const Expanded(child: TerminalWorkspace()),
+        const Expanded(child: ServerInfoDock(child: TerminalWorkspace())),
       ],
     );
   }
@@ -349,7 +351,16 @@ class AppShell extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(destinations[index].label),
-        actions: _actionsFor(context, ref, index),
+        actions: [
+          // The phone's way into the palette: no keyboard chord to press.
+          IconButton(
+            key: const Key('shell.openPalette'),
+            tooltip: AppLocalizations.of(context).paletteOpenTooltip,
+            icon: const Icon(PiconsRegular.magnifyingGlass),
+            onPressed: () => openCommandPalette(context, ref),
+          ),
+          ..._actionsFor(context, ref, index),
+        ],
       ),
       // No drawer. It listed exactly the destinations the bottom bar already
       // shows, so it was a second way to reach the same five screens — and it

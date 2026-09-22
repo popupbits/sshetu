@@ -15,11 +15,15 @@ import '../../../core/ui/keyboard_accessory.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../palette/open_command_palette.dart';
+import '../../palette/palette_shortcuts.dart';
 import '../../snippets/open_snippets.dart';
 import '../terminal_appearance.dart';
 import '../terminal_font_size.dart';
 import '../session_shortcuts.dart';
 import '../terminal_find_request.dart';
+import '../pane_commands.dart';
+import '../session_manager.dart';
 import '../terminal_paste.dart';
 import 'terminal_find_bar.dart';
 import 'terminal_key_bar.dart';
@@ -32,9 +36,23 @@ import 'terminal_link_sheet.dart';
 /// session looks and behaves the same in both and there is one place to change
 /// how a terminal is drawn.
 class TerminalPane extends ConsumerStatefulWidget {
-  const TerminalPane({required this.session, super.key});
+  const TerminalPane({
+    required this.session,
+    this.autofocus = true,
+    this.onFocused,
+    super.key,
+  });
 
   final TerminalSession session;
+
+  /// Whether this pane should hold the keyboard. True for a lone pane; in a
+  /// split, only the active pane's — and turning it on later moves focus
+  /// here, which is how next-pane reaches the keyboard.
+  final bool autofocus;
+
+  /// Called when the terminal takes keyboard focus, however it got it — a
+  /// click in a split's other pane is how that pane becomes the active one.
+  final VoidCallback? onFocused;
 
   @override
   ConsumerState<TerminalPane> createState() => _TerminalPaneState();
@@ -80,7 +98,27 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
         ref.read(settingsControllerProvider).cursorBlink,
       );
     }
+    _terminalFocus.addListener(_focusChanged);
   }
+
+  void _focusChanged() {
+    if (_terminalFocus.hasFocus) widget.onFocused?.call();
+  }
+
+  @override
+  void didUpdateWidget(TerminalPane oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.autofocus && !oldWidget.autofocus) {
+      _terminalFocus.requestFocus();
+    }
+  }
+
+  /// Paste text that has been through the sanitiser and any confirmation —
+  /// into this pane, and into every pane of the tab when it is typing into
+  /// all of them.
+  void _deliverPaste(String text) => ref
+      .read(sessionManagerProvider.notifier)
+      .pasteToTab(widget.session, text);
 
   @override
   void dispose() {
@@ -201,6 +239,10 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
           : entry.value,
     findInTerminalActivator(): const FindInTerminalIntent(),
     snippetPickerActivator(): const OpenSnippetsIntent(),
+    // Only the terminal-safe chords: plain Ctrl+K stays the shell's.
+    for (final activator in terminalCommandPaletteActivators())
+      activator: const OpenCommandPaletteIntent(),
+    ...paneShortcutMap(),
   };
 
   /// Copy, paste, find, a link under the pointer, and the housekeeping.
@@ -247,7 +289,12 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
         icon: PiconsRegular.clipboard,
         // Sanitised and, when it would run a command, confirmed. See
         // [pasteClipboardInto].
-        onSelected: () => pasteClipboardInto(context, ref, session.terminal),
+        onSelected: () => pasteClipboardInto(
+          context,
+          ref,
+          session.terminal,
+          deliver: _deliverPaste,
+        ),
       ),
       MenuAction(
         label: l10n.terminalFind,
@@ -318,7 +365,12 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
         actions: <Type, Action<Intent>>{
           TerminalPasteIntent: CallbackAction<TerminalPasteIntent>(
             onInvoke: (_) {
-              pasteClipboardInto(context, ref, session.terminal);
+              pasteClipboardInto(
+                context,
+                ref,
+                session.terminal,
+                deliver: _deliverPaste,
+              );
               return null;
             },
           ),
@@ -334,6 +386,14 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
               return null;
             },
           ),
+          // Answered here as well as app-wide, so it works on a phone's
+          // terminal page too, which is not under the shell's shortcuts.
+          OpenCommandPaletteIntent: CallbackAction<OpenCommandPaletteIntent>(
+            onInvoke: (_) {
+              openCommandPalette(context, ref);
+              return null;
+            },
+          ),
         },
         child: Listener(
           onPointerDown: (event) => _lastPointerDown = event.position,
@@ -343,7 +403,7 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
             controller: _controller,
             focusNode: _terminalFocus,
             scrollController: _scroll,
-            autofocus: true,
+            autofocus: widget.autofocus,
             backgroundOpacity: 1,
             padding: const EdgeInsets.all(Spacing.xs),
             theme: preset.toTerminalTheme(Theme.of(context).colorScheme),

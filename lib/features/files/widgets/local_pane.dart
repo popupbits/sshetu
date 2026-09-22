@@ -9,22 +9,68 @@ import '../../../core/ui/views.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/local_fs_service.dart';
 import '../domain/file_icons.dart';
+import '../domain/pane_drag.dart';
 import '../file_browser_controller.dart';
+import 'drag_feedback.dart';
 import 'entry_row.dart';
 import 'file_actions.dart';
+import 'pane_drop_target.dart';
 import 'pane_header.dart';
 import 'path_bar.dart';
 import 'selection_bar.dart';
 
 /// This device's filesystem, browsed with `dart:io`.
 class LocalPane extends StatelessWidget {
-  const LocalPane({required this.controller, super.key});
+  const LocalPane({
+    required this.controller,
+    this.allowDrag = false,
+    super.key,
+  });
 
   final FileBrowserController controller;
+
+  /// Rows can be dragged to the remote pane, and remote rows dropped here —
+  /// only when both panes are on screen.
+  final bool allowDrag;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    return PaneDropTarget(
+      label: l10n.filesDropDownload(
+        controller.localLabel(controller.localPath),
+      ),
+      accepts: controller.localAccepts,
+      onDrop: (data) => controller.dropOnLocal(
+        data,
+        onConflict: conflictResolverFor(context),
+      ),
+      child: _column(context, l10n),
+    );
+  }
+
+  /// [row] as something that can be dragged to the remote pane. See
+  /// `RemotePane._draggable`.
+  Widget _draggable(BuildContext context, LocalEntry entry, Widget row) {
+    if (!allowDrag) return row;
+    final l10n = AppLocalizations.of(context);
+    final data = controller.localDragFor(entry);
+    return Draggable<PaneDragData>(
+      data: data,
+      affinity: Axis.horizontal,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: DragFeedback(
+        icon: fileIcon(isDirectory: entry.isDirectory, name: entry.name),
+        label: data.count == 1
+            ? data.firstName
+            : l10n.filesDragCount(data.count),
+      ),
+      childWhenDragging: Opacity(opacity: 0.5, child: row),
+      child: row,
+    );
+  }
+
+  Widget _column(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
 
     return Column(
@@ -139,37 +185,43 @@ class LocalPane extends StatelessWidget {
                         onSelectToggle: () =>
                             controller.toggleLocalSelected(entry.path),
                       );
-                      if (selecting) return row;
-                      return ContextMenuRegion(
-                        // A builder, not a list: the shared menu re-reads its
-                        // actions when it opens, so a row's menu reflects the
-                        // entry as it is then rather than as it was when the
-                        // list was laid out.
-                        actions: () => [
-                          // A folder uploads whole, as one job.
-                          MenuAction(
-                            label: l10n.filesUpload,
-                            icon: PiconsRegular.uploadSimple,
-                            onSelected: () => controller.upload(
-                              entry,
-                              onConflict: conflictResolverFor(context),
+                      if (selecting) {
+                        return _draggable(context, entry, row);
+                      }
+                      return _draggable(
+                        context,
+                        entry,
+                        ContextMenuRegion(
+                          // A builder, not a list: the shared menu re-reads its
+                          // actions when it opens, so a row's menu reflects the
+                          // entry as it is then rather than as it was when the
+                          // list was laid out.
+                          actions: () => [
+                            // A folder uploads whole, as one job.
+                            MenuAction(
+                              label: l10n.filesUpload,
+                              icon: PiconsRegular.uploadSimple,
+                              onSelected: () => controller.upload(
+                                entry,
+                                onConflict: conflictResolverFor(context),
+                              ),
                             ),
-                          ),
-                          MenuAction(
-                            label: l10n.filesRename,
-                            icon: PiconsRegular.pencilSimple,
-                            onSelected: () =>
-                                renameLocalEntry(context, controller, entry),
-                          ),
-                          MenuAction(
-                            label: l10n.filesDelete,
-                            icon: PiconsRegular.trash,
-                            isDestructive: true,
-                            onSelected: () =>
-                                _delete(context, controller, entry),
-                          ),
-                        ],
-                        child: row,
+                            MenuAction(
+                              label: l10n.filesRename,
+                              icon: PiconsRegular.pencilSimple,
+                              onSelected: () =>
+                                  renameLocalEntry(context, controller, entry),
+                            ),
+                            MenuAction(
+                              label: l10n.filesDelete,
+                              icon: PiconsRegular.trash,
+                              isDestructive: true,
+                              onSelected: () =>
+                                  _delete(context, controller, entry),
+                            ),
+                          ],
+                          child: row,
+                        ),
                       );
                     },
                   ),

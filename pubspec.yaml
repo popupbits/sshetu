@@ -121,6 +121,7 @@ dependencies:
   # ECDSA and RSA key generation. Already in the tree under dartssh2, which
   # signs with it; named here because the key generator calls it directly.
   pointycastle: ^4.0.0
+  desktop_drop: ^0.8.4
 
 dev_dependencies:
   flutter_test:

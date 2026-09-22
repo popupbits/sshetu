@@ -13,6 +13,7 @@ import '../../core/util/sort_entries.dart';
 import 'data/local_fs_service.dart';
 import 'domain/browse_path.dart';
 import 'domain/entry_name.dart';
+import 'domain/pane_drag.dart';
 import 'domain/transfer_plan.dart';
 
 /// Asks the user, once per folder job, what to do about [conflictCount]
@@ -716,6 +717,178 @@ class FileBrowserController extends ChangeNotifier {
       await upload(entry, onConflict: onConflict);
     }
     toggleLocalSelectionMode();
+  }
+
+  // --- Drag and drop -----------------------------------------------------
+  //
+  // Every drop ends in the transfers the menus already start — `upload` and
+  // `download`, a folder as one job with its own conflict question — so a
+  // dragged file behaves exactly like the same file sent from its menu.
+  // What a drop adds is one question for the loose files in it: several
+  // single files landing on names that already exist are asked about once,
+  // together, the way a folder's files are.
+
+  /// What dragging [entry] out of the remote pane carries: the whole
+  /// selection when [entry] is part of it, otherwise [entry] alone.
+  RemoteDrag remoteDragFor(RemoteEntry entry) {
+    if (_remoteSelectionMode && _remoteSelection.contains(entry.path)) {
+      final entries = remoteEntries.value ?? const <RemoteEntry>[];
+      return RemoteDrag([
+        for (final e in entries)
+          if (_remoteSelection.contains(e.path)) e,
+      ]);
+    }
+    return RemoteDrag([entry]);
+  }
+
+  LocalDrag localDragFor(LocalEntry entry) {
+    if (_localSelectionMode && _localSelection.contains(entry.path)) {
+      final entries = localEntries.value ?? const <LocalEntry>[];
+      return LocalDrag([
+        for (final e in entries)
+          if (_localSelection.contains(e.path)) e,
+      ]);
+    }
+    return LocalDrag([entry]);
+  }
+
+  /// Whether the remote pane takes [data]: only what came from the local
+  /// pane. A remote row dropped back on its own pane is not a transfer.
+  bool remoteAccepts(PaneDragData data) => data is LocalDrag;
+
+  bool localAccepts(PaneDragData data) => data is RemoteDrag;
+
+  /// A drag from the other pane dropped on the remote pane: uploads.
+  Future<void> dropOnRemote(
+    PaneDragData data, {
+    ConflictResolver? onConflict,
+  }) => switch (data) {
+    LocalDrag(:final entries) => uploadEntries(entries, onConflict: onConflict),
+    RemoteDrag() => Future.value(),
+  };
+
+  /// A drag from the other pane dropped on the local pane: downloads.
+  Future<void> dropOnLocal(PaneDragData data, {ConflictResolver? onConflict}) =>
+      switch (data) {
+        RemoteDrag(:final entries) => downloadEntries(
+          entries,
+          onConflict: onConflict,
+        ),
+        LocalDrag() => Future.value(),
+      };
+
+  /// Files and folders dropped on the remote pane from the operating
+  /// system's file manager, by path. A path that has vanished between the
+  /// drag and the drop is skipped rather than failed.
+  Future<void> uploadLocalPaths(
+    List<String> paths, {
+    ConflictResolver? onConflict,
+  }) async {
+    final entries = <LocalEntry>[];
+    for (final path in paths) {
+      final kind = await _localFs.statPath(path);
+      if (kind == LocalPathKind.missing) continue;
+      entries.add(
+        LocalEntry(
+          name: _localNav.context.basename(path),
+          path: path,
+          isDirectory: kind == LocalPathKind.directory,
+        ),
+      );
+    }
+    await uploadEntries(entries, onConflict: onConflict);
+  }
+
+  /// Uploads [entries] into the remote pane's current folder: each file as
+  /// its own job, each folder as one folder job.
+  Future<void> uploadEntries(
+    List<LocalEntry> entries, {
+    ConflictResolver? onConflict,
+  }) async {
+    if (entries.isEmpty) return;
+    final existing = await _namesIn(
+      () async => [for (final e in await _sftp.list(_remotePath)) e.name],
+      fallback: _remoteNames,
+    );
+    final choice = await _askAboutLooseFiles(
+      [
+        for (final e in entries)
+          if (!e.isDirectory) e.name,
+      ],
+      existing,
+      folderName: remoteLabel(_remotePath),
+      onConflict: onConflict,
+    );
+    if (choice == ConflictChoice.cancel) return;
+    for (final entry in entries) {
+      if (!entry.isDirectory &&
+          choice == ConflictChoice.skipExisting &&
+          existing.contains(entry.name)) {
+        continue;
+      }
+      await upload(entry, onConflict: onConflict);
+    }
+  }
+
+  /// Downloads [entries] into the local pane's current folder — the mirror
+  /// of [uploadEntries].
+  Future<void> downloadEntries(
+    List<RemoteEntry> entries, {
+    ConflictResolver? onConflict,
+  }) async {
+    if (entries.isEmpty) return;
+    final existing = await _namesIn(
+      () async => [for (final e in await _localFs.list(_localPath)) e.name],
+      fallback: _localNames,
+    );
+    final choice = await _askAboutLooseFiles(
+      [
+        for (final e in entries)
+          if (!e.isDirectory) e.name,
+      ],
+      existing,
+      folderName: localLabel(_localPath),
+      onConflict: onConflict,
+    );
+    if (choice == ConflictChoice.cancel) return;
+    for (final entry in entries) {
+      if (!entry.isDirectory &&
+          choice == ConflictChoice.skipExisting &&
+          existing.contains(entry.name)) {
+        continue;
+      }
+      await download(entry, onConflict: onConflict);
+    }
+  }
+
+  /// The names in a destination folder, listed fresh — the pane's copy may
+  /// be minutes old — or the pane's copy when listing fails, since a drop
+  /// should not be refused over a listing that is only needed to ask a
+  /// question.
+  static Future<Set<String>> _namesIn(
+    Future<List<String>> Function() list, {
+    required Set<String> fallback,
+  }) async {
+    try {
+      return (await list()).toSet();
+    } on Object {
+      return fallback;
+    }
+  }
+
+  /// One question for every loose file in a drop that would replace
+  /// something. Without a resolver, existing files are skipped — the answer
+  /// that cannot lose anything, the same default a folder job uses.
+  static Future<ConflictChoice> _askAboutLooseFiles(
+    List<String> names,
+    Set<String> existing, {
+    required String folderName,
+    ConflictResolver? onConflict,
+  }) async {
+    final clashes = names.where(existing.contains).length;
+    if (clashes == 0) return ConflictChoice.overwrite;
+    if (onConflict == null) return ConflictChoice.skipExisting;
+    return onConflict(folderName, clashes);
   }
 
   void cancelTransfer(String id) {

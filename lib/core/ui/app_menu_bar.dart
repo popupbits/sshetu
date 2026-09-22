@@ -8,8 +8,11 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../features/backup/presentation/open_backup.dart';
 import '../../features/hosts/widgets/open_key_setup.dart';
+import '../../features/palette/open_command_palette.dart';
+import '../../features/palette/palette_shortcuts.dart';
 import '../../features/sessions/open_screens.dart';
 
+import '../../features/sessions/pane_commands.dart';
 import '../../features/sessions/session_manager.dart';
 import '../../features/sessions/session_shortcuts.dart';
 import '../../features/sessions/terminal_find_request.dart';
@@ -117,7 +120,12 @@ class AppMenuBar extends ConsumerWidget {
                 PlatformMenuItem(
                   label: l10n.menuCloseTab,
                   shortcut: _primary(LogicalKeyboardKey.keyW),
-                  onSelected: _hasTab(ref) ? () => closeCurrentTab(ref) : null,
+                  onSelected: _hasTab(ref)
+                      ? () => closeCurrentTab(
+                          rootNavigatorKey.currentContext ?? context,
+                          ref,
+                        )
+                      : null,
                 ),
               ],
             ),
@@ -135,9 +143,11 @@ class AppMenuBar extends ConsumerWidget {
             ),
             PlatformMenuItemGroup(
               members: [
+                // No Cmd-S: that is Save in the remote file editor, and a
+                // menu shortcut fires before Flutter sees the key — it would
+                // open a backup export over the file someone is saving.
                 PlatformMenuItem(
                   label: l10n.menuSaveBackup,
-                  shortcut: _primary(LogicalKeyboardKey.keyS),
                   onSelected: () => openBackupExport(context, ref),
                 ),
                 PlatformMenuItem(
@@ -207,11 +217,26 @@ class AppMenuBar extends ConsumerWidget {
                 ),
               ],
             ),
+            paneMenuGroup(context, ref),
           ],
         ),
         PlatformMenu(
           label: l10n.menuView,
           menus: [
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: l10n.menuCommandPalette,
+                  shortcut: commandPaletteMenuActivator(),
+                  // Shown from the navigator's own context, like the snippet
+                  // picker: this bar sits above the router.
+                  onSelected: () => openCommandPalette(
+                    rootNavigatorKey.currentContext ?? context,
+                    ref,
+                  ),
+                ),
+              ],
+            ),
             PlatformMenuItem(
               label: l10n.menuHosts,
               shortcut: _primary(LogicalKeyboardKey.digit1),

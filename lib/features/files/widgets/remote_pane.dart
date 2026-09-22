@@ -10,11 +10,15 @@ import '../../../core/ui/feedback.dart';
 import '../../../core/ui/views.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/file_icons.dart';
+import '../domain/pane_drag.dart';
 import '../domain/permissions.dart';
+import '../domain/text_files.dart';
 import '../file_browser_controller.dart';
 import 'chmod_dialog.dart';
+import 'drag_feedback.dart';
 import 'entry_row.dart';
 import 'file_actions.dart';
+import 'pane_drop_target.dart';
 import 'pane_header.dart';
 import 'path_bar.dart';
 import 'selection_bar.dart';
@@ -22,14 +26,50 @@ import 'upload_name_dialog.dart';
 
 /// The host's filesystem, browsed over the session's SFTP channel.
 class RemotePane extends StatelessWidget {
-  const RemotePane({required this.controller, super.key});
+  const RemotePane({
+    required this.controller,
+    this.onEdit,
+    this.allowDrag = false,
+    super.key,
+  });
 
   final FileBrowserController controller;
+
+  /// Opens a file in the text editor. Null hides "Edit" — the pane does not
+  /// know which session it belongs to, so whoever built it wires this.
+  final void Function(RemoteEntry entry)? onEdit;
+
+  /// Rows can be dragged to the local pane — only when it is on screen
+  /// beside this one.
+  final bool allowDrag;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final onEdit = this.onEdit;
 
+    return PaneDropTarget(
+      label: l10n.filesDropUpload(
+        controller.remoteLabel(controller.remotePath),
+      ),
+      accepts: controller.remoteAccepts,
+      onDrop: (data) => controller.dropOnRemote(
+        data,
+        onConflict: conflictResolverFor(context),
+      ),
+      onOsDrop: (paths) => controller.uploadLocalPaths(
+        paths,
+        onConflict: conflictResolverFor(context),
+      ),
+      child: _column(context, l10n, onEdit),
+    );
+  }
+
+  Widget _column(
+    BuildContext context,
+    AppLocalizations l10n,
+    void Function(RemoteEntry entry)? onEdit,
+  ) {
     return Column(
       children: [
         PaneHeader(
@@ -134,60 +174,101 @@ class RemotePane extends StatelessWidget {
                             : null,
                         onSelectToggle: () =>
                             controller.toggleRemoteSelected(entry.path),
+                        onDoubleTap:
+                            onEdit != null &&
+                                !entry.isDirectory &&
+                                isLikelyTextFile(entry.name)
+                            ? () => onEdit(entry)
+                            : null,
                       );
-                      if (selecting) return row;
-                      return ContextMenuRegion(
-                        // A builder, not a list: the shared menu re-reads its
-                        // actions when it opens, so a row's menu reflects the
-                        // entry as it is then rather than as it was when the
-                        // list was laid out.
-                        actions: () => [
-                          // A folder downloads whole, as one job.
-                          MenuAction(
-                            label: l10n.filesDownload,
-                            icon: PiconsRegular.downloadSimple,
-                            onSelected: () => controller.download(
-                              entry,
-                              onConflict: conflictResolverFor(context),
-                            ),
-                          ),
-                          // A plain download on a phone puts the file where
-                          // only this app can see it, which is not what
-                          // anybody means by "download".
-                          if (!entry.isDirectory && controller.localIsSandboxed)
+                      if (selecting) {
+                        return _draggable(context, entry, row);
+                      }
+                      return _draggable(
+                        context,
+                        entry,
+                        ContextMenuRegion(
+                          // A builder, not a list: the shared menu re-reads its
+                          // actions when it opens, so a row's menu reflects the
+                          // entry as it is then rather than as it was when the
+                          // list was laid out.
+                          actions: () => [
+                            // A folder downloads whole, as one job.
                             MenuAction(
-                              label: l10n.filesSaveToDevice,
-                              icon: PiconsRegular.export,
-                              onSelected: () =>
-                                  _saveToDevice(context, controller, entry),
+                              label: l10n.filesDownload,
+                              icon: PiconsRegular.downloadSimple,
+                              onSelected: () => controller.download(
+                                entry,
+                                onConflict: conflictResolverFor(context),
+                              ),
                             ),
-                          MenuAction(
-                            label: l10n.filesRename,
-                            icon: PiconsRegular.pencilSimple,
-                            onSelected: () =>
-                                renameRemoteEntry(context, controller, entry),
-                          ),
-                          MenuAction(
-                            label: l10n.filesChmod,
-                            icon: PiconsRegular.lockSimple,
-                            onSelected: () =>
-                                _chmod(context, controller, entry),
-                          ),
-                          MenuAction(
-                            label: l10n.filesDelete,
-                            icon: PiconsRegular.trash,
-                            isDestructive: true,
-                            onSelected: () =>
-                                _delete(context, controller, entry),
-                          ),
-                        ],
-                        child: row,
+                            // A plain download on a phone puts the file where
+                            // only this app can see it, which is not what
+                            // anybody means by "download".
+                            if (!entry.isDirectory &&
+                                controller.localIsSandboxed)
+                              MenuAction(
+                                label: l10n.filesSaveToDevice,
+                                icon: PiconsRegular.export,
+                                onSelected: () =>
+                                    _saveToDevice(context, controller, entry),
+                              ),
+                            if (onEdit != null && !entry.isDirectory)
+                              MenuAction(
+                                label: l10n.filesEdit,
+                                icon: PiconsRegular.notePencil,
+                                onSelected: () => onEdit(entry),
+                              ),
+                            MenuAction(
+                              label: l10n.filesRename,
+                              icon: PiconsRegular.pencilSimple,
+                              onSelected: () =>
+                                  renameRemoteEntry(context, controller, entry),
+                            ),
+                            MenuAction(
+                              label: l10n.filesChmod,
+                              icon: PiconsRegular.lockSimple,
+                              onSelected: () =>
+                                  _chmod(context, controller, entry),
+                            ),
+                            MenuAction(
+                              label: l10n.filesDelete,
+                              icon: PiconsRegular.trash,
+                              isDestructive: true,
+                              onSelected: () =>
+                                  _delete(context, controller, entry),
+                            ),
+                          ],
+                          child: row,
+                        ),
                       );
                     },
                   ),
           ),
         ),
       ],
+    );
+  }
+
+  /// [row] as something that can be dragged to the local pane, when that
+  /// pane is on screen. Horizontal affinity: the other pane is to the side,
+  /// so a vertical drag is still a scroll, never a transfer by accident.
+  Widget _draggable(BuildContext context, RemoteEntry entry, Widget row) {
+    if (!allowDrag) return row;
+    final l10n = AppLocalizations.of(context);
+    final data = controller.remoteDragFor(entry);
+    return Draggable<PaneDragData>(
+      data: data,
+      affinity: Axis.horizontal,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: DragFeedback(
+        icon: fileIcon(isDirectory: entry.isDirectory, name: entry.name),
+        label: data.count == 1
+            ? data.firstName
+            : l10n.filesDragCount(data.count),
+      ),
+      childWhenDragging: Opacity(opacity: 0.5, child: row),
+      child: row,
     );
   }
 }

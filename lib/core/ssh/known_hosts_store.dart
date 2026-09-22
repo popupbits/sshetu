@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import 'host_key.dart';
+import 'known_hosts_file.dart';
 
 /// Where trusted host keys are kept.
 ///
@@ -9,7 +10,20 @@ import 'host_key.dart';
 /// verifier changing.
 abstract interface class KnownHostsStore {
   /// The trusted key for [hostname]:[port], or null if the host is unknown.
+  ///
+  /// The pin recorded under that exact address when there is one, else the
+  /// first hashed entry that matches — see [findAll].
   KnownHostKey? find(String hostname, int port);
+
+  /// Every trusted key that speaks for [hostname]:[port]: the pin recorded
+  /// under that address, then any hashed entries imported from a
+  /// `known_hosts` file whose hash is of that address.
+  ///
+  /// More than one because a hashed file cannot be grouped by host — each
+  /// of a server's keys sits on its own line under its own salt — so an
+  /// imported server with an Ed25519 and an RSA key is two entries that only
+  /// reveal they are the same host when asked about it by name.
+  List<KnownHostKey> findAll(String hostname, int port);
 
   /// Records [key] as trusted, replacing any earlier entry for its address.
   Future<void> trust(KnownHostKey key);
@@ -57,7 +71,12 @@ class SqfliteKnownHostsStore implements KnownHostsStore {
   }
 
   @override
-  KnownHostKey? find(String hostname, int port) => _cache[_key(hostname, port)];
+  KnownHostKey? find(String hostname, int port) =>
+      findAll(hostname, port).firstOrNull;
+
+  @override
+  List<KnownHostKey> findAll(String hostname, int port) =>
+      matchingKnownHosts(_cache.values, hostname, port);
 
   @override
   List<KnownHostKey> all() =>
@@ -112,7 +131,11 @@ class InMemoryKnownHostsStore implements KnownHostsStore {
 
   @override
   KnownHostKey? find(String hostname, int port) =>
-      _values[_key(hostname, port)];
+      findAll(hostname, port).firstOrNull;
+
+  @override
+  List<KnownHostKey> findAll(String hostname, int port) =>
+      matchingKnownHosts(_values.values, hostname, port);
 
   @override
   List<KnownHostKey> all() => _values.values.toList();
@@ -126,4 +149,28 @@ class InMemoryKnownHostsStore implements KnownHostsStore {
   Future<void> forget(String hostname, int port) async {
     _values.remove(_key(hostname, port));
   }
+}
+
+/// The keys in [all] that speak for [hostname]:[port]: an exact pin first,
+/// then hashed entries (see [KnownHostKey.isHashed]) whose HMAC matches the
+/// address. Hashing is only tried when there are hashed entries at all, so a
+/// store that never imported a hashed file pays nothing for the feature.
+List<KnownHostKey> matchingKnownHosts(
+  Iterable<KnownHostKey> all,
+  String hostname,
+  int port,
+) {
+  final exact = <KnownHostKey>[];
+  final hashed = <KnownHostKey>[];
+  String? name;
+  for (final key in all) {
+    if (key.isHashed) {
+      name ??= knownHostsName(hostname.toLowerCase(), port);
+      if (hashedNameMatches(key.hostname, name)) hashed.add(key);
+    } else if (key.port == port &&
+        key.hostname.toLowerCase() == hostname.toLowerCase()) {
+      exact.add(key);
+    }
+  }
+  return [...exact, ...hashed];
 }

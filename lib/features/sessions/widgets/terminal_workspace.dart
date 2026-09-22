@@ -8,9 +8,10 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/ui/views.dart';
 import '../../../l10n/app_localizations.dart';
 import '../session_manager.dart';
+import '../pane_commands.dart';
 import '../workspace_pages.dart';
 import 'session_tab_strip.dart';
-import 'terminal_pane.dart';
+import 'tab_panes.dart';
 
 /// The terminal half of the desktop layout: tabs, and the session they select.
 ///
@@ -57,6 +58,19 @@ class TerminalWorkspace extends ConsumerWidget {
                 ),
                 onPressed: () => openFiles(context, ref, active.id),
               ),
+            if (active != null)
+              IconButton(
+                key: const Key('workspace.splitRight'),
+                tooltip: l10n.paneSplitRight,
+                icon: const Icon(PiconsRegular.columns, size: 16),
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints.tightFor(
+                  width: 30,
+                  height: 30,
+                ),
+                onPressed: () =>
+                    runPaneCommand(context, ref, PaneCommand.splitRight),
+              ),
             const SizedBox(width: Spacing.xs),
           ],
         ),
@@ -77,11 +91,8 @@ class TerminalWorkspace extends ConsumerWidget {
                 )
               : active == null
               ? const SizedBox.shrink()
-              // Keyed by session, so switching tabs builds a new pane rather
-              // than re-pointing the old one at a different terminal — which
-              // would carry one session's scroll position and selection onto
-              // another's buffer.
-              : TerminalPane(key: ValueKey(active.id), session: active),
+              // The active session's tab: its one pane, or its split layout.
+              : TabPanes(active: active),
         ),
       ],
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/services.dart';
@@ -5,7 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/settings/settings_controller.dart';
+import '../palette/open_command_palette.dart';
+import '../palette/palette_shortcuts.dart';
 import '../snippets/open_snippets.dart';
+import 'pane_commands.dart';
 import 'session_manager.dart';
 import 'terminal_find_request.dart';
 import 'workspace_pages.dart';
@@ -21,16 +26,17 @@ class CloseSessionIntent extends Intent {
 
 /// Closes the front tab, whichever kind it is. Shared by the shortcut and the
 /// menu item so the two cannot mean different things.
-void closeCurrentTab(WidgetRef ref) {
+void closeCurrentTab(BuildContext context, WidgetRef ref) {
   final pages = ref.read(workspacePagesProvider.notifier);
   final page = pages.selected;
   if (page != null) {
-    pages.close(page.id);
+    unawaited(pages.requestClose(context, page.id));
     return;
   }
   final manager = ref.read(sessionManagerProvider.notifier);
   final id = manager.activeId;
-  if (id != null) manager.close(id);
+  // The whole tab: every pane of a split goes with it.
+  if (id != null) manager.closeTab(id);
 }
 
 /// Move to the next or previous session.
@@ -193,6 +199,11 @@ class SessionShortcuts extends ConsumerWidget {
     _primary(LogicalKeyboardKey.digit0): const TerminalFontSizeIntent.reset(),
     findInTerminalActivator(): const FindInTerminalIntent(),
     snippetPickerActivator(): const OpenSnippetsIntent(),
+    // Every palette chord, Ctrl+K included: a focused terminal keeps Ctrl+K
+    // for the shell before this map is asked. See commandPaletteActivators.
+    for (final activator in commandPaletteActivators())
+      activator: const OpenCommandPaletteIntent(),
+    ...paneShortcutMap(),
   };
 
   @override
@@ -203,7 +214,7 @@ class SessionShortcuts extends ConsumerWidget {
         actions: <Type, Action<Intent>>{
           CloseSessionIntent: CallbackAction<CloseSessionIntent>(
             onInvoke: (_) {
-              closeCurrentTab(ref);
+              closeCurrentTab(context, ref);
               return null;
             },
           ),
@@ -233,15 +244,26 @@ class SessionShortcuts extends ConsumerWidget {
               return null;
             },
           ),
+          OpenCommandPaletteIntent: CallbackAction<OpenCommandPaletteIntent>(
+            onInvoke: (_) {
+              openCommandPalette(context, ref);
+              return null;
+            },
+          ),
           SelectSessionIntent: CallbackAction<SelectSessionIntent>(
             onInvoke: (intent) {
-              final sessions = ref.read(sessionManagerProvider);
-              // Out of range does nothing rather than clamping: Cmd-9 with two
-              // tabs open should not silently mean "the second one".
-              if (intent.position > sessions.length) return null;
+              // By tab, not by pane. Out of range does nothing rather than
+              // clamping: Cmd-9 with two tabs open should not silently mean
+              // "the second one".
               ref
                   .read(sessionManagerProvider.notifier)
-                  .select(sessions[intent.position - 1].id);
+                  .selectTabAt(intent.position);
+              return null;
+            },
+          ),
+          PaneCommandIntent: CallbackAction<PaneCommandIntent>(
+            onInvoke: (intent) {
+              runPaneCommand(context, ref, intent.command);
               return null;
             },
           ),

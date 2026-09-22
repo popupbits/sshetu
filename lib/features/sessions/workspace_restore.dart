@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/settings/settings_controller.dart';
 import '../../core/terminal/tmux_names.dart';
+import 'pane_tree.dart';
 
 /// One terminal tab as it is remembered between launches.
 class SavedTab {
@@ -62,36 +63,76 @@ class SavedTab {
 /// something to reconnect to, and reopening half-finished forms at launch
 /// would be clutter, not continuity.
 class SavedWorkspace {
-  const SavedWorkspace({required this.tabs, this.selected});
+  const SavedWorkspace({
+    required this.tabs,
+    this.selected,
+    this.layouts = const [],
+  });
 
+  /// One entry per terminal *session*, in order — a split tab contributes
+  /// one per pane, adjacent.
   final List<SavedTab> tabs;
 
   /// Index into [tabs], or null.
   final int? selected;
 
+  /// The split layouts, with each pane named by its index into [tabs] as a
+  /// string. Shape, ratios and focus only: broadcast and a maximized pane are
+  /// never restored (see [PaneTree.toJson]).
+  final List<PaneTree> layouts;
+
   bool get isEmpty => tabs.isEmpty;
 
-  static const int _version = 1;
+  /// 2 added [layouts]. A version-1 file still reads, as tabs with no splits.
+  static const int _version = 2;
 
   Map<String, Object?> toJson() => {
     'v': _version,
     'tabs': [for (final tab in tabs) tab.toJson()],
     if (selected != null) 'selected': selected,
+    if (layouts.isNotEmpty)
+      'layouts': [for (final layout in layouts) layout.toJson()],
   };
 
   /// Null for anything unreadable, including a version this build does not
   /// know — a newer build's workspace is not worth guessing at.
   static SavedWorkspace? fromJson(Object? json) {
-    if (json is! Map || json['v'] != _version) return null;
+    if (json is! Map) return null;
+    final version = json['v'];
+    if (version != 1 && version != _version) return null;
     final rawTabs = json['tabs'];
     if (rawTabs is! List) return null;
-    final tabs = [for (final raw in rawTabs) ?SavedTab.fromJson(raw)];
+    // Malformed tabs are dropped, so a layout's positions are re-pointed at
+    // where each surviving tab ended up.
+    final tabs = <SavedTab>[];
+    final moved = <String, String>{};
+    for (final (index, raw) in rawTabs.indexed) {
+      final tab = SavedTab.fromJson(raw);
+      if (tab == null) continue;
+      moved['$index'] = '${tabs.length}';
+      tabs.add(tab);
+    }
     final selected = json['selected'];
+    final rawLayouts = json['layouts'];
+    final layouts = <PaneTree>[];
+    if (rawLayouts is List) {
+      for (final raw in rawLayouts) {
+        final layout = PaneTree.fromJson(raw)?.relabel((id) => moved[id]);
+        // A pane may belong to one layout only; a file that says otherwise
+        // loses the later claim rather than drawing a session twice.
+        if (layout == null ||
+            layout.panes.any((id) => layouts.any((l) => l.contains(id)))) {
+          continue;
+        }
+        layouts.add(layout);
+      }
+    }
     return SavedWorkspace(
       tabs: tabs,
       selected: selected is int && selected >= 0 && selected < tabs.length
           ? selected
           : null,
+      layouts: layouts,
     );
   }
 }
@@ -151,7 +192,12 @@ final workspaceStoreProvider = Provider<WorkspaceStore>((ref) {
 
 /// What reopening will actually do, worked out before anything connects.
 class RestorePlan {
-  const RestorePlan({required this.tabs, this.selected, this.dropped = 0});
+  const RestorePlan({
+    required this.tabs,
+    this.selected,
+    this.dropped = 0,
+    this.layouts = const [],
+  });
 
   /// In their saved order.
   final List<SavedTab> tabs;
@@ -161,6 +207,10 @@ class RestorePlan {
 
   /// Tabs left out because their host has been deleted since.
   final int dropped;
+
+  /// Split layouts, panes named by index into [tabs]. A pane whose tab was
+  /// dropped is closed out of its layout.
+  final List<PaneTree> layouts;
 
   bool get isEmpty => tabs.isEmpty;
 }
@@ -173,6 +223,7 @@ class RestorePlan {
 /// been selected had it been closed — or the first.
 RestorePlan planRestore(SavedWorkspace saved, Set<String> liveHostIds) {
   final kept = <SavedTab>[];
+  final moved = <String, String>{};
   int? selected;
   for (final (index, tab) in saved.tabs.indexed) {
     if (!liveHostIds.contains(tab.hostId)) {
@@ -182,6 +233,7 @@ RestorePlan planRestore(SavedWorkspace saved, Set<String> liveHostIds) {
       continue;
     }
     if (index == saved.selected) selected = kept.length;
+    moved['$index'] = '${kept.length}';
     kept.add(tab);
   }
   if (selected == null && saved.selected != null && kept.isNotEmpty) {
@@ -191,6 +243,9 @@ RestorePlan planRestore(SavedWorkspace saved, Set<String> liveHostIds) {
     tabs: kept,
     selected: selected,
     dropped: saved.tabs.length - kept.length,
+    layouts: [
+      for (final layout in saved.layouts) ?layout.relabel((id) => moved[id]),
+    ],
   );
 }
 

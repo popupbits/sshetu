@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:picons/picons.dart';
@@ -6,6 +8,9 @@ import '../../../core/terminal/terminal_session.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/ui/context_menu.dart';
 import '../../../l10n/app_localizations.dart';
+import '../pane_commands.dart';
+import '../pane_layouts.dart';
+import '../../server_info/server_info_dock.dart';
 import '../server_sessions.dart';
 import '../session_manager.dart';
 import '../workspace_pages.dart';
@@ -49,9 +54,12 @@ class SessionTabStrip extends ConsumerWidget {
     final selectedPageId = workspace.selected?.id;
     final activeId = selectedPageId == null ? manager.activeId : null;
     final scheme = Theme.of(context).colorScheme;
+    // One tab per split layout, not one per pane.
+    ref.watch(paneLayoutsProvider);
+    final tabs = manager.tabs;
 
     if (sessions.isEmpty && pages.isEmpty) return const SizedBox.shrink();
-    if (sessions.length + pages.length < 2 && !alwaysShow) {
+    if (tabs.length + pages.length < 2 && !alwaysShow) {
       return const SizedBox.shrink();
     }
 
@@ -63,20 +71,24 @@ class SessionTabStrip extends ConsumerWidget {
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: sessions.length + pages.length,
+              itemCount: tabs.length + pages.length,
               itemBuilder: (context, index) {
                 // Pages sit after the sessions, so opening one never reorders
                 // the tabs someone is already working in.
-                if (index >= sessions.length) {
-                  final page = pages[index - sessions.length];
+                if (index >= tabs.length) {
+                  final page = pages[index - tabs.length];
                   return _PageTab(
                     page: page,
                     selected: page.id == selectedPageId,
                     onTap: () => workspace.select(page.id),
-                    onClose: () => workspace.close(page.id),
+                    onClose: () =>
+                        unawaited(workspace.requestClose(context, page.id)),
                   );
                 }
-                final session = sessions[index];
+                // A split tab speaks for the pane last used in it.
+                final tab = tabs[index];
+                final session =
+                    manager.byId(tab.focused) ?? manager.byId(tab.panes.first)!;
                 return ContextMenuRegion(
                   title: session.title,
                   actions: () => [
@@ -96,12 +108,20 @@ class SessionTabStrip extends ConsumerWidget {
                       onSelected: () =>
                           openRunningSessionsForTab(context, ref, session),
                     ),
+                    ...paneTabMenuActions(context, ref, session.id),
+                    MenuAction(
+                      label: isServerInfoShowing(ref, session)
+                          ? AppLocalizations.of(context).serverInfoHide
+                          : AppLocalizations.of(context).serverInfoShow,
+                      icon: PiconsRegular.gauge,
+                      onSelected: () => openServerInfo(context, ref, session),
+                    ),
                     MenuAction(
                       label: AppLocalizations.of(context).terminalCloseTab,
                       icon: PiconsRegular.x,
-                      onSelected: () => manager.close(session.id),
+                      onSelected: () => manager.closeTab(session.id),
                     ),
-                    if (sessions.length > 1)
+                    if (tabs.length > 1)
                       MenuAction(
                         label: AppLocalizations.of(context).sessionCloseOthers,
                         icon: PiconsRegular.xCircle,
@@ -111,7 +131,7 @@ class SessionTabStrip extends ConsumerWidget {
                           // would otherwise be iterating.
                           final others = [
                             for (final other in sessions)
-                              if (other.id != session.id) other.id,
+                              if (!tab.contains(other.id)) other.id,
                           ];
                           for (final id in others) {
                             manager.close(id);
@@ -121,12 +141,14 @@ class SessionTabStrip extends ConsumerWidget {
                   ],
                   child: _SessionTab(
                     session: session,
-                    selected: session.id == activeId,
+                    selected: activeId != null && tab.contains(activeId),
+                    panes: tab.panes.length,
+                    broadcasting: tab.tree?.broadcast ?? false,
                     onTap: () {
                       workspace.deselect();
                       manager.select(session.id);
                     },
-                    onClose: () => manager.close(session.id),
+                    onClose: () => manager.closeTab(session.id),
                   ),
                 );
               },
@@ -145,12 +167,21 @@ class _SessionTab extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.onClose,
+    this.panes = 1,
+    this.broadcasting = false,
   });
 
   final TerminalSession session;
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onClose;
+
+  /// How many panes the tab holds; more than one shows a count.
+  final int panes;
+
+  /// Whether the tab is typing into all its panes — flagged here too, so it
+  /// is visible from any tab, not only from inside the one doing it.
+  final bool broadcasting;
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +229,30 @@ class _SessionTab extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (broadcasting) ...[
+                  const SizedBox(width: Spacing.xs),
+                  Tooltip(
+                    message: l10n.paneTypeInAll,
+                    child: Icon(
+                      PiconsRegular.broadcast,
+                      size: 12,
+                      color: scheme.error,
+                    ),
+                  ),
+                ],
+                if (panes > 1) ...[
+                  const SizedBox(width: Spacing.xs),
+                  Tooltip(
+                    message: l10n.paneCount(panes),
+                    child: Text(
+                      '$panes',
+                      key: const Key('tab.paneCount'),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(width: Spacing.xs),
                 IconButton(
                   tooltip: l10n.terminalCloseTab,

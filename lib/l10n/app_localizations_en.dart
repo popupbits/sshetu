@@ -389,6 +389,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get terminalCloseTab => 'Close tab';
 
   @override
+  String get terminalMoreActions => 'More';
+
+  @override
   String get terminalPaste => 'Paste';
 
   @override
@@ -523,6 +526,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get keysPaste => 'Paste key';
+
+  @override
+  String get paletteTitle => 'Command palette';
+
+  @override
+  String get paletteSearchHint => 'Search servers, tabs, snippets and actions';
+
+  @override
+  String get paletteOpenTooltip => 'Search everything';
+
+  @override
+  String get menuCommandPalette => 'Command Palette…';
+
+  @override
+  String paletteNoResults(String query) {
+    return 'Nothing matches “$query”';
+  }
+
+  @override
+  String get paletteNoResultsBody =>
+      'Try fewer letters, or part of a hostname.';
+
+  @override
+  String get paletteEmptyTitle => 'Nothing to search yet';
+
+  @override
+  String get paletteEmptyBody =>
+      'Add a server and it shows up here, with its tabs, tunnels and snippets.';
+
+  @override
+  String get paletteRecent => 'Recent';
+
+  @override
+  String get paletteKeyHint =>
+      '↑↓ to move · Enter to run · Tab for other actions · Esc to close';
+
+  @override
+  String get paletteCategoryHost => 'Server';
+
+  @override
+  String get paletteCategorySession => 'Tab';
+
+  @override
+  String get paletteCategorySnippet => 'Snippet';
+
+  @override
+  String get paletteCategoryTunnel => 'Tunnel';
+
+  @override
+  String get paletteCategorySetting => 'Settings';
+
+  @override
+  String get paletteCategoryAction => 'Action';
+
+  @override
+  String get paletteSwitchTo => 'Switch to';
+
+  @override
+  String get paletteOpenFiles => 'Open files';
+
+  @override
+  String get paletteTunnelStart => 'Start tunnel';
+
+  @override
+  String get paletteTunnelStop => 'Stop tunnel';
+
+  @override
+  String get paletteToggleTheme => 'Switch between light and dark theme';
+
+  @override
+  String paletteGoTo(String destination) {
+    return 'Go to $destination';
+  }
+
+  @override
+  String paletteSettingsSection(String section) {
+    return 'Settings › $section';
+  }
 
   @override
   String get keysPasteTitle => 'Paste a private key';
@@ -819,6 +900,185 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get knownHostsCopied => 'Fingerprint copied';
+
+  @override
+  String get knownHostsImport => 'Import from known_hosts';
+
+  @override
+  String get knownHostsImportTitle => 'Import trusted host keys';
+
+  @override
+  String knownHostsImportFrom(String path) {
+    return 'From $path';
+  }
+
+  @override
+  String knownHostsImportNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new keys to trust',
+      one: '1 new key to trust',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportNewHashed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count of them have hashed names. They are stored as they are and recognised when you connect to those hosts, but cannot be listed by name.',
+      one: '1 of them has a hashed name. It is stored as it is and recognised when you connect to that host, but it cannot be listed by name.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get knownHostsImportNothing => 'Nothing new to import';
+
+  @override
+  String knownHostsImportAlready(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count already trusted',
+      one: '1 already trusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hosts conflict with keys you already trust',
+      one: '1 host conflicts with a key you already trust',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get knownHostsImportConflictsBody =>
+      'These are left unchanged. If a server really was rebuilt, forget its old key here first, then import again.';
+
+  @override
+  String knownHostsImportTrusted(String key) {
+    return 'Trusted: $key';
+  }
+
+  @override
+  String knownHostsImportInFile(String key) {
+    return 'In the file: $key';
+  }
+
+  @override
+  String get knownHostsImportSkipped => 'Not imported';
+
+  @override
+  String knownHostsImportRevoked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count @revoked lines — this app pins keys it trusts and keeps no list of keys to refuse',
+      one: '1 @revoked line — this app pins keys it trusts and keeps no list of keys to refuse',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportCertAuthority(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count @cert-authority lines — host certificates are not supported',
+      one: '1 @cert-authority line — host certificates are not supported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportWildcards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count wildcard or negated names — a trusted key is for one exact host',
+      one: '1 wildcard or negated name — a trusted key is for one exact host',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportUnsupported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count keys of a type this app cannot verify',
+      one: '1 key of a type this app cannot verify',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportMalformed(int count, String lines) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unreadable lines ($lines)',
+      one: '1 unreadable line ($lines)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportAlternates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count extra keys for hosts — one key is kept per host, the type a connection uses first',
+      one: '1 extra key for a host — one key is kept per host, the type a connection uses first',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImportAction(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count keys',
+      one: 'Import 1 key',
+      zero: 'Import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String knownHostsImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Trusted $count host keys',
+      one: 'Trusted 1 host key',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get knownHostsImportReadFailed => 'Could not read that file';
+
+  @override
+  String get knownHostsImportTooLarge =>
+      'That file is too large to be a known_hosts file';
+
+  @override
+  String get knownHostsHashedTitle => 'Hashed host name (imported)';
 
   @override
   String get settingsSecurity => 'Security';
@@ -1299,6 +1559,126 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filesConflictSkip => 'Skip existing';
 
   @override
+  String get filesEdit => 'Edit';
+
+  @override
+  String filesDropUpload(String folder) {
+    return 'Drop to upload to $folder';
+  }
+
+  @override
+  String filesDropDownload(String folder) {
+    return 'Drop to download to $folder';
+  }
+
+  @override
+  String filesDragCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editorRevert => 'Revert to saved';
+
+  @override
+  String editorSaveTooltip(String keys) {
+    return 'Save ($keys)';
+  }
+
+  @override
+  String get editorUnsaved => 'Unsaved changes';
+
+  @override
+  String editorSaved(String name) {
+    return 'Saved $name';
+  }
+
+  @override
+  String editorReloaded(String name) {
+    return 'Reloaded $name from the server';
+  }
+
+  @override
+  String get editorUtf8 => 'UTF-8';
+
+  @override
+  String get editorUtf8Bom => 'UTF-8 with BOM';
+
+  @override
+  String get editorLf => 'LF';
+
+  @override
+  String get editorCrlf => 'CRLF';
+
+  @override
+  String get editorMixedEndings => 'Mixed line endings, kept as they are';
+
+  @override
+  String get editorTooLargeTitle => 'Too large to edit here';
+
+  @override
+  String editorTooLargeBody(String name, String limit) {
+    return '$name is larger than $limit. Download it and open it in an editor on this device instead.';
+  }
+
+  @override
+  String get editorBinaryTitle => 'Not a text file';
+
+  @override
+  String editorBinaryBody(String name) {
+    return '$name contains binary data, so it cannot be edited as text.';
+  }
+
+  @override
+  String get editorNotUtf8Title => 'Not UTF-8 text';
+
+  @override
+  String editorNotUtf8Body(String name) {
+    return '$name is not valid UTF-8. Saving it from here could change characters you never touched, so it is not opened.';
+  }
+
+  @override
+  String get editorNotAFileTitle => 'Not a file';
+
+  @override
+  String editorNotAFileBody(String name) {
+    return '$name is a folder.';
+  }
+
+  @override
+  String get editorLoadFailedTitle => 'Could not open the file';
+
+  @override
+  String get editorConflictTitle => 'Changed on the server';
+
+  @override
+  String editorConflictBody(String name) {
+    return '$name was changed on the server after you opened it. Overwrite that change with yours, reload the server\'s version and lose your edits, or cancel and decide later.';
+  }
+
+  @override
+  String get editorConflictOverwrite => 'Overwrite';
+
+  @override
+  String get editorConflictReload => 'Reload';
+
+  @override
+  String get editorDiscardTitle => 'Discard unsaved changes?';
+
+  @override
+  String editorDiscardBody(String name) {
+    return 'Your edits to $name have not been saved.';
+  }
+
+  @override
+  String get editorDiscard => 'Discard';
+
+  @override
   String get filesFolderPreparing => 'Preparing…';
 
   @override
@@ -1516,6 +1896,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get menuPreviousSession => 'Previous Session';
+
+  @override
+  String get menuSplitRight => 'Split Right';
+
+  @override
+  String get menuSplitDown => 'Split Down';
+
+  @override
+  String get menuClosePane => 'Close Pane';
+
+  @override
+  String get menuNextPane => 'Next Pane';
+
+  @override
+  String get menuPreviousPane => 'Previous Pane';
+
+  @override
+  String get menuMaximizePane => 'Maximize Pane';
+
+  @override
+  String get menuTypeInAllPanes => 'Type in All Panes';
+
+  @override
+  String get menuStopTypingInAllPanes => 'Stop Typing in All Panes';
+
+  @override
+  String get paneSplitRight => 'Split right';
+
+  @override
+  String get paneSplitDown => 'Split down';
+
+  @override
+  String get paneClose => 'Close pane';
+
+  @override
+  String get paneMaximize => 'Maximize pane';
+
+  @override
+  String get paneRestore => 'Restore pane';
+
+  @override
+  String get paneTypeInAll => 'Type in all panes';
+
+  @override
+  String get paneStopTypingInAll => 'Stop typing in all panes';
+
+  @override
+  String paneBroadcastBanner(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Typing in all panes · $count other panes receive this',
+      one: 'Typing in all panes · 1 other pane receives this',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get paneBroadcastReceiving => 'Receives what is typed in any pane';
+
+  @override
+  String get paneBroadcastExcluded => 'Left out of typing in all panes';
+
+  @override
+  String get paneBroadcastExclude => 'Leave this pane out';
+
+  @override
+  String get paneBroadcastInclude => 'Include this pane';
+
+  @override
+  String get paneBroadcastStop => 'Stop';
+
+  @override
+  String get paneSwitcherLabel => 'Panes in this tab';
+
+  @override
+  String paneCount(int count) {
+    return '$count panes';
+  }
 
   @override
   String get menuHosts => 'Servers';
@@ -2388,6 +2847,220 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sessionRunningSessions => 'Sessions on this server…';
+
+  @override
+  String get serverInfoTitle => 'Server info';
+
+  @override
+  String get serverInfoShow => 'Server info';
+
+  @override
+  String get serverInfoHide => 'Hide server info';
+
+  @override
+  String get serverInfoClose => 'Close server info';
+
+  @override
+  String get serverInfoOverview => 'Overview';
+
+  @override
+  String get serverInfoProcesses => 'Processes';
+
+  @override
+  String get serverInfoHostname => 'Hostname';
+
+  @override
+  String get serverInfoSystem => 'System';
+
+  @override
+  String get serverInfoKernel => 'Kernel';
+
+  @override
+  String get serverInfoUptime => 'Uptime';
+
+  @override
+  String get serverInfoLoad => 'Load';
+
+  @override
+  String get serverInfoCpu => 'CPU';
+
+  @override
+  String serverInfoCpuCores(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cores',
+      one: '1 core',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String serverInfoCpuHistory(int count) {
+    return 'CPU usage over the last $count readings';
+  }
+
+  @override
+  String get serverInfoMemory => 'Memory';
+
+  @override
+  String get serverInfoSwap => 'Swap';
+
+  @override
+  String get serverInfoNoSwap => 'No swap';
+
+  @override
+  String serverInfoUsedOfTotal(String used, String total) {
+    return '$used of $total';
+  }
+
+  @override
+  String get serverInfoFilesystems => 'Filesystems';
+
+  @override
+  String get serverInfoNetwork => 'Network';
+
+  @override
+  String get serverInfoNetDown => 'Down';
+
+  @override
+  String get serverInfoNetUp => 'Up';
+
+  @override
+  String serverInfoProcessCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count processes',
+      one: '1 process',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get serverInfoLimited => 'Limited information on this system';
+
+  @override
+  String get serverInfoLimitedBody =>
+      'This server does not report CPU, memory or load in a way SSHetu can read, so only the basics are shown.';
+
+  @override
+  String get serverInfoOffline => 'Not connected';
+
+  @override
+  String get serverInfoOfflineBody =>
+      'Figures resume when the session reconnects.';
+
+  @override
+  String serverInfoError(String error) {
+    return 'Could not read this server\'s figures: $error';
+  }
+
+  @override
+  String get serverInfoNoSession => 'No session selected';
+
+  @override
+  String get serverInfoNoSessionBody =>
+      'Open a terminal to see details of the server behind it.';
+
+  @override
+  String get serverInfoWaiting => 'Measuring…';
+
+  @override
+  String get processesFilter => 'Filter by name, user or PID';
+
+  @override
+  String get processesSortBy => 'Sort by';
+
+  @override
+  String get processesSortCpu => 'CPU';
+
+  @override
+  String get processesSortMem => 'Memory';
+
+  @override
+  String get processesSortPid => 'PID';
+
+  @override
+  String get processesRefresh => 'Refresh';
+
+  @override
+  String get processesEmpty => 'No processes match';
+
+  @override
+  String get processesNoUsage =>
+      'This server\'s ps does not report CPU or memory use.';
+
+  @override
+  String get processesKill => 'Kill (SIGTERM)';
+
+  @override
+  String get processesForceKill => 'Force kill (SIGKILL)';
+
+  @override
+  String processesActions(String name) {
+    return 'Actions for $name';
+  }
+
+  @override
+  String processesKillTitle(String name) {
+    return 'Stop $name?';
+  }
+
+  @override
+  String processesKillBody(String name, int pid) {
+    return 'Sends SIGTERM to $name (PID $pid). It is asked to exit and can clean up first.';
+  }
+
+  @override
+  String processesForceKillTitle(String name) {
+    return 'Force kill $name?';
+  }
+
+  @override
+  String processesForceKillBody(String name, int pid) {
+    return 'Sends SIGKILL to $name (PID $pid). It stops immediately, without a chance to save anything.';
+  }
+
+  @override
+  String get processesKillConfirm => 'Kill';
+
+  @override
+  String get processesForceKillConfirm => 'Force kill';
+
+  @override
+  String processesSignalSent(String signal, String name, int pid) {
+    return 'Sent $signal to $name (PID $pid)';
+  }
+
+  @override
+  String processesSignalFailed(String name, int pid, String error) {
+    return 'Could not signal $name (PID $pid): $error';
+  }
+
+  @override
+  String processesLoadFailed(String error) {
+    return 'Could not list processes: $error';
+  }
+
+  @override
+  String osFamilyName(String family) {
+    String _temp0 = intl.Intl.selectLogic(family, {
+      'ubuntu': 'Ubuntu',
+      'debian': 'Debian',
+      'fedora': 'Fedora',
+      'rhel': 'Red Hat family',
+      'arch': 'Arch Linux',
+      'alpine': 'Alpine Linux',
+      'opensuse': 'openSUSE',
+      'freebsd': 'FreeBSD',
+      'macos': 'macOS',
+      'windows': 'Windows',
+      'linux': 'Linux',
+      'other': 'Unknown system',
+    });
+    return '$_temp0';
+  }
 
   @override
   String runningSessionsTitle(String host) {

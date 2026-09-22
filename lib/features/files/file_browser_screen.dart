@@ -14,6 +14,7 @@ import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import '../sessions/session_manager.dart';
+import 'editor/open_remote_editor.dart';
 import 'file_browser_controller.dart';
 import 'widgets/file_actions.dart';
 import 'widgets/local_pane.dart';
@@ -97,6 +98,16 @@ class _FileBrowserScreenState extends ConsumerState<FileBrowserScreen> {
     setState(() => _controller = controller);
   }
 
+  /// Opens [entry] in the text editor, over a channel of the editor's own on
+  /// this session's connection.
+  void _edit(TerminalSession session, RemoteEntry entry) => openRemoteEditor(
+    context,
+    ref,
+    sessionId: session.id,
+    path: entry.path,
+    sftp: () => SshSftpService(session.connection),
+  );
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -171,8 +182,14 @@ class _FileBrowserScreenState extends ConsumerState<FileBrowserScreen> {
                 children: [
                   Expanded(
                     child: context.isCompact
-                        ? _CompactBrowser(controller: controller)
-                        : _WideBrowser(controller: controller),
+                        ? _CompactBrowser(
+                            controller: controller,
+                            onEdit: (entry) => _edit(session, entry),
+                          )
+                        : _WideBrowser(
+                            controller: controller,
+                            onEdit: (entry) => _edit(session, entry),
+                          ),
                   ),
                   if (controller.transfers.isNotEmpty)
                     _TransfersPanel(controller: controller),
@@ -189,16 +206,24 @@ class _FileBrowserScreenState extends ConsumerState<FileBrowserScreen> {
 /// Side by side, for a tablet or desktop window wide enough to show both
 /// panes and still let each one read as more than a sliver.
 class _WideBrowser extends StatelessWidget {
-  const _WideBrowser({required this.controller});
+  const _WideBrowser({required this.controller, required this.onEdit});
 
   final FileBrowserController controller;
+  final void Function(RemoteEntry entry) onEdit;
 
+  /// Both panes on screen, so rows can be dragged from one to the other.
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      Expanded(child: RemotePane(controller: controller)),
+      Expanded(
+        child: RemotePane(
+          controller: controller,
+          onEdit: onEdit,
+          allowDrag: true,
+        ),
+      ),
       const VerticalDivider(width: 1),
-      Expanded(child: LocalPane(controller: controller)),
+      Expanded(child: LocalPane(controller: controller, allowDrag: true)),
     ],
   );
 }
@@ -209,9 +234,10 @@ class _WideBrowser extends StatelessWidget {
 /// transfer started from one pane is not something switching away should
 /// hide.
 class _CompactBrowser extends StatelessWidget {
-  const _CompactBrowser({required this.controller});
+  const _CompactBrowser({required this.controller, required this.onEdit});
 
   final FileBrowserController controller;
+  final void Function(RemoteEntry entry) onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -245,7 +271,7 @@ class _CompactBrowser extends StatelessWidget {
         ),
         Expanded(
           child: controller.activePane == BrowserPane.remote
-              ? RemotePane(controller: controller)
+              ? RemotePane(controller: controller, onEdit: onEdit)
               : LocalPane(controller: controller),
         ),
       ],

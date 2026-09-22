@@ -11,6 +11,8 @@ import '../../../core/ui/feedback.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../sessions/connect.dart';
 import '../../sessions/server_sessions.dart';
+import '../../server_info/host_os_controller.dart';
+import '../../server_info/widgets/os_badge.dart';
 import '../domain/ssh_host.dart';
 import '../hosts_controller.dart';
 import 'host_notes_dialog.dart';
@@ -32,6 +34,9 @@ class HostTile extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    // Secondary to the monogram: a small mark beside the address, drawn only
+    // once a connection has said which OS this is.
+    final os = ref.watch(hostOsProvider.select((cache) => cache[host.id]));
 
     return ContextMenuRegion(
       title: host.label,
@@ -169,6 +174,10 @@ class HostTile extends ConsumerWidget {
               color: scheme.onSurfaceVariant,
             ),
             const SizedBox(width: Spacing.xs),
+            if (os != null) ...[
+              OsBadge(key: const Key('hostTile.os'), info: os, size: 12),
+              const SizedBox(width: Spacing.xs),
+            ],
             Flexible(
               child: Text(
                 host.subtitle,

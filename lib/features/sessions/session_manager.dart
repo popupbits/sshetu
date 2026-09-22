@@ -15,6 +15,10 @@ import '../../core/settings/device_identity.dart';
 import '../../core/terminal/terminal_session.dart';
 import '../../core/terminal/tmux_names.dart';
 import '../hosts/domain/ssh_host.dart';
+import 'pane_layouts.dart';
+import 'pane_tree.dart';
+import '../server_info/data/server_exec.dart';
+import '../server_info/host_os_controller.dart';
 import 'reconnect_triggers.dart';
 import 'workspace_restore.dart';
 
@@ -45,6 +49,9 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       }
       _sessions.clear();
     });
+    // A resized divider or a new split changes what a relaunch should
+    // rebuild, though no tab opened or closed.
+    ref.listen(paneLayoutsProvider, (_, _) => _saveWorkspace());
     return const [];
   }
 
@@ -76,10 +83,105 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   /// Puts an already-built session in the list, as [connect] does. For tests
   /// that need a tab without a server behind it.
   @visibleForTesting
-  void adopt(TerminalSession session) {
-    _sessions.add(session);
+  void adopt(TerminalSession session, {PaneSplitRequest? split}) {
+    _insert(session, split);
+    if (split != null) _activeId = session.id;
     _watchTriggers();
     _publish();
+  }
+
+  PaneLayouts get _layouts => ref.read(paneLayoutsProvider.notifier);
+
+  /// Adds [session] to the list — as a pane of [split]'s tab when asked, kept
+  /// next to that tab's other sessions so a tab's panes are always adjacent
+  /// in the list and the tab never jumps when its first pane closes.
+  void _insert(TerminalSession session, PaneSplitRequest? split) {
+    session.onInput = (data) => _routeInput(session, data);
+    final target = split == null ? null : byId(split.target);
+    if (split == null || target == null) {
+      _sessions.add(session);
+      return;
+    }
+    final members = _layouts.treeFor(target.id)?.panes ?? [target.id];
+    final last = _sessions.lastIndexWhere((s) => members.contains(s.id));
+    _sessions.insert(last + 1, session);
+    _layouts.split(target.id, session.id, split.axis);
+  }
+
+  // ------------------------------------------------------- panes, broadcast
+
+  /// The workspace's tabs: single sessions and split layouts, in order.
+  List<PaneTab> get tabs => groupIntoTabs([
+    for (final session in _sessions) session.id,
+  ], ref.read(paneLayoutsProvider));
+
+  /// Set while one paste is being delivered to several panes, so each
+  /// pane's own paste is not broadcast a second time.
+  var _fanningOut = false;
+
+  List<TerminalSession> _broadcastTargetsOf(TerminalSession source) => [
+    for (final id in broadcastTargets(
+      _layouts.treeFor(source.id),
+      source.id,
+      isLive: (id) => byId(id)?.isLive ?? false,
+    ))
+      ?byId(id),
+  ];
+
+  /// Sends a keystroke typed into [source] on to the rest of its tab, when
+  /// broadcast is on. Raw bytes, as typed — the same as tmux's synchronised
+  /// panes.
+  void _routeInput(TerminalSession source, String data) {
+    if (_fanningOut) return;
+    for (final target in _broadcastTargetsOf(source)) {
+      target.send(data);
+    }
+  }
+
+  /// Delivers text the paste flow has already sanitised and confirmed: to
+  /// [source], and with broadcast on to every pane receiving it. Each pane
+  /// gets its own `paste`, so each is bracketed or not by what its own
+  /// program asked for.
+  void pasteToTab(TerminalSession source, String text) {
+    final targets = _broadcastTargetsOf(source);
+    _fanningOut = true;
+    try {
+      source.terminal.paste(text);
+      for (final target in targets) {
+        target.terminal.paste(text);
+      }
+    } finally {
+      _fanningOut = false;
+    }
+  }
+
+  /// How many other panes are receiving what is typed into [id] right now.
+  int broadcastCount(String id) {
+    final source = byId(id);
+    return source == null ? 0 : _broadcastTargetsOf(source).length;
+  }
+
+  /// Moves focus [delta] panes within the active tab.
+  void cyclePane(int delta) {
+    final id = activeId;
+    if (id == null) return;
+    final next = _layouts.cycle(id, delta);
+    if (next != null) select(next);
+  }
+
+  /// Closes every pane of the tab [id] is in.
+  void closeTab(String id) {
+    final members = _layouts.treeFor(id)?.panes ?? [id];
+    for (final member in members) {
+      close(member);
+    }
+  }
+
+  /// Selects the tab at [position], 1-based. Out of range does nothing.
+  void selectTabAt(int position) {
+    final all = tabs;
+    if (position < 1 || position > all.length) return;
+    select(all[position - 1].focused);
   }
 
   var _counter = 0;
@@ -110,6 +212,15 @@ class SessionManager extends Notifier<List<TerminalSession>> {
           ),
       ],
       selected: index < 0 ? null : index,
+      // Panes named by their tab's position, which is what the saved tabs
+      // are keyed by.
+      layouts: [
+        for (final tree in ref.read(paneLayoutsProvider))
+          ?tree.relabel((id) {
+            final at = _sessions.indexWhere((s) => s.id == id);
+            return at < 0 ? null : '$at';
+          }),
+      ],
     );
   }
 
@@ -149,6 +260,8 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   }
 
   void select(String id) {
+    // The tab remembers which of its panes was last in use.
+    _layouts.focus(id);
     if (_activeId == id) return;
     _activeId = id;
     // The list itself has not changed, but which of them is showing has, and
@@ -170,6 +283,7 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   /// [ownsTmuxSession] false borrows it: closing the tab leaves it running.
   /// [connection], when given, is an already-open connection to [host] the
   /// tab takes over, so no second handshake (or password prompt) is needed.
+  /// [split] opens it as a pane of an existing tab rather than a new tab.
   Future<TerminalSession> connect(
     SshHost host, {
     required HostKeyTrustDecision onUnknownHostKey,
@@ -180,6 +294,7 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     bool ownsTmuxSession = true,
     SshConnection? connection,
     bool activate = true,
+    PaneSplitRequest? split,
   }) async {
     final transport =
         connection ??
@@ -227,7 +342,9 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     );
 
     if (activate || _sessions.isEmpty) _activeId = session.id;
-    _sessions.add(session);
+    // [split] opens the session as a pane beside an existing one instead of
+    // as a tab of its own.
+    _insert(session, split);
     _watchTriggers();
     _publish();
     await ref
@@ -236,6 +353,15 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     // Started after the tab exists, so the UI can show "connecting" and the
     // host key prompt has a screen to appear over.
     await session.start();
+    // Which OS the host runs, for its tile — once per run, over this
+    // session's connection, never a handshake of its own.
+    if (transport.isConnected) {
+      unawaited(
+        ref
+            .read(hostOsProvider.notifier)
+            .detect(host.id, ConnectionExec(transport)),
+      );
+    }
     return session;
   }
 
@@ -365,16 +491,22 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   /// Lives here rather than in the shortcut handler because the menu bar
   /// needs the same behaviour, and two copies of "wrap past the last tab" is
   /// two chances to disagree about what Cmd-] does.
+  ///
+  /// A tab, not a session: the panes of a split tab are one stop, and
+  /// arriving at it lands on the pane that was last in use there.
   void cycle(int delta) {
-    if (_sessions.length < 2) return;
-    final current = _sessions.indexWhere((session) => session.id == activeId);
+    final all = tabs;
+    if (all.length < 2) return;
+    final active = activeId;
+    final current = all.indexWhere((tab) => tab.contains(active ?? ''));
     if (current < 0) return;
     // Wraps, the way every tabbed application does: past the last tab is the
     // first one, not a dead end.
-    final next = (current + delta + _sessions.length) % _sessions.length;
-    select(_sessions[next].id);
+    final next = (current + delta + all.length) % all.length;
+    select(all[next].focused);
   }
 
+  /// Closes one session — one pane of a split tab, or a whole plain tab.
   void close(String id) {
     final index = _sessions.indexWhere((s) => s.id == id);
     if (index < 0) return;
@@ -383,14 +515,24 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     // tmux session kept for it on the server goes too.
     _sessions.removeAt(index).end();
     _watchTriggers();
+    // Its sibling takes the space, and the focus if it had it.
+    final successor = _layouts.remove(id);
 
     // Focus the neighbour, the way every tabbed interface does: closing the
     // tab you are looking at should leave you next to where you were, not on
-    // whichever tab happens to be last.
+    // whichever tab happens to be last. A pane of a split hands focus to the
+    // pane beside it instead, which is still in the same tab.
     if (_activeId == id) {
-      _activeId = _sessions.isEmpty
-          ? null
-          : _sessions[(index - 1).clamp(0, _sessions.length - 1)].id;
+      if (successor != null) {
+        _activeId = successor;
+      } else if (_sessions.isEmpty) {
+        _activeId = null;
+      } else {
+        final neighbour = _sessions[(index - 1).clamp(0, _sessions.length - 1)];
+        _activeId = tabs
+            .firstWhere((tab) => tab.contains(neighbour.id))
+            .focused;
+      }
     }
 
     _publish();

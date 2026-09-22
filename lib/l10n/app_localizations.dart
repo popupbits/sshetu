@@ -796,6 +796,12 @@ abstract class AppLocalizations {
   /// **'Close tab'**
   String get terminalCloseTab;
 
+  /// No description provided for @terminalMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get terminalMoreActions;
+
   /// No description provided for @terminalPaste.
   ///
   /// In en, this message translates to:
@@ -1053,6 +1059,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Paste key'**
   String get keysPaste;
+
+  /// No description provided for @paletteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Command palette'**
+  String get paletteTitle;
+
+  /// No description provided for @paletteSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search servers, tabs, snippets and actions'**
+  String get paletteSearchHint;
+
+  /// No description provided for @paletteOpenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Search everything'**
+  String get paletteOpenTooltip;
+
+  /// No description provided for @menuCommandPalette.
+  ///
+  /// In en, this message translates to:
+  /// **'Command Palette…'**
+  String get menuCommandPalette;
+
+  /// Shown in the command palette when the typed query matches no item
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{query}”'**
+  String paletteNoResults(String query);
+
+  /// No description provided for @paletteNoResultsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try fewer letters, or part of a hostname.'**
+  String get paletteNoResultsBody;
+
+  /// No description provided for @paletteEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to search yet'**
+  String get paletteEmptyTitle;
+
+  /// No description provided for @paletteEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a server and it shows up here, with its tabs, tunnels and snippets.'**
+  String get paletteEmptyBody;
+
+  /// No description provided for @paletteRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get paletteRecent;
+
+  /// No description provided for @paletteKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'↑↓ to move · Enter to run · Tab for other actions · Esc to close'**
+  String get paletteKeyHint;
+
+  /// No description provided for @paletteCategoryHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get paletteCategoryHost;
+
+  /// No description provided for @paletteCategorySession.
+  ///
+  /// In en, this message translates to:
+  /// **'Tab'**
+  String get paletteCategorySession;
+
+  /// No description provided for @paletteCategorySnippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Snippet'**
+  String get paletteCategorySnippet;
+
+  /// No description provided for @paletteCategoryTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnel'**
+  String get paletteCategoryTunnel;
+
+  /// No description provided for @paletteCategorySetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get paletteCategorySetting;
+
+  /// No description provided for @paletteCategoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get paletteCategoryAction;
+
+  /// No description provided for @paletteSwitchTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to'**
+  String get paletteSwitchTo;
+
+  /// No description provided for @paletteOpenFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Open files'**
+  String get paletteOpenFiles;
+
+  /// No description provided for @paletteTunnelStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tunnel'**
+  String get paletteTunnelStart;
+
+  /// No description provided for @paletteTunnelStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop tunnel'**
+  String get paletteTunnelStop;
+
+  /// No description provided for @paletteToggleTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch between light and dark theme'**
+  String get paletteToggleTheme;
+
+  /// A command palette item that navigates to one of the app's main sections
+  ///
+  /// In en, this message translates to:
+  /// **'Go to {destination}'**
+  String paletteGoTo(String destination);
+
+  /// A command palette item that opens Settings scrolled to one section
+  ///
+  /// In en, this message translates to:
+  /// **'Settings › {section}'**
+  String paletteSettingsSection(String section);
 
   /// No description provided for @keysPasteTitle.
   ///
@@ -1545,6 +1689,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fingerprint copied'**
   String get knownHostsCopied;
+
+  /// No description provided for @knownHostsImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from known_hosts'**
+  String get knownHostsImport;
+
+  /// No description provided for @knownHostsImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import trusted host keys'**
+  String get knownHostsImportTitle;
+
+  /// No description provided for @knownHostsImportFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {path}'**
+  String knownHostsImportFrom(String path);
+
+  /// No description provided for @knownHostsImportNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new key to trust} other{{count} new keys to trust}}'**
+  String knownHostsImportNew(int count);
+
+  /// No description provided for @knownHostsImportNewHashed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 of them has a hashed name. It is stored as it is and recognised when you connect to that host, but it cannot be listed by name.} other{{count} of them have hashed names. They are stored as they are and recognised when you connect to those hosts, but cannot be listed by name.}}'**
+  String knownHostsImportNewHashed(int count);
+
+  /// No description provided for @knownHostsImportNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new to import'**
+  String get knownHostsImportNothing;
+
+  /// No description provided for @knownHostsImportAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 already trusted} other{{count} already trusted}}'**
+  String knownHostsImportAlready(int count);
+
+  /// No description provided for @knownHostsImportConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 host conflicts with a key you already trust} other{{count} hosts conflict with keys you already trust}}'**
+  String knownHostsImportConflicts(int count);
+
+  /// No description provided for @knownHostsImportConflictsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These are left unchanged. If a server really was rebuilt, forget its old key here first, then import again.'**
+  String get knownHostsImportConflictsBody;
+
+  /// No description provided for @knownHostsImportTrusted.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted: {key}'**
+  String knownHostsImportTrusted(String key);
+
+  /// No description provided for @knownHostsImportInFile.
+  ///
+  /// In en, this message translates to:
+  /// **'In the file: {key}'**
+  String knownHostsImportInFile(String key);
+
+  /// No description provided for @knownHostsImportSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Not imported'**
+  String get knownHostsImportSkipped;
+
+  /// No description provided for @knownHostsImportRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 @revoked line — this app pins keys it trusts and keeps no list of keys to refuse} other{{count} @revoked lines — this app pins keys it trusts and keeps no list of keys to refuse}}'**
+  String knownHostsImportRevoked(int count);
+
+  /// No description provided for @knownHostsImportCertAuthority.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 @cert-authority line — host certificates are not supported} other{{count} @cert-authority lines — host certificates are not supported}}'**
+  String knownHostsImportCertAuthority(int count);
+
+  /// No description provided for @knownHostsImportWildcards.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 wildcard or negated name — a trusted key is for one exact host} other{{count} wildcard or negated names — a trusted key is for one exact host}}'**
+  String knownHostsImportWildcards(int count);
+
+  /// No description provided for @knownHostsImportUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 key of a type this app cannot verify} other{{count} keys of a type this app cannot verify}}'**
+  String knownHostsImportUnsupported(int count);
+
+  /// No description provided for @knownHostsImportMalformed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unreadable line ({lines})} other{{count} unreadable lines ({lines})}}'**
+  String knownHostsImportMalformed(int count, String lines);
+
+  /// No description provided for @knownHostsImportAlternates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 extra key for a host — one key is kept per host, the type a connection uses first} other{{count} extra keys for hosts — one key is kept per host, the type a connection uses first}}'**
+  String knownHostsImportAlternates(int count);
+
+  /// No description provided for @knownHostsImportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Import} =1{Import 1 key} other{Import {count} keys}}'**
+  String knownHostsImportAction(int count);
+
+  /// No description provided for @knownHostsImported.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Trusted 1 host key} other{Trusted {count} host keys}}'**
+  String knownHostsImported(int count);
+
+  /// No description provided for @knownHostsImportReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read that file'**
+  String get knownHostsImportReadFailed;
+
+  /// No description provided for @knownHostsImportTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is too large to be a known_hosts file'**
+  String get knownHostsImportTooLarge;
+
+  /// No description provided for @knownHostsHashedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hashed host name (imported)'**
+  String get knownHostsHashedTitle;
 
   /// No description provided for @settingsSecurity.
   ///
@@ -2386,6 +2668,186 @@ abstract class AppLocalizations {
   /// **'Skip existing'**
   String get filesConflictSkip;
 
+  /// No description provided for @filesEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get filesEdit;
+
+  /// No description provided for @filesDropUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to upload to {folder}'**
+  String filesDropUpload(String folder);
+
+  /// No description provided for @filesDropDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to download to {folder}'**
+  String filesDropDownload(String folder);
+
+  /// No description provided for @filesDragCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String filesDragCount(int count);
+
+  /// No description provided for @editorRevert.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert to saved'**
+  String get editorRevert;
+
+  /// Tooltip on the editor's save button; keys is the platform's save chord, e.g. Ctrl+S.
+  ///
+  /// In en, this message translates to:
+  /// **'Save ({keys})'**
+  String editorSaveTooltip(String keys);
+
+  /// No description provided for @editorUnsaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get editorUnsaved;
+
+  /// No description provided for @editorSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {name}'**
+  String editorSaved(String name);
+
+  /// No description provided for @editorReloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Reloaded {name} from the server'**
+  String editorReloaded(String name);
+
+  /// No description provided for @editorUtf8.
+  ///
+  /// In en, this message translates to:
+  /// **'UTF-8'**
+  String get editorUtf8;
+
+  /// No description provided for @editorUtf8Bom.
+  ///
+  /// In en, this message translates to:
+  /// **'UTF-8 with BOM'**
+  String get editorUtf8Bom;
+
+  /// No description provided for @editorLf.
+  ///
+  /// In en, this message translates to:
+  /// **'LF'**
+  String get editorLf;
+
+  /// No description provided for @editorCrlf.
+  ///
+  /// In en, this message translates to:
+  /// **'CRLF'**
+  String get editorCrlf;
+
+  /// No description provided for @editorMixedEndings.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed line endings, kept as they are'**
+  String get editorMixedEndings;
+
+  /// No description provided for @editorTooLargeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Too large to edit here'**
+  String get editorTooLargeTitle;
+
+  /// No description provided for @editorTooLargeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is larger than {limit}. Download it and open it in an editor on this device instead.'**
+  String editorTooLargeBody(String name, String limit);
+
+  /// No description provided for @editorBinaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a text file'**
+  String get editorBinaryTitle;
+
+  /// No description provided for @editorBinaryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} contains binary data, so it cannot be edited as text.'**
+  String editorBinaryBody(String name);
+
+  /// No description provided for @editorNotUtf8Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Not UTF-8 text'**
+  String get editorNotUtf8Title;
+
+  /// No description provided for @editorNotUtf8Body.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is not valid UTF-8. Saving it from here could change characters you never touched, so it is not opened.'**
+  String editorNotUtf8Body(String name);
+
+  /// No description provided for @editorNotAFileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a file'**
+  String get editorNotAFileTitle;
+
+  /// No description provided for @editorNotAFileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is a folder.'**
+  String editorNotAFileBody(String name);
+
+  /// No description provided for @editorLoadFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the file'**
+  String get editorLoadFailedTitle;
+
+  /// No description provided for @editorConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed on the server'**
+  String get editorConflictTitle;
+
+  /// No description provided for @editorConflictBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} was changed on the server after you opened it. Overwrite that change with yours, reload the server\'s version and lose your edits, or cancel and decide later.'**
+  String editorConflictBody(String name);
+
+  /// No description provided for @editorConflictOverwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite'**
+  String get editorConflictOverwrite;
+
+  /// No description provided for @editorConflictReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get editorConflictReload;
+
+  /// No description provided for @editorDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard unsaved changes?'**
+  String get editorDiscardTitle;
+
+  /// No description provided for @editorDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your edits to {name} have not been saved.'**
+  String editorDiscardBody(String name);
+
+  /// No description provided for @editorDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get editorDiscard;
+
   /// A folder transfer that is still listing its contents and checking the destination.
   ///
   /// In en, this message translates to:
@@ -2691,6 +3153,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Previous Session'**
   String get menuPreviousSession;
+
+  /// No description provided for @menuSplitRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Split Right'**
+  String get menuSplitRight;
+
+  /// No description provided for @menuSplitDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Split Down'**
+  String get menuSplitDown;
+
+  /// No description provided for @menuClosePane.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Pane'**
+  String get menuClosePane;
+
+  /// No description provided for @menuNextPane.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Pane'**
+  String get menuNextPane;
+
+  /// No description provided for @menuPreviousPane.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Pane'**
+  String get menuPreviousPane;
+
+  /// No description provided for @menuMaximizePane.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximize Pane'**
+  String get menuMaximizePane;
+
+  /// No description provided for @menuTypeInAllPanes.
+  ///
+  /// In en, this message translates to:
+  /// **'Type in All Panes'**
+  String get menuTypeInAllPanes;
+
+  /// No description provided for @menuStopTypingInAllPanes.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop Typing in All Panes'**
+  String get menuStopTypingInAllPanes;
+
+  /// No description provided for @paneSplitRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Split right'**
+  String get paneSplitRight;
+
+  /// No description provided for @paneSplitDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Split down'**
+  String get paneSplitDown;
+
+  /// No description provided for @paneClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close pane'**
+  String get paneClose;
+
+  /// No description provided for @paneMaximize.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximize pane'**
+  String get paneMaximize;
+
+  /// No description provided for @paneRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore pane'**
+  String get paneRestore;
+
+  /// No description provided for @paneTypeInAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Type in all panes'**
+  String get paneTypeInAll;
+
+  /// No description provided for @paneStopTypingInAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop typing in all panes'**
+  String get paneStopTypingInAll;
+
+  /// Banner on a pane of a split tab with 'type in all panes' on: what is typed here also goes to this many other connected panes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Typing in all panes · 1 other pane receives this} other{Typing in all panes · {count} other panes receive this}}'**
+  String paneBroadcastBanner(int count);
+
+  /// No description provided for @paneBroadcastReceiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Receives what is typed in any pane'**
+  String get paneBroadcastReceiving;
+
+  /// No description provided for @paneBroadcastExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out of typing in all panes'**
+  String get paneBroadcastExcluded;
+
+  /// No description provided for @paneBroadcastExclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave this pane out'**
+  String get paneBroadcastExclude;
+
+  /// No description provided for @paneBroadcastInclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Include this pane'**
+  String get paneBroadcastInclude;
+
+  /// No description provided for @paneBroadcastStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get paneBroadcastStop;
+
+  /// No description provided for @paneSwitcherLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Panes in this tab'**
+  String get paneSwitcherLabel;
+
+  /// Badge on a workspace tab that holds a split layout
+  ///
+  /// In en, this message translates to:
+  /// **'{count} panes'**
+  String paneCount(int count);
 
   /// No description provided for @menuHosts.
   ///
@@ -4093,6 +4693,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sessions on this server…'**
   String get sessionRunningSessions;
+
+  /// No description provided for @serverInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Server info'**
+  String get serverInfoTitle;
+
+  /// No description provided for @serverInfoShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Server info'**
+  String get serverInfoShow;
+
+  /// No description provided for @serverInfoHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide server info'**
+  String get serverInfoHide;
+
+  /// No description provided for @serverInfoClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close server info'**
+  String get serverInfoClose;
+
+  /// No description provided for @serverInfoOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get serverInfoOverview;
+
+  /// No description provided for @serverInfoProcesses.
+  ///
+  /// In en, this message translates to:
+  /// **'Processes'**
+  String get serverInfoProcesses;
+
+  /// No description provided for @serverInfoHostname.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname'**
+  String get serverInfoHostname;
+
+  /// No description provided for @serverInfoSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get serverInfoSystem;
+
+  /// No description provided for @serverInfoKernel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kernel'**
+  String get serverInfoKernel;
+
+  /// No description provided for @serverInfoUptime.
+  ///
+  /// In en, this message translates to:
+  /// **'Uptime'**
+  String get serverInfoUptime;
+
+  /// No description provided for @serverInfoLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get serverInfoLoad;
+
+  /// No description provided for @serverInfoCpu.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU'**
+  String get serverInfoCpu;
+
+  /// No description provided for @serverInfoCpuCores.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 core} other{{count} cores}}'**
+  String serverInfoCpuCores(int count);
+
+  /// No description provided for @serverInfoCpuHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU usage over the last {count} readings'**
+  String serverInfoCpuHistory(int count);
+
+  /// No description provided for @serverInfoMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory'**
+  String get serverInfoMemory;
+
+  /// No description provided for @serverInfoSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get serverInfoSwap;
+
+  /// No description provided for @serverInfoNoSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'No swap'**
+  String get serverInfoNoSwap;
+
+  /// No description provided for @serverInfoUsedOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} of {total}'**
+  String serverInfoUsedOfTotal(String used, String total);
+
+  /// No description provided for @serverInfoFilesystems.
+  ///
+  /// In en, this message translates to:
+  /// **'Filesystems'**
+  String get serverInfoFilesystems;
+
+  /// No description provided for @serverInfoNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get serverInfoNetwork;
+
+  /// No description provided for @serverInfoNetDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Down'**
+  String get serverInfoNetDown;
+
+  /// No description provided for @serverInfoNetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up'**
+  String get serverInfoNetUp;
+
+  /// No description provided for @serverInfoProcessCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 process} other{{count} processes}}'**
+  String serverInfoProcessCount(int count);
+
+  /// No description provided for @serverInfoLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited information on this system'**
+  String get serverInfoLimited;
+
+  /// No description provided for @serverInfoLimitedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This server does not report CPU, memory or load in a way SSHetu can read, so only the basics are shown.'**
+  String get serverInfoLimitedBody;
+
+  /// No description provided for @serverInfoOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get serverInfoOffline;
+
+  /// No description provided for @serverInfoOfflineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Figures resume when the session reconnects.'**
+  String get serverInfoOfflineBody;
+
+  /// No description provided for @serverInfoError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read this server\'s figures: {error}'**
+  String serverInfoError(String error);
+
+  /// No description provided for @serverInfoNoSession.
+  ///
+  /// In en, this message translates to:
+  /// **'No session selected'**
+  String get serverInfoNoSession;
+
+  /// No description provided for @serverInfoNoSessionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a terminal to see details of the server behind it.'**
+  String get serverInfoNoSessionBody;
+
+  /// No description provided for @serverInfoWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring…'**
+  String get serverInfoWaiting;
+
+  /// No description provided for @processesFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by name, user or PID'**
+  String get processesFilter;
+
+  /// No description provided for @processesSortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get processesSortBy;
+
+  /// No description provided for @processesSortCpu.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU'**
+  String get processesSortCpu;
+
+  /// No description provided for @processesSortMem.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory'**
+  String get processesSortMem;
+
+  /// No description provided for @processesSortPid.
+  ///
+  /// In en, this message translates to:
+  /// **'PID'**
+  String get processesSortPid;
+
+  /// No description provided for @processesRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get processesRefresh;
+
+  /// No description provided for @processesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No processes match'**
+  String get processesEmpty;
+
+  /// No description provided for @processesNoUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'This server\'s ps does not report CPU or memory use.'**
+  String get processesNoUsage;
+
+  /// No description provided for @processesKill.
+  ///
+  /// In en, this message translates to:
+  /// **'Kill (SIGTERM)'**
+  String get processesKill;
+
+  /// No description provided for @processesForceKill.
+  ///
+  /// In en, this message translates to:
+  /// **'Force kill (SIGKILL)'**
+  String get processesForceKill;
+
+  /// No description provided for @processesActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions for {name}'**
+  String processesActions(String name);
+
+  /// No description provided for @processesKillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop {name}?'**
+  String processesKillTitle(String name);
+
+  /// No description provided for @processesKillBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends SIGTERM to {name} (PID {pid}). It is asked to exit and can clean up first.'**
+  String processesKillBody(String name, int pid);
+
+  /// No description provided for @processesForceKillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Force kill {name}?'**
+  String processesForceKillTitle(String name);
+
+  /// No description provided for @processesForceKillBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends SIGKILL to {name} (PID {pid}). It stops immediately, without a chance to save anything.'**
+  String processesForceKillBody(String name, int pid);
+
+  /// No description provided for @processesKillConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Kill'**
+  String get processesKillConfirm;
+
+  /// No description provided for @processesForceKillConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Force kill'**
+  String get processesForceKillConfirm;
+
+  /// No description provided for @processesSignalSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent {signal} to {name} (PID {pid})'**
+  String processesSignalSent(String signal, String name, int pid);
+
+  /// No description provided for @processesSignalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not signal {name} (PID {pid}): {error}'**
+  String processesSignalFailed(String name, int pid, String error);
+
+  /// No description provided for @processesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not list processes: {error}'**
+  String processesLoadFailed(String error);
+
+  /// No description provided for @osFamilyName.
+  ///
+  /// In en, this message translates to:
+  /// **'{family, select, ubuntu{Ubuntu} debian{Debian} fedora{Fedora} rhel{Red Hat family} arch{Arch Linux} alpine{Alpine Linux} opensuse{openSUSE} freebsd{FreeBSD} macos{macOS} windows{Windows} linux{Linux} other{Unknown system}}'**
+  String osFamilyName(String family);
 
   /// No description provided for @runningSessionsTitle.
   ///

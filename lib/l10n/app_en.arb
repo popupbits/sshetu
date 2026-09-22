@@ -160,6 +160,7 @@
   "terminalDisconnect": "Disconnect",
   "terminalReconnect": "Reconnect",
   "terminalCloseTab": "Close tab",
+  "terminalMoreActions": "More",
   "terminalPaste": "Paste",
   "terminalCopy": "Copy",
   "sessionsEmptyTitle": "No open sessions",
@@ -203,6 +204,53 @@
   "keysGenerateFailed": "The key could not be generated.",
   "keysShare": "Share public key",
   "keysPaste": "Paste key",
+  "paletteTitle": "Command palette",
+  "paletteSearchHint": "Search servers, tabs, snippets and actions",
+  "paletteOpenTooltip": "Search everything",
+  "menuCommandPalette": "Command Palette…",
+  "paletteNoResults": "Nothing matches “{query}”",
+  "@paletteNoResults": {
+    "description": "Shown in the command palette when the typed query matches no item",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "paletteNoResultsBody": "Try fewer letters, or part of a hostname.",
+  "paletteEmptyTitle": "Nothing to search yet",
+  "paletteEmptyBody": "Add a server and it shows up here, with its tabs, tunnels and snippets.",
+  "paletteRecent": "Recent",
+  "paletteKeyHint": "↑↓ to move · Enter to run · Tab for other actions · Esc to close",
+  "paletteCategoryHost": "Server",
+  "paletteCategorySession": "Tab",
+  "paletteCategorySnippet": "Snippet",
+  "paletteCategoryTunnel": "Tunnel",
+  "paletteCategorySetting": "Settings",
+  "paletteCategoryAction": "Action",
+  "paletteSwitchTo": "Switch to",
+  "paletteOpenFiles": "Open files",
+  "paletteTunnelStart": "Start tunnel",
+  "paletteTunnelStop": "Stop tunnel",
+  "paletteToggleTheme": "Switch between light and dark theme",
+  "paletteGoTo": "Go to {destination}",
+  "@paletteGoTo": {
+    "description": "A command palette item that navigates to one of the app's main sections",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "paletteSettingsSection": "Settings › {section}",
+  "@paletteSettingsSection": {
+    "description": "A command palette item that opens Settings scrolled to one section",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
   "keysPasteTitle": "Paste a private key",
   "keysPasteBody": "An OpenSSH or PEM private key. It is stored in this device's secure storage and never logged.",
   "keysPasteField": "Private key",
@@ -360,6 +408,44 @@
   "knownHostsForgetBody": "The next connection to this address will ask you to trust its key again. Do this only if you know the server was genuinely rebuilt — a key that changed on its own is how an interception looks.",
   "knownHostsTrustedOn": "Trusted {date}",
   "knownHostsCopied": "Fingerprint copied",
+  "knownHostsImport": "Import from known_hosts",
+  "knownHostsImportTitle": "Import trusted host keys",
+  "knownHostsImportFrom": "From {path}",
+  "@knownHostsImportFrom": {"placeholders": {"path": {"type": "String"}}},
+  "knownHostsImportNew": "{count, plural, =1{1 new key to trust} other{{count} new keys to trust}}",
+  "@knownHostsImportNew": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportNewHashed": "{count, plural, =1{1 of them has a hashed name. It is stored as it is and recognised when you connect to that host, but it cannot be listed by name.} other{{count} of them have hashed names. They are stored as they are and recognised when you connect to those hosts, but cannot be listed by name.}}",
+  "@knownHostsImportNewHashed": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportNothing": "Nothing new to import",
+  "knownHostsImportAlready": "{count, plural, =1{1 already trusted} other{{count} already trusted}}",
+  "@knownHostsImportAlready": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportConflicts": "{count, plural, =1{1 host conflicts with a key you already trust} other{{count} hosts conflict with keys you already trust}}",
+  "@knownHostsImportConflicts": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportConflictsBody": "These are left unchanged. If a server really was rebuilt, forget its old key here first, then import again.",
+  "knownHostsImportTrusted": "Trusted: {key}",
+  "@knownHostsImportTrusted": {"placeholders": {"key": {"type": "String"}}},
+  "knownHostsImportInFile": "In the file: {key}",
+  "@knownHostsImportInFile": {"placeholders": {"key": {"type": "String"}}},
+  "knownHostsImportSkipped": "Not imported",
+  "knownHostsImportRevoked": "{count, plural, =1{1 @revoked line — this app pins keys it trusts and keeps no list of keys to refuse} other{{count} @revoked lines — this app pins keys it trusts and keeps no list of keys to refuse}}",
+  "@knownHostsImportRevoked": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportCertAuthority": "{count, plural, =1{1 @cert-authority line — host certificates are not supported} other{{count} @cert-authority lines — host certificates are not supported}}",
+  "@knownHostsImportCertAuthority": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportWildcards": "{count, plural, =1{1 wildcard or negated name — a trusted key is for one exact host} other{{count} wildcard or negated names — a trusted key is for one exact host}}",
+  "@knownHostsImportWildcards": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportUnsupported": "{count, plural, =1{1 key of a type this app cannot verify} other{{count} keys of a type this app cannot verify}}",
+  "@knownHostsImportUnsupported": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportMalformed": "{count, plural, =1{1 unreadable line ({lines})} other{{count} unreadable lines ({lines})}}",
+  "@knownHostsImportMalformed": {"placeholders": {"count": {"type": "int"}, "lines": {"type": "String"}}},
+  "knownHostsImportAlternates": "{count, plural, =1{1 extra key for a host — one key is kept per host, the type a connection uses first} other{{count} extra keys for hosts — one key is kept per host, the type a connection uses first}}",
+  "@knownHostsImportAlternates": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportAction": "{count, plural, =0{Import} =1{Import 1 key} other{Import {count} keys}}",
+  "@knownHostsImportAction": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImported": "{count, plural, =1{Trusted 1 host key} other{Trusted {count} host keys}}",
+  "@knownHostsImported": {"placeholders": {"count": {"type": "int"}}},
+  "knownHostsImportReadFailed": "Could not read that file",
+  "knownHostsImportTooLarge": "That file is too large to be a known_hosts file",
+  "knownHostsHashedTitle": "Hashed host name (imported)",
   "@knownHostsTrustedOn": {
     "placeholders": {
       "date": {
@@ -646,6 +732,48 @@
   },
   "filesConflictOverwrite": "Overwrite",
   "filesConflictSkip": "Skip existing",
+  "filesEdit": "Edit",
+  "filesDropUpload": "Drop to upload to {folder}",
+  "@filesDropUpload": {"placeholders": {"folder": {"type": "String"}}},
+  "filesDropDownload": "Drop to download to {folder}",
+  "@filesDropDownload": {"placeholders": {"folder": {"type": "String"}}},
+  "filesDragCount": "{count, plural, =1{1 item} other{{count} items}}",
+  "@filesDragCount": {"placeholders": {"count": {"type": "int"}}},
+  "editorRevert": "Revert to saved",
+  "editorSaveTooltip": "Save ({keys})",
+  "@editorSaveTooltip": {"description": "Tooltip on the editor's save button; keys is the platform's save chord, e.g. Ctrl+S.", "placeholders": {"keys": {"type": "String"}}},
+  "editorUnsaved": "Unsaved changes",
+  "editorSaved": "Saved {name}",
+  "@editorSaved": {"placeholders": {"name": {"type": "String"}}},
+  "editorReloaded": "Reloaded {name} from the server",
+  "@editorReloaded": {"placeholders": {"name": {"type": "String"}}},
+  "editorUtf8": "UTF-8",
+  "editorUtf8Bom": "UTF-8 with BOM",
+  "editorLf": "LF",
+  "editorCrlf": "CRLF",
+  "editorMixedEndings": "Mixed line endings, kept as they are",
+  "editorTooLargeTitle": "Too large to edit here",
+  "editorTooLargeBody": "{name} is larger than {limit}. Download it and open it in an editor on this device instead.",
+  "@editorTooLargeBody": {"placeholders": {"name": {"type": "String"}, "limit": {"type": "String"}}},
+  "editorBinaryTitle": "Not a text file",
+  "editorBinaryBody": "{name} contains binary data, so it cannot be edited as text.",
+  "@editorBinaryBody": {"placeholders": {"name": {"type": "String"}}},
+  "editorNotUtf8Title": "Not UTF-8 text",
+  "editorNotUtf8Body": "{name} is not valid UTF-8. Saving it from here could change characters you never touched, so it is not opened.",
+  "@editorNotUtf8Body": {"placeholders": {"name": {"type": "String"}}},
+  "editorNotAFileTitle": "Not a file",
+  "editorNotAFileBody": "{name} is a folder.",
+  "@editorNotAFileBody": {"placeholders": {"name": {"type": "String"}}},
+  "editorLoadFailedTitle": "Could not open the file",
+  "editorConflictTitle": "Changed on the server",
+  "editorConflictBody": "{name} was changed on the server after you opened it. Overwrite that change with yours, reload the server's version and lose your edits, or cancel and decide later.",
+  "@editorConflictBody": {"placeholders": {"name": {"type": "String"}}},
+  "editorConflictOverwrite": "Overwrite",
+  "editorConflictReload": "Reload",
+  "editorDiscardTitle": "Discard unsaved changes?",
+  "editorDiscardBody": "Your edits to {name} have not been saved.",
+  "@editorDiscardBody": {"placeholders": {"name": {"type": "String"}}},
+  "editorDiscard": "Discard",
   "filesFolderPreparing": "Preparing…",
   "@filesFolderPreparing": {
     "description": "A folder transfer that is still listing its contents and checking the destination."
@@ -799,6 +927,47 @@
   "menuCloseSession": "Close Session",
   "menuNextSession": "Next Session",
   "menuPreviousSession": "Previous Session",
+  "menuSplitRight": "Split Right",
+  "menuSplitDown": "Split Down",
+  "menuClosePane": "Close Pane",
+  "menuNextPane": "Next Pane",
+  "menuPreviousPane": "Previous Pane",
+  "menuMaximizePane": "Maximize Pane",
+  "menuTypeInAllPanes": "Type in All Panes",
+  "menuStopTypingInAllPanes": "Stop Typing in All Panes",
+  "paneSplitRight": "Split right",
+  "paneSplitDown": "Split down",
+  "paneClose": "Close pane",
+  "paneMaximize": "Maximize pane",
+  "paneRestore": "Restore pane",
+  "paneTypeInAll": "Type in all panes",
+  "paneStopTypingInAll": "Stop typing in all panes",
+  "paneBroadcastBanner": "{count, plural, =1{Typing in all panes · 1 other pane receives this} other{Typing in all panes · {count} other panes receive this}}",
+  "@paneBroadcastBanner": {
+    "description": "Banner on a pane of a split tab with 'type in all panes' on: what is typed here also goes to this many other connected panes",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "paneBroadcastReceiving": "Receives what is typed in any pane",
+  "paneBroadcastExcluded": "Left out of typing in all panes",
+  "paneBroadcastExclude": "Leave this pane out",
+  "paneBroadcastInclude": "Include this pane",
+  "paneBroadcastStop": "Stop",
+  "paneSwitcherLabel": "Panes in this tab",
+  "paneCount": "{count} panes",
+  "@paneCount": {
+    "description": "Badge on a workspace tab that holds a split layout",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
   "menuHosts": "Servers",
   "menuKeys": "Keys",
   "menuTunnels": "Tunnels",
@@ -1293,6 +1462,181 @@
   "terminalNoticeTmuxSessionGone": "[the session kept on the server has ended, so this is a new shell]",
   "hostsRunningSessions": "Running sessions…",
   "sessionRunningSessions": "Sessions on this server…",
+  "serverInfoTitle": "Server info",
+  "serverInfoShow": "Server info",
+  "serverInfoHide": "Hide server info",
+  "serverInfoClose": "Close server info",
+  "serverInfoOverview": "Overview",
+  "serverInfoProcesses": "Processes",
+  "serverInfoHostname": "Hostname",
+  "serverInfoSystem": "System",
+  "serverInfoKernel": "Kernel",
+  "serverInfoUptime": "Uptime",
+  "serverInfoLoad": "Load",
+  "serverInfoCpu": "CPU",
+  "serverInfoCpuCores": "{count, plural, =1{1 core} other{{count} cores}}",
+  "@serverInfoCpuCores": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "serverInfoCpuHistory": "CPU usage over the last {count} readings",
+  "@serverInfoCpuHistory": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "serverInfoMemory": "Memory",
+  "serverInfoSwap": "Swap",
+  "serverInfoNoSwap": "No swap",
+  "serverInfoUsedOfTotal": "{used} of {total}",
+  "@serverInfoUsedOfTotal": {
+    "placeholders": {
+      "used": {
+        "type": "String",
+        "example": "1.2 GB"
+      },
+      "total": {
+        "type": "String",
+        "example": "4.0 GB"
+      }
+    }
+  },
+  "serverInfoFilesystems": "Filesystems",
+  "serverInfoNetwork": "Network",
+  "serverInfoNetDown": "Down",
+  "serverInfoNetUp": "Up",
+  "serverInfoProcessCount": "{count, plural, =1{1 process} other{{count} processes}}",
+  "@serverInfoProcessCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "serverInfoLimited": "Limited information on this system",
+  "serverInfoLimitedBody": "This server does not report CPU, memory or load in a way SSHetu can read, so only the basics are shown.",
+  "serverInfoOffline": "Not connected",
+  "serverInfoOfflineBody": "Figures resume when the session reconnects.",
+  "serverInfoError": "Could not read this server's figures: {error}",
+  "@serverInfoError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "serverInfoNoSession": "No session selected",
+  "serverInfoNoSessionBody": "Open a terminal to see details of the server behind it.",
+  "serverInfoWaiting": "Measuring…",
+  "processesFilter": "Filter by name, user or PID",
+  "processesSortBy": "Sort by",
+  "processesSortCpu": "CPU",
+  "processesSortMem": "Memory",
+  "processesSortPid": "PID",
+  "processesRefresh": "Refresh",
+  "processesEmpty": "No processes match",
+  "processesNoUsage": "This server's ps does not report CPU or memory use.",
+  "processesKill": "Kill (SIGTERM)",
+  "processesForceKill": "Force kill (SIGKILL)",
+  "processesActions": "Actions for {name}",
+  "@processesActions": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "processesKillTitle": "Stop {name}?",
+  "@processesKillTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "nginx"
+      }
+    }
+  },
+  "processesKillBody": "Sends SIGTERM to {name} (PID {pid}). It is asked to exit and can clean up first.",
+  "@processesKillBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pid": {
+        "type": "int"
+      }
+    }
+  },
+  "processesForceKillTitle": "Force kill {name}?",
+  "@processesForceKillTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "processesForceKillBody": "Sends SIGKILL to {name} (PID {pid}). It stops immediately, without a chance to save anything.",
+  "@processesForceKillBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pid": {
+        "type": "int"
+      }
+    }
+  },
+  "processesKillConfirm": "Kill",
+  "processesForceKillConfirm": "Force kill",
+  "processesSignalSent": "Sent {signal} to {name} (PID {pid})",
+  "@processesSignalSent": {
+    "placeholders": {
+      "signal": {
+        "type": "String",
+        "example": "SIGTERM"
+      },
+      "name": {
+        "type": "String"
+      },
+      "pid": {
+        "type": "int"
+      }
+    }
+  },
+  "processesSignalFailed": "Could not signal {name} (PID {pid}): {error}",
+  "@processesSignalFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pid": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "processesLoadFailed": "Could not list processes: {error}",
+  "@processesLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "osFamilyName": "{family, select, ubuntu{Ubuntu} debian{Debian} fedora{Fedora} rhel{Red Hat family} arch{Arch Linux} alpine{Alpine Linux} opensuse{openSUSE} freebsd{FreeBSD} macos{macOS} windows{Windows} linux{Linux} other{Unknown system}}",
+  "@osFamilyName": {
+    "placeholders": {
+      "family": {
+        "type": "String"
+      }
+    }
+  },
   "runningSessionsTitle": "Sessions on {host}",
   "@runningSessionsTitle": {
     "placeholders": {

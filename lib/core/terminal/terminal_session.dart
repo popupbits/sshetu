@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:xterm2/xterm.dart';
 
 import '../ssh/host_key.dart';
 import '../ssh/reconnect_loop.dart';
@@ -10,6 +9,7 @@ import '../ssh/reconnect_policy.dart';
 import '../ssh/ssh_connection.dart';
 import '../ssh/ssh_connection_state.dart';
 import '../ssh/ssh_target.dart';
+import 'input_tracking_terminal.dart';
 import 'output_coalescer.dart';
 import 'remote_shell.dart';
 import 'terminal_modifiers.dart';
@@ -120,7 +120,7 @@ class TerminalSession extends ChangeNotifier {
       onGaveUp: _gaveUp,
     );
 
-    terminal = Terminal(maxLines: scrollbackLines);
+    terminal = InputTrackingTerminal(maxLines: scrollbackLines);
 
     // Ctrl and Alt from the mobile modifier bar reach the terminal here, so
     // that a latched chord is translated by exactly the same chain as a
@@ -132,6 +132,8 @@ class TerminalSession extends ChangeNotifier {
       final shell = _shell;
       if (shell == null) return;
       shell.write(Uint8List.fromList(const Utf8Encoder().convert(data)));
+      // Only what was typed or pasted — never the terminal's own replies.
+      if (terminal.isUserInput) onInput?.call(data);
     };
 
     // The remote side has to be told the window changed, or full-screen
@@ -207,7 +209,12 @@ class TerminalSession extends ChangeNotifier {
 
   /// The terminal this session draws into. Owned here, so a tab that is
   /// scrolled off screen keeps its buffer.
-  late final Terminal terminal;
+  late final InputTrackingTerminal terminal;
+
+  /// Told everything the user typed or pasted into [terminal], after it was
+  /// sent to this session's own shell — and only while there is one. Split
+  /// panes' "type in all panes" listens here.
+  void Function(String data)? onInput;
 
   /// Ctrl and Alt latched by the mobile modifier bar, if any is on screen.
   ///

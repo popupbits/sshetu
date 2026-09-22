@@ -100,6 +100,41 @@ class SftpException implements Exception {
 /// server what the path actually is, instead, is.
 enum RemotePathKind { missing, file, directory }
 
+/// What [SftpService.stat] reports about one path: enough to notice that a
+/// file changed under an open editor, and to give a replacement file the
+/// same permissions and owner as the one it replaces.
+class RemoteFileStat {
+  const RemoteFileStat({
+    required this.isDirectory,
+    this.isSymlink = false,
+    this.size,
+    this.modified,
+    this.permissions,
+    this.userId,
+    this.groupId,
+  });
+
+  final bool isDirectory;
+
+  /// Only ever true for a stat that did not follow links.
+  final bool isSymlink;
+
+  final int? size;
+
+  /// Whole seconds — the resolution SFTP v3 carries.
+  final DateTime? modified;
+
+  /// The low permission bits (`mode & 0x1FF`), or null when not reported.
+  final int? permissions;
+  final int? userId;
+  final int? groupId;
+
+  @override
+  String toString() =>
+      'RemoteFileStat(size: $size, modified: $modified, '
+      'permissions: ${permissions?.toRadixString(8)})';
+}
+
 /// A cooperative cancellation flag threaded through one transfer.
 ///
 /// Not a wrapper around closing the SFTP file handle mid-flight: dartssh2
@@ -201,6 +236,48 @@ abstract interface class SftpService {
   /// [RemotePathKind] for why this is a dedicated call rather than inferred
   /// from a failed [list].
   Future<RemotePathKind> statPath(String path);
+
+  /// The attributes of [path]. Follows a symlink unless [followLink] is
+  /// false, in which case a link reports itself ([RemoteFileStat.isSymlink]).
+  Future<RemoteFileStat> stat(String path, {bool followLink = true});
+
+  /// Reads the whole file at [path] into memory — for the text editor, never
+  /// for a transfer. Refuses with [SftpException] once more than [maxBytes]
+  /// have arrived, so a file that grew since it was stat'ed, or a server
+  /// that lied about its size, cannot fill memory.
+  Future<Uint8List> readFile(String path, {required int maxBytes});
+
+  /// Writes [bytes] to [path], creating it or truncating what is there.
+  ///
+  /// With [exclusive], refuses if [path] already exists — what a temporary
+  /// file wants, so it never clobbers a stranger that happens to share its
+  /// name.
+  Future<void> writeFile(
+    String path,
+    Uint8List bytes, {
+    bool exclusive = false,
+  });
+
+  /// Whether [atomicRename] can replace an existing file in one step — true
+  /// when the server offers OpenSSH's `posix-rename@openssh.com`. Plain SFTP
+  /// v3 `rename` refuses when the target exists, so without the extension
+  /// there is no atomic replace to be had.
+  Future<bool> supportsAtomicRename();
+
+  /// Renames [fromPath] over [toPath], replacing it. Only meaningful when
+  /// [supportsAtomicRename] said yes.
+  Future<void> atomicRename(String fromPath, String toPath);
+
+  /// Removes the file at [path].
+  Future<void> removeFile(String path);
+
+  /// Changes [path]'s owner and group. Usually refused unless the account is
+  /// privileged — the caller treats a refusal as an answer, not an accident.
+  Future<void> setOwner(
+    String path, {
+    required int userId,
+    required int groupId,
+  });
 
   /// Releases the SFTP channel. Does **not** touch the underlying
   /// [SshConnection] — a terminal session using the same connection must keep
@@ -457,6 +534,124 @@ class SshSftpService implements SftpService {
         return RemotePathKind.missing;
       }
       throw wrapped;
+    }
+  }
+
+  @override
+  Future<RemoteFileStat> stat(String path, {bool followLink = true}) async {
+    try {
+      final sftp = await _client();
+      final attrs = await sftp.stat(path, followLink: followLink);
+      return RemoteFileStat(
+        isDirectory: attrs.isDirectory,
+        isSymlink: attrs.isSymbolicLink,
+        size: attrs.size,
+        modified: _toDateTime(attrs.modifyTime),
+        permissions: attrs.mode == null ? null : attrs.mode!.value & 0x1FF,
+        userId: attrs.userID,
+        groupId: attrs.groupID,
+      );
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not read ${_basename(path)}');
+    }
+  }
+
+  @override
+  Future<Uint8List> readFile(String path, {required int maxBytes}) async {
+    SftpFile? remote;
+    try {
+      final sftp = await _client();
+      remote = await sftp.open(path);
+      final builder = BytesBuilder(copy: false);
+      // One byte past the cap is enough to know the file is over it, and
+      // reading no further keeps a huge file from being pulled down at all.
+      await for (final chunk in remote.read(length: maxBytes + 1)) {
+        builder.add(chunk);
+        if (builder.length > maxBytes) {
+          throw SftpException(
+            'Could not open ${_basename(path)}: larger than the editor allows.',
+          );
+        }
+      }
+      return builder.takeBytes();
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not open ${_basename(path)}');
+    } finally {
+      await remote?.close();
+    }
+  }
+
+  @override
+  Future<void> writeFile(
+    String path,
+    Uint8List bytes, {
+    bool exclusive = false,
+  }) async {
+    SftpFile? remote;
+    try {
+      final sftp = await _client();
+      remote = await sftp.open(
+        path,
+        mode: exclusive
+            ? SftpFileOpenMode.create |
+                  SftpFileOpenMode.exclusive |
+                  SftpFileOpenMode.write
+            : SftpFileOpenMode.create |
+                  SftpFileOpenMode.write |
+                  SftpFileOpenMode.truncate,
+      );
+      await remote.writeBytes(bytes);
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not save ${_basename(path)}');
+    } finally {
+      await remote?.close();
+    }
+  }
+
+  @override
+  Future<bool> supportsAtomicRename() async {
+    try {
+      final sftp = await _client();
+      final handshake = await sftp.handshake;
+      return handshake.extensions['posix-rename@openssh.com'] == '1';
+    } on Object {
+      return false;
+    }
+  }
+
+  @override
+  Future<void> atomicRename(String fromPath, String toPath) async {
+    try {
+      final sftp = await _client();
+      // dartssh2's rename sends posix-rename@openssh.com whenever the server
+      // advertised it, which is the only case this is called in.
+      await sftp.rename(fromPath, toPath);
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not save ${_basename(toPath)}');
+    }
+  }
+
+  @override
+  Future<void> removeFile(String path) async {
+    try {
+      final sftp = await _client();
+      await sftp.remove(path);
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not delete ${_basename(path)}');
+    }
+  }
+
+  @override
+  Future<void> setOwner(
+    String path, {
+    required int userId,
+    required int groupId,
+  }) async {
+    try {
+      final sftp = await _client();
+      await sftp.setStat(path, SftpFileAttrs(userID: userId, groupID: groupId));
+    } on Object catch (e) {
+      throw _wrap(e, 'Could not change the owner of ${_basename(path)}');
     }
   }
 

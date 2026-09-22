@@ -35,15 +35,20 @@ class TerminalPasteIntent extends Intent {
 /// shell that never enabled it, still runs the line the moment the newline
 /// arrives. Whether to be asked is the user's setting, not a guess about the
 /// remote side.
+///
+/// [deliver], when given, replaces step 3's `terminal.paste` — the split
+/// panes' broadcast uses it to hand the one sanitised, confirmed text to
+/// every pane receiving it. It never skips steps 1 and 2.
 Future<void> pasteClipboardInto(
   BuildContext context,
   WidgetRef ref,
-  Terminal terminal,
-) async {
+  Terminal terminal, {
+  void Function(String text)? deliver,
+}) async {
   final data = await Clipboard.getData(Clipboard.kTextPlain);
   final text = data?.text;
   if (text == null || text.isEmpty || !context.mounted) return;
-  await pasteTextInto(context, ref, terminal, text);
+  await pasteTextInto(context, ref, terminal, text, deliver: deliver);
 }
 
 /// Steps 1–3 of [pasteClipboardInto] for text already in hand. Returns
@@ -52,8 +57,9 @@ Future<bool> pasteTextInto(
   BuildContext context,
   WidgetRef ref,
   Terminal terminal,
-  String raw,
-) async {
+  String raw, {
+  void Function(String text)? deliver,
+}) async {
   final paste = sanitizePaste(raw);
   if (paste.text.isEmpty) {
     if (paste.removedCount > 0) {
@@ -77,7 +83,7 @@ Future<bool> pasteTextInto(
     }
   }
 
-  terminal.paste(paste.text);
+  (deliver ?? terminal.paste)(paste.text);
 
   // The dialog already said so; without one, a toast is the only place the
   // user learns that what they pasted is not quite what they copied.
