@@ -11,6 +11,7 @@ import '../../core/ssh/vault_credential_source.dart';
 import '../hosts/domain/ssh_host.dart';
 import '../sessions/reconnect_triggers.dart';
 import '../sessions/session_manager.dart';
+import 'domain/far_end.dart';
 import 'domain/tunnel.dart';
 
 /// Every saved forward, across every host.
@@ -115,6 +116,12 @@ class TunnelRunnerManager extends Notifier<Map<String, TunnelRunnerStatus>> {
 
   TunnelRunnerStatus statusFor(String tunnelId) =>
       state[tunnelId] ?? const TunnelRunnerStatus.stopped();
+
+  /// Whether a running local forward's target is listening, asked over the
+  /// forward's own connection. Null when [tunnelId] is not a running local
+  /// forward. Never counted as one of its connections.
+  Future<FarEndStatus?> probeTarget(String tunnelId) async =>
+      _runners[tunnelId]?.probeTarget();
 
   /// Starts [tunnel], reusing an open session's connection to [host] or
   /// opening one through [SessionManager] — never bypassing host key

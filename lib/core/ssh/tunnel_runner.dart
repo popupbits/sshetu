@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
 
+import '../../features/tunnels/domain/far_end.dart';
 import '../../features/tunnels/domain/tunnel.dart';
 
 /// Where one forward is in its lifecycle.
@@ -181,7 +182,24 @@ class TunnelRunner {
 
   SSHDynamicForward? _dynamicForward;
 
+  /// Opens one channel to a running local forward's target. Held so the
+  /// far end can be checked over the very transport the forward uses.
+  Future<SSHSocket> Function()? _openTarget;
+
   final _connections = <_ActiveConnection>{};
+
+  /// Whether a running local forward's target accepts connections, asked
+  /// from the server's side; null when this is not a running local forward.
+  ///
+  /// Goes around [_accept] on purpose: the probe is not a user's
+  /// connection, so it never appears in [TunnelRunnerStatus.connections].
+  Future<FarEndStatus?> probeTarget({
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final open = _openTarget;
+    if (open == null || !_status.isRunning) return null;
+    return probeFarEnd(open, timeout: timeout);
+  }
 
   /// Starts the forward. Safe to call again after [stop] or a failure.
   Future<void> start() async {
@@ -228,6 +246,7 @@ class TunnelRunner {
       tunnel.listenPort,
     );
     _server = server;
+    _openTarget = () => client.forwardLocal(target.host, target.port);
     _serverSub = server.listen(
       (socket) => _accept(
         SocketAsSshSocket(socket),
@@ -335,6 +354,7 @@ class TunnelRunner {
   }
 
   Future<void> _teardown() async {
+    _openTarget = null;
     await _serverSub?.cancel();
     _serverSub = null;
     await _server?.close();

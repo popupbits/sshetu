@@ -802,6 +802,180 @@ abstract class AppLocalizations {
   /// **'More'**
   String get terminalMoreActions;
 
+  /// No description provided for @sessionLogStartEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Start logging…'**
+  String get sessionLogStartEllipsis;
+
+  /// No description provided for @sessionLogStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop logging'**
+  String get sessionLogStop;
+
+  /// No description provided for @sessionLogKeyword.
+  ///
+  /// In en, this message translates to:
+  /// **'log record save output'**
+  String get sessionLogKeyword;
+
+  /// No description provided for @sessionLogStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log {session}'**
+  String sessionLogStartTitle(String session);
+
+  /// No description provided for @sessionLogStartAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start logging'**
+  String get sessionLogStartAction;
+
+  /// No description provided for @sessionLogFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Log format'**
+  String get sessionLogFormat;
+
+  /// No description provided for @sessionLogFormatPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain text'**
+  String get sessionLogFormatPlain;
+
+  /// No description provided for @sessionLogFormatPlainHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Readable text, without colours or control codes'**
+  String get sessionLogFormatPlainHint;
+
+  /// No description provided for @sessionLogFormatRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw (with colours)'**
+  String get sessionLogFormatRaw;
+
+  /// No description provided for @sessionLogFormatRawHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Exactly as received; replay it with cat'**
+  String get sessionLogFormatRawHint;
+
+  /// No description provided for @sessionLogFormatAsciicast.
+  ///
+  /// In en, this message translates to:
+  /// **'asciicast (.cast)'**
+  String get sessionLogFormatAsciicast;
+
+  /// No description provided for @sessionLogFormatAsciicastHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A timed recording; play it with asciinema'**
+  String get sessionLogFormatAsciicastHint;
+
+  /// No description provided for @sessionLogPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything the server prints is written to the file. What you type is not logged separately — the server echoes it back, so it appears only as shown on screen. Passwords typed at a prompt are not echoed, so they are not logged.'**
+  String get sessionLogPrivacyNote;
+
+  /// No description provided for @sessionLogStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging to {file}'**
+  String sessionLogStarted(String file);
+
+  /// No description provided for @sessionLogSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Log saved: {file}'**
+  String sessionLogSaved(String file);
+
+  /// No description provided for @sessionLogShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get sessionLogShare;
+
+  /// No description provided for @sessionLogFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not write the session log'**
+  String get sessionLogFailed;
+
+  /// No description provided for @sessionLogIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging to {file}'**
+  String sessionLogIndicator(String file);
+
+  /// No description provided for @sessionLogLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'{file} is over 100 MB and still growing'**
+  String sessionLogLarge(String file);
+
+  /// No description provided for @sessionLogMarkerDisconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'connection lost'**
+  String get sessionLogMarkerDisconnected;
+
+  /// No description provided for @sessionLogMarkerReconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'reconnected'**
+  String get sessionLogMarkerReconnected;
+
+  /// No description provided for @sessionLogMarkerStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'logging stopped'**
+  String get sessionLogMarkerStopped;
+
+  /// No description provided for @sessionLogMarkerTabClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'tab closed'**
+  String get sessionLogMarkerTabClosed;
+
+  /// No description provided for @sessionLogFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Session log folder'**
+  String get sessionLogFolder;
+
+  /// No description provided for @sessionLogFolderNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not chosen — you are asked where to save each log'**
+  String get sessionLogFolderNone;
+
+  /// No description provided for @sessionLogFolderClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear folder'**
+  String get sessionLogFolderClear;
+
+  /// No description provided for @sessionLogAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always log new sessions'**
+  String get sessionLogAlways;
+
+  /// No description provided for @sessionLogAlwaysBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every new terminal tab writes its output to a log file without asking.'**
+  String get sessionLogAlwaysBody;
+
+  /// No description provided for @sessionLogAlwaysNeedsFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a log folder first, so logs have somewhere to go without asking.'**
+  String get sessionLogAlwaysNeedsFolder;
+
   /// No description provided for @terminalPaste.
   ///
   /// In en, this message translates to:
@@ -2067,6 +2241,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed'**
   String get tunnelStatusFailed;
+
+  /// No description provided for @tunnelFarEndListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Target listening'**
+  String get tunnelFarEndListening;
+
+  /// No description provided for @tunnelFarEndNotListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing listening on target'**
+  String get tunnelFarEndNotListening;
+
+  /// No description provided for @tunnelFarEndHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked from the server every 30 seconds while this screen is open.'**
+  String get tunnelFarEndHelp;
+
+  /// No description provided for @portsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ports on this server'**
+  String get portsTitle;
+
+  /// No description provided for @portsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Ports'**
+  String get portsTab;
+
+  /// No description provided for @portsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for listening ports…'**
+  String get portsLoading;
+
+  /// No description provided for @portsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No listening ports found'**
+  String get portsEmpty;
+
+  /// No description provided for @portsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a server on this machine and it shows up here within a few seconds. System services such as SSH and DNS are left out.'**
+  String get portsEmptyBody;
+
+  /// No description provided for @portsOfflineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The list resumes when the session reconnects.'**
+  String get portsOfflineBody;
+
+  /// No description provided for @portsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not list this server\'s ports: {error}'**
+  String portsError(String error);
+
+  /// No description provided for @portsLoopbackOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This server only'**
+  String get portsLoopbackOnly;
+
+  /// No description provided for @portsAllInterfaces.
+  ///
+  /// In en, this message translates to:
+  /// **'All interfaces'**
+  String get portsAllInterfaces;
+
+  /// No description provided for @portsForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get portsForward;
+
+  /// No description provided for @portsForwardTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward a port on this device to port {port} on the server'**
+  String portsForwardTooltip(int port);
+
+  /// No description provided for @portsForwardFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not forward port {port}: {error}'**
+  String portsForwardFailed(int port, String error);
+
+  /// No description provided for @portsForwardActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward actions'**
+  String get portsForwardActions;
+
+  /// No description provided for @portsOpenInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get portsOpenInBrowser;
+
+  /// No description provided for @portsCopyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get portsCopyAddress;
+
+  /// No description provided for @portsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {address}'**
+  String portsCopied(String address);
+
+  /// No description provided for @portsSaveAsTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as tunnel'**
+  String get portsSaveAsTunnel;
+
+  /// No description provided for @portsSavedAsTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as tunnel \"{label}\"'**
+  String portsSavedAsTunnel(String label);
+
+  /// No description provided for @portsStopForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop forward'**
+  String get portsStopForward;
+
+  /// No description provided for @settingsStartTunnelsAtLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Start auto-start tunnels when SSHetu opens'**
+  String get settingsStartTunnelsAtLaunch;
+
+  /// No description provided for @settingsStartTunnelsAtLaunchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnels set to start automatically connect as soon as the app opens, instead of waiting for a terminal to their server. SSHetu then connects to those servers without asking first.'**
+  String get settingsStartTunnelsAtLaunchBody;
 
   /// No description provided for @tunnelActiveConnections.
   ///
@@ -5275,6 +5593,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lets this server use your keys to sign in elsewhere while you\'re connected. Only enable it for servers you trust. If the server has AllowAgentForwarding disabled, the connection will fail.'**
   String get hostEditorForwardAgentHelp;
+
+  /// No description provided for @exportJsonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as JSON (no secrets)'**
+  String get exportJsonTitle;
+
+  /// No description provided for @exportJsonSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A readable file of your hosts, tunnels and snippets for other tools. Keys and passwords are left out.'**
+  String get exportJsonSubtitle;
+
+  /// No description provided for @exportJsonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Hosts, groups, tunnels, snippets, public keys and trusted host keys, in a documented format any tool can read. Importing it back into SSHetu loses nothing.'**
+  String get exportJsonBody;
+
+  /// No description provided for @exportJsonNoSecrets.
+  ///
+  /// In en, this message translates to:
+  /// **'Private keys, key passphrases and saved passwords are never included. To keep those too, save an encrypted backup instead.'**
+  String get exportJsonNoSecrets;
+
+  /// No description provided for @exportJsonBackupInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted backup…'**
+  String get exportJsonBackupInstead;
+
+  /// No description provided for @exportJsonAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportJsonAction;
+
+  /// No description provided for @exportJsonSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported to {path}'**
+  String exportJsonSaved(String path);
+
+  /// No description provided for @exportJsonShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Export ready to save.'**
+  String get exportJsonShared;
+
+  /// No description provided for @exportJsonFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export: {error}'**
+  String exportJsonFailed(String error);
+
+  /// No description provided for @importJsonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from JSON'**
+  String get importJsonTitle;
+
+  /// No description provided for @importJsonSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An SSHetu JSON export. You see what will change before anything is written.'**
+  String get importJsonSubtitle;
+
+  /// No description provided for @importJsonNotJson.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is not JSON.'**
+  String get importJsonNotJson;
+
+  /// No description provided for @importJsonNotExport.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not an SSHetu export. Choose a file saved with Export as JSON.'**
+  String get importJsonNotExport;
+
+  /// No description provided for @importJsonNewer.
+  ///
+  /// In en, this message translates to:
+  /// **'This export was written by a newer version of SSHetu (format version {version}; this build reads up to version {supported}). Update SSHetu and try again.'**
+  String importJsonNewer(int version, int supported);
+
+  /// No description provided for @importJsonInvalidVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'This export has no valid format version, so it cannot be read.'**
+  String get importJsonInvalidVersion;
+
+  /// No description provided for @importJsonMalformed.
+  ///
+  /// In en, this message translates to:
+  /// **'This export is damaged or was edited incorrectly: {field} is missing or invalid.'**
+  String importJsonMalformed(String field);
+
+  /// No description provided for @importJsonReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read that file.'**
+  String get importJsonReadFailed;
+
+  /// No description provided for @importJsonFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String importJsonFrom(String name);
+
+  /// No description provided for @importJsonHostsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new host} other{{count} new hosts}}'**
+  String importJsonHostsNew(int count);
+
+  /// No description provided for @importJsonHostsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 saved host updated (same id)} other{{count} saved hosts updated (same id)}}'**
+  String importJsonHostsUpdated(int count);
+
+  /// No description provided for @importJsonHostsUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 host already up to date} other{{count} hosts already up to date}}'**
+  String importJsonHostsUnchanged(int count);
+
+  /// No description provided for @importJsonConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 host matches a saved one by address} other{{count} hosts match saved ones by address}}'**
+  String importJsonConflicts(int count);
+
+  /// No description provided for @importJsonConflictsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Same user, host and port as a saved host, but a different id — probably the same server saved on two devices.'**
+  String get importJsonConflictsBody;
+
+  /// No description provided for @importJsonMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get importJsonMerge;
+
+  /// No description provided for @importJsonAddAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add as new'**
+  String get importJsonAddAsNew;
+
+  /// No description provided for @importJsonMergeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved host takes the file\'s settings. Its tunnels and saved password stay attached.'**
+  String get importJsonMergeHelp;
+
+  /// No description provided for @importJsonAddAsNewHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved host is left as it is, and the file\'s is added as a second host.'**
+  String get importJsonAddAsNewHelp;
+
+  /// No description provided for @importJsonConflictRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{incoming} → saved as {existing}'**
+  String importJsonConflictRow(String incoming, String existing);
+
+  /// No description provided for @importJsonAlso.
+  ///
+  /// In en, this message translates to:
+  /// **'Also in this file'**
+  String get importJsonAlso;
+
+  /// No description provided for @importJsonGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups: {added} new, {updated} updated'**
+  String importJsonGroups(int added, int updated);
+
+  /// No description provided for @importJsonTunnels.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnels: {count} to add or update'**
+  String importJsonTunnels(int count);
+
+  /// No description provided for @importJsonSnippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Snippets: {added} new, {updated} updated'**
+  String importJsonSnippets(int added, int updated);
+
+  /// No description provided for @importJsonKnownHosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted host keys: {count} new'**
+  String importJsonKnownHosts(int count);
+
+  /// No description provided for @importJsonKnownHostsConflicting.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 trusted host key in the file differs from the one saved here and is left out. An import never replaces a trust decision.} other{{count} trusted host keys in the file differ from the ones saved here and are left out. An import never replaces a trust decision.}}'**
+  String importJsonKnownHostsConflicting(int count);
+
+  /// No description provided for @importJsonMissingKeysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys to bring over'**
+  String get importJsonMissingKeysTitle;
+
+  /// No description provided for @importJsonMissingKeysBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An export never contains private keys. These hosts are imported without their key until you bring it to this device — with an encrypted backup, Send to a device, or by pasting it under Keys — and choose it in the host.'**
+  String get importJsonMissingKeysBody;
+
+  /// No description provided for @importJsonMissingKeyHosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Used by: {hosts}'**
+  String importJsonMissingKeyHosts(String hosts);
+
+  /// No description provided for @importJsonNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in this file is already on this device.'**
+  String get importJsonNothing;
+
+  /// No description provided for @importJsonAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importJsonAction;
+
+  /// No description provided for @importJsonDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {hosts} hosts, {tunnels} tunnels and {snippets} snippets'**
+  String importJsonDone(int hosts, int tunnels, int snippets);
+
+  /// No description provided for @puttyImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from PuTTY'**
+  String get puttyImportTitle;
+
+  /// No description provided for @puttyImportSubtitleWindows.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved sessions from PuTTY on this PC, or a .reg file'**
+  String get puttyImportSubtitleWindows;
+
+  /// No description provided for @puttyImportSubtitleFile.
+  ///
+  /// In en, this message translates to:
+  /// **'From a .reg file of PuTTY sessions exported on Windows'**
+  String get puttyImportSubtitleFile;
+
+  /// No description provided for @puttyImportFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import PuTTY .reg file'**
+  String get puttyImportFile;
+
+  /// No description provided for @puttyChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose .reg file…'**
+  String get puttyChooseFile;
+
+  /// No description provided for @puttyNoneFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No PuTTY sessions found'**
+  String get puttyNoneFoundTitle;
+
+  /// No description provided for @puttyNoneFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This Windows account has no saved PuTTY sessions. You can choose a .reg file instead: on the PC that has them, export the key HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions with regedit.'**
+  String get puttyNoneFoundBody;
+
+  /// No description provided for @puttyNoneInFile.
+  ///
+  /// In en, this message translates to:
+  /// **'That file holds no PuTTY sessions.'**
+  String get puttyNoneInFile;
+
+  /// No description provided for @puttyReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read PuTTY sessions: {error}'**
+  String puttyReadFailed(String error);
+
+  /// No description provided for @puttySkippedProtocol.
+  ///
+  /// In en, this message translates to:
+  /// **'Not SSH ({protocol}), so it is skipped'**
+  String puttySkippedProtocol(String protocol);
+
+  /// No description provided for @puttySkippedNoHost.
+  ///
+  /// In en, this message translates to:
+  /// **'No host name, so it is skipped'**
+  String get puttySkippedNoHost;
+
+  /// No description provided for @puttyAlreadySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Already saved'**
+  String get puttyAlreadySaved;
+
+  /// No description provided for @puttyNoUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'No user name saved; {name} will be used'**
+  String puttyNoUsername(String name);
+
+  /// No description provided for @puttyPpk.
+  ///
+  /// In en, this message translates to:
+  /// **'Key not imported: {file}'**
+  String puttyPpk(String file);
+
+  /// No description provided for @puttyProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy not imported: {proxy}'**
+  String puttyProxy(String proxy);
+
+  /// No description provided for @puttyForwards.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 forward becomes a tunnel, off until you review it} other{{count} forwards become tunnels, off until you review them}}'**
+  String puttyForwards(int count);
+
+  /// No description provided for @puttyInvalidForwards.
+  ///
+  /// In en, this message translates to:
+  /// **'Forwards not understood: {list}'**
+  String puttyInvalidForwards(String list);
+
+  /// No description provided for @puttyPpkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PuTTY keys (.ppk) can\'t be used directly'**
+  String get puttyPpkTitle;
+
+  /// No description provided for @puttyPpkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert each key with PuTTYgen: load the .ppk, then Conversions → Export OpenSSH key. Import the result under Keys and choose it in the host. Hosts that use a .ppk key: {hosts}'**
+  String puttyPpkBody(String hosts);
+
+  /// No description provided for @puttyImportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Import} =1{Import 1 host} other{Import {count} hosts}}'**
+  String puttyImportAction(int count);
+
+  /// No description provided for @puttyImportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {hosts} hosts and {tunnels} tunnels. Tunnels stay off until you review and start them.'**
+  String puttyImportDone(int hosts, int tunnels);
+
+  /// No description provided for @importMoreSources.
+  ///
+  /// In en, this message translates to:
+  /// **'More ways to import'**
+  String get importMoreSources;
 }
 
 class _AppLocalizationsDelegate

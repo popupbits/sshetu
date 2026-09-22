@@ -9,7 +9,9 @@ import '../../../core/theme/terminal_theme.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/ui/feedback.dart';
 import '../../../l10n/app_localizations.dart';
+import '../domain/far_end.dart';
 import '../domain/tunnel.dart';
+import '../far_end_monitor.dart';
 import '../tunnel_connect.dart';
 import '../tunnels_controller.dart';
 
@@ -33,6 +35,10 @@ class TunnelTile extends ConsumerWidget {
       tunnelRunnersProvider.select(
         (s) => s[tunnel.id] ?? const TunnelRunnerStatus.stopped(),
       ),
+    );
+    final farEnd = visibleFarEnd(
+      status,
+      ref.watch(farEndMonitorProvider.select((s) => s[tunnel.id])),
     );
 
     return ListTile(
@@ -62,19 +68,28 @@ class TunnelTile extends ConsumerWidget {
           ],
         ],
       ),
-      subtitle: Row(
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(
-            child: Text(
-              tunnel.mapping,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Mono.apply(theme.textTheme.bodySmall)
-                  .copyWith(color: scheme.onSurfaceVariant),
-            ),
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  tunnel.mapping,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Mono.apply(theme.textTheme.bodySmall)
+                      .copyWith(color: scheme.onSurfaceVariant),
+                ),
+              ),
+              const SizedBox(width: Spacing.sm),
+              // Flexible too: "Running · 12 active" beside a long mapping
+              // overflowed a 360 pt phone row.
+              Flexible(child: _StatusLabel(status: status)),
+            ],
           ),
-          const SizedBox(width: Spacing.sm),
-          _StatusLabel(status: status),
+          if (farEnd != null) _FarEndLabel(farEnd: farEnd),
         ],
       ),
       trailing: Row(
@@ -125,7 +140,51 @@ class _StatusLabel extends StatelessWidget {
       message: status.error ?? text,
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+      ),
+    );
+  }
+}
+
+/// Whether the forward's target answers, from the server's side — the
+/// difference between "the tunnel is up" and "the tunnel goes somewhere".
+class _FarEndLabel extends StatelessWidget {
+  const _FarEndLabel({required this.farEnd});
+
+  final FarEndStatus farEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final listening = farEnd == FarEndStatus.listening;
+    final color = listening ? scheme.primary : scheme.error;
+    return Tooltip(
+      message: l10n.tunnelFarEndHelp,
+      child: Row(
+        key: Key('tunnel.farEnd.${farEnd.name}'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            listening ? PiconsRegular.checkCircle : PiconsRegular.warningCircle,
+            size: 12,
+            color: color,
+          ),
+          const SizedBox(width: Spacing.xs),
+          Flexible(
+            child: Text(
+              listening
+                  ? l10n.tunnelFarEndListening
+                  : l10n.tunnelFarEndNotListening,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: color),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -7,6 +7,7 @@ import '../sessions/session_manager.dart';
 import '../sessions/workspace_pages.dart';
 import '../shell/workspace_layout.dart';
 import 'data/server_exec.dart';
+import '../tunnels/widgets/server_ports_view.dart';
 import 'server_info_panel.dart';
 
 /// Whether the desktop's server-info panel is open.
@@ -54,6 +55,7 @@ class ServerInfoDock extends ConsumerWidget {
       title: session.title,
       exec: ConnectionExec(session.connection),
       onClose: () => ref.read(serverInfoDockProvider.notifier).close(),
+      portsBuilder: (_) => serverPortsFor(session),
     );
 
     return LayoutBuilder(
@@ -118,10 +120,14 @@ bool isServerInfoShowing(WidgetRef ref, TerminalSession session) =>
     ref.read(sessionManagerProvider.notifier).activeId == session.id;
 
 /// The phone's presentation: a tall sheet over the terminal.
+///
+/// [initialTab] opens it on another tab — [ServerInfoPanel.portsTab] for
+/// "Ports on this server" from the terminal's More menu.
 Future<void> showServerInfoSheet(
   BuildContext context,
-  TerminalSession session,
-) => showModalBottomSheet<void>(
+  TerminalSession session, {
+  int initialTab = 0,
+}) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
@@ -131,6 +137,20 @@ Future<void> showServerInfoSheet(
       title: session.title,
       exec: ConnectionExec(session.connection),
       onClose: () => Navigator.of(sheetContext).pop(),
+      portsBuilder: (_) => serverPortsFor(session),
+      initialTab: initialTab,
     ),
   ),
+);
+
+/// "Ports on this server" for [session]'s tab, over its own connection.
+Widget serverPortsFor(TerminalSession session) => ServerPortsView(
+  key: ValueKey('ports/${session.id}'),
+  exec: ConnectionExec(session.connection),
+  sessionId: session.id,
+  hostId: session.hostId,
+  connection: session.connection,
+  // The sshd this tab came in through, when it is not on 22 — already the
+  // one port nobody needs forwarded.
+  alsoIgnore: {session.target.port},
 );

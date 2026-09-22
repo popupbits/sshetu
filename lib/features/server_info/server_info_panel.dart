@@ -23,8 +23,20 @@ class ServerInfoPanel extends StatefulWidget {
     required this.exec,
     this.onClose,
     this.monitorFactory,
+    this.portsBuilder,
+    this.initialTab = 0,
     super.key,
   });
+
+  /// Builds a third tab, Ports, when given — "Ports on this server". Built
+  /// only while that tab is on screen, so it polls only then.
+  final WidgetBuilder? portsBuilder;
+
+  /// The tab to open on: 0 Overview, 1 Processes, 2 Ports.
+  final int initialTab;
+
+  /// The index of the Ports tab, when there is one.
+  static const int portsTab = 2;
 
   /// The host's label, shown in the header.
   final String title;
@@ -45,7 +57,12 @@ class _ServerInfoPanelState extends State<ServerInfoPanel>
   late final ServerStatsMonitor _monitor =
       widget.monitorFactory?.call(widget.exec) ??
       ServerStatsMonitor(widget.exec);
-  late final TabController _tabs = TabController(length: 2, vsync: this);
+  late final int _tabCount = widget.portsBuilder == null ? 2 : 3;
+  late final TabController _tabs = TabController(
+    length: _tabCount,
+    initialIndex: widget.initialTab.clamp(0, _tabCount - 1),
+    vsync: this,
+  );
   late final AppLifecycleListener _lifecycle;
   bool _foreground = true;
 
@@ -128,6 +145,12 @@ class _ServerInfoPanelState extends State<ServerInfoPanel>
             tabs: [
               Tab(text: l10n.serverInfoOverview, height: Chrome.tabStrip),
               Tab(text: l10n.serverInfoProcesses, height: Chrome.tabStrip),
+              if (widget.portsBuilder != null)
+                Tab(
+                  key: const Key('serverInfo.portsTab'),
+                  text: l10n.portsTab,
+                  height: Chrome.tabStrip,
+                ),
             ],
           ),
           Expanded(
@@ -136,6 +159,8 @@ class _ServerInfoPanelState extends State<ServerInfoPanel>
               children: [
                 ServerOverview(monitor: _monitor),
                 ProcessListView(exec: widget.exec),
+                if (widget.portsBuilder case final ports?)
+                  Builder(builder: ports),
               ],
             ),
           ),

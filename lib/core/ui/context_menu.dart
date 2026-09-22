@@ -82,12 +82,19 @@ class ContextMenuRegion extends StatelessWidget {
                       : theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: Spacing.md),
-                Text(
-                  action.label,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: action.isDestructive
-                        ? theme.colorScheme.error
-                        : null,
+                // Flexible: a popup menu is at most five units wide, and a
+                // long label — or a long translation — must ellipsize rather
+                // than overflow the row.
+                Flexible(
+                  child: Text(
+                    action.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: action.isDestructive
+                          ? theme.colorScheme.error
+                          : null,
+                    ),
                   ),
                 ),
               ],

@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/misc.dart' show ProviderFamily;
 import '../../l10n/app_localizations.dart';
 import '../hosts/hosts_palette.dart';
 import '../keys/keys_palette.dart';
+import '../session_log/session_log_palette.dart';
 import '../sessions/sessions_palette.dart';
 import '../settings/settings_palette.dart';
 import '../snippets/snippets_palette.dart';
 import '../tunnels/tunnels_palette.dart';
+import '../export/export_palette.dart';
 import 'domain/palette_item.dart';
 
 /// A feature's contribution to the palette: its items, in its user's words.
@@ -24,10 +26,12 @@ final paletteSourcesProvider = Provider<List<PaletteSource>>(
   (ref) => [
     hostPaletteItemsProvider,
     sessionPaletteItemsProvider,
+    sessionLogPaletteItemsProvider,
     snippetPaletteItemsProvider,
     tunnelPaletteItemsProvider,
     keyPaletteItemsProvider,
     settingsPaletteItemsProvider,
+    exportPaletteItemsProvider,
   ],
 );
 

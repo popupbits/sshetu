@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../../../core/db/upsert.dart';
 import '../../../core/secrets/secret_ref.dart';
 import '../../../core/secrets/secret_vault.dart';
 import '../../../core/ssh/ssh_target.dart';
@@ -46,13 +47,10 @@ class HostRepository {
     return rows.isEmpty ? null : _fromRow(rows.single);
   }
 
-  Future<void> save(SshHost host) async {
-    await database.insert(
-      _table,
-      _toRow(host),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
+  /// Inserts or updates [host] — never by REPLACE, which would delete its
+  /// tunnels on the way (see [upsertRow]).
+  Future<void> save(SshHost host) =>
+      upsertRow(database, _table, _toRow(host), id: host.id);
 
   /// Saves several hosts in one transaction.
   ///
@@ -73,10 +71,11 @@ class HostRepository {
     final records = hosts.toList();
     await database.transaction((txn) async {
       for (final host in records) {
-        await txn.insert(
+        await upsertRow(
+          txn,
           _table,
           _toRow(host)..['jump_host_id'] = null,
-          conflictAlgorithm: ConflictAlgorithm.replace,
+          id: host.id,
         );
       }
       for (final host in records) {
@@ -143,6 +142,10 @@ class HostRepository {
     }
     return host.toTarget(jumpTarget: jump);
   }
+
+  /// The row [host] is stored as — for a writer that has to work inside
+  /// its own transaction, such as the JSON import.
+  static Map<String, Object?> rowOf(SshHost host) => _toRow(host);
 
   static Map<String, Object?> _toRow(SshHost host) => {
     'id': host.id,

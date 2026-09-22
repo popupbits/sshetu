@@ -11,6 +11,9 @@ import '../../../l10n/app_localizations.dart';
 import '../pane_commands.dart';
 import '../pane_layouts.dart';
 import '../../server_info/server_info_dock.dart';
+import '../../session_log/session_log_actions.dart';
+import '../../session_log/session_log_controller.dart';
+import '../../session_log/widgets/session_log_dot.dart';
 import '../server_sessions.dart';
 import '../session_manager.dart';
 import '../workspace_pages.dart';
@@ -57,6 +60,9 @@ class SessionTabStrip extends ConsumerWidget {
     // One tab per split layout, not one per pane.
     ref.watch(paneLayoutsProvider);
     final tabs = manager.tabs;
+    // Keeps session logging alive while any terminal is on screen, so a tab
+    // opened with "always log" on starts its log.
+    ref.listen(sessionLogControllerProvider, (_, _) {});
 
     if (sessions.isEmpty && pages.isEmpty) return const SizedBox.shrink();
     if (tabs.length + pages.length < 2 && !alwaysShow) {
@@ -109,6 +115,7 @@ class SessionTabStrip extends ConsumerWidget {
                           openRunningSessionsForTab(context, ref, session),
                     ),
                     ...paneTabMenuActions(context, ref, session.id),
+                    ...sessionLogMenuActions(context, ref, session),
                     MenuAction(
                       label: isServerInfoShowing(ref, session)
                           ? AppLocalizations.of(context).serverInfoHide
@@ -229,6 +236,7 @@ class _SessionTab extends StatelessWidget {
                     ),
                   ),
                 ),
+                SessionLogDot(sessionId: session.id, leading: Spacing.xs),
                 if (broadcasting) ...[
                   const SizedBox(width: Spacing.xs),
                   Tooltip(

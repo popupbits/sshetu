@@ -16,6 +16,7 @@ import '../sessions/widgets/workspace_restore_listener.dart';
 import '../sessions/widgets/terminal_workspace.dart';
 import '../server_info/server_info_dock.dart';
 import '../snippets/open_snippets.dart';
+import '../tunnels/launch_auto_start.dart';
 import '../../core/router/navigation.dart';
 import '../../core/router/routes.dart';
 import '../../core/settings/settings_controller.dart';
@@ -210,10 +211,13 @@ class AppShell extends ConsumerWidget {
     // last launch's tabs raises the same host-key and password dialogs a
     // connection does — and a dialog needs a navigator above it.
     return WorkspaceRestoreListener(
-      child: SessionShortcuts(
-        child: context.useRail
-            ? _buildDesktop(context, ref, destinations, index)
-            : _buildCompact(context, ref, destinations, index),
+      // After the restore, and only if Settings asks for it.
+      child: LaunchAutoStartListener(
+        child: SessionShortcuts(
+          child: context.useRail
+              ? _buildDesktop(context, ref, destinations, index)
+              : _buildCompact(context, ref, destinations, index),
+        ),
       ),
     );
   }

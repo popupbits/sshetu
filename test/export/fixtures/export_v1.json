@@ -1,0 +1,136 @@
+{
+  "format": "sshetu-export",
+  "version": 1,
+  "exportedAt": "2026-09-22T10:00:00.000Z",
+  "app": "1.0.0+1",
+  "containsSecrets": false,
+  "groups": [
+    {
+      "id": "g-work",
+      "name": "Work",
+      "sortOrder": 3,
+      "createdAt": "2026-01-02T03:04:05.678Z",
+      "updatedAt": "2026-02-03T04:05:06.789Z"
+    }
+  ],
+  "identities": [
+    {
+      "id": "k-laptop",
+      "label": "laptop",
+      "keyType": "ssh-ed25519",
+      "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP1kR7QhQxPPFdMbCfvhLDNyIYAmYaLPnJTMkQGDtxNu me@laptop",
+      "fingerprint": "SHA256:lroizHGTA1PNg/3tm1YtqFT39WO/HH72H6pkj5Sg7K8",
+      "hasPassphrase": true,
+      "origin": "generated",
+      "createdAt": "2026-01-02T03:04:05.678Z",
+      "updatedAt": "2026-02-03T04:05:06.789Z"
+    }
+  ],
+  "hosts": [
+    {
+      "id": "h-bastion",
+      "label": "bastion",
+      "hostname": "bastion.example.com",
+      "port": 2222,
+      "username": "jump",
+      "authMethod": "password",
+      "groupId": null,
+      "identityId": null,
+      "identityFingerprint": null,
+      "jumpHostId": null,
+      "allowLegacyAlgorithms": false,
+      "forwardAgent": false,
+      "keepaliveSeconds": 15,
+      "startupCommand": null,
+      "terminalTheme": null,
+      "fontSize": null,
+      "notes": null,
+      "tags": [],
+      "envVars": {},
+      "lastConnectedAt": null,
+      "createdAt": "2026-01-02T03:04:05.678Z",
+      "updatedAt": "2026-02-03T04:05:06.789Z"
+    },
+    {
+      "id": "h-web",
+      "label": "web-1",
+      "hostname": "web1.internal",
+      "port": 22,
+      "username": "deploy",
+      "authMethod": "publicKey",
+      "groupId": "g-work",
+      "identityId": "k-laptop",
+      "identityFingerprint": "SHA256:lroizHGTA1PNg/3tm1YtqFT39WO/HH72H6pkj5Sg7K8",
+      "jumpHostId": "h-bastion",
+      "allowLegacyAlgorithms": true,
+      "forwardAgent": true,
+      "keepaliveSeconds": 0,
+      "startupCommand": "tmux new -A -s main",
+      "terminalTheme": "dracula",
+      "fontSize": 15.5,
+      "notes": "Primary web node.\nRestart with care.",
+      "tags": [
+        "prod",
+        "web"
+      ],
+      "envVars": {
+        "EDITOR": "vim",
+        "LANG": "en_US.UTF-8"
+      },
+      "lastConnectedAt": "2026-03-04T05:06:07.890Z",
+      "createdAt": "2026-01-02T03:04:05.678Z",
+      "updatedAt": "2026-02-03T04:05:06.789Z"
+    }
+  ],
+  "tunnels": [
+    {
+      "id": "t-db",
+      "hostId": "h-web",
+      "label": "Postgres",
+      "kind": "local",
+      "listenHost": "127.0.0.1",
+      "listenPort": 15432,
+      "targetHost": "db.internal",
+      "targetPort": 5432,
+      "autoStart": true,
+      "createdAt": "2026-01-02T03:04:05.678Z",
+      "updatedAt": "2026-02-03T04:05:06.789Z"
+    },
+    {
+      "id": "t-socks",
+      "hostId": "h-bastion",
+      "label": "SOCKS",
+      "kind": "dynamic",
+      "listenHost": "127.0.0.1",
+      "listenPort": 1080,
+      "targetHost": null,
+      "targetPort": null,
+      "autoStart": false,
+      "createdAt": "2026-01-02T03:04:05.678Z",
+      "updatedAt": "2026-02-03T04:05:06.789Z"
+    }
+  ],
+  "snippets": [
+    {
+      "id": "s-disk",
+      "label": "Disk usage",
+      "body": "df -h {{path}}\ndu -sh *",
+      "description": "Where did the space go",
+      "tags": [
+        "ops"
+      ],
+      "sortOrder": 2,
+      "createdAt": "2026-01-02T03:04:05.678Z",
+      "updatedAt": "2026-02-03T04:05:06.789Z"
+    }
+  ],
+  "knownHosts": [
+    {
+      "hostname": "web1.internal",
+      "port": 22,
+      "keyType": "ssh-ed25519",
+      "fingerprint": "SHA256:abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG",
+      "trustedAt": "2026-02-03T04:05:06.789Z"
+    }
+  ]
+}

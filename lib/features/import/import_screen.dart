@@ -14,8 +14,11 @@ import '../../core/ui/views.dart';
 import '../../core/util/responsive.dart';
 import '../../l10n/app_localizations.dart';
 import '../keys/domain/ssh_identity.dart';
+import '../export/presentation/json_import_dialog.dart';
 import '../keys/keys_controller.dart';
 import 'import_controller.dart';
+import 'putty/putty_import.dart';
+import 'putty/putty_import_dialog.dart';
 
 /// What an import screen was opened to bring in.
 enum ImportFocus {
@@ -233,6 +236,33 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
               },
             ),
           ],
+          // OpenSSH is one source of hosts among several; this is where
+          // someone looking to bring servers in already is.
+          if (widget.focus.showsHosts)
+            PopupMenuButton<void Function()>(
+              tooltip: l10n.importMoreSources,
+              icon: const Icon(PiconsRegular.dotsThreeVertical),
+              onSelected: (run) => run(),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: () => importPutty(context, ref),
+                  child: Text(
+                    PuttyRegistryReader.isSupported
+                        ? l10n.puttyImportTitle
+                        : l10n.puttyImportFile,
+                  ),
+                ),
+                if (PuttyRegistryReader.isSupported)
+                  PopupMenuItem(
+                    value: () => importPutty(context, ref, fromFile: true),
+                    child: Text(l10n.puttyImportFile),
+                  ),
+                PopupMenuItem(
+                  value: () => importJson(context, ref),
+                  child: Text(l10n.importJsonTitle),
+                ),
+              ],
+            ),
         ],
       ),
       body: scan.when(

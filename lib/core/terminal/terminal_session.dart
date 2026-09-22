@@ -376,7 +376,7 @@ class TerminalSession extends ChangeNotifier {
 
     final drained = Completer<void>();
     _stdoutSubscription = shell.stdout.listen(
-      _coalescer.add,
+      _received,
       onError: (Object _) {},
       onDone: () {
         if (!drained.isCompleted) drained.complete();
@@ -386,7 +386,7 @@ class TerminalSession extends ChangeNotifier {
     // does. Splitting them would put a command's errors somewhere the user
     // is not looking.
     _stderrSubscription = shell.stderr.listen(
-      _coalescer.add,
+      _received,
       onError: (Object _) {},
     );
 
@@ -408,6 +408,31 @@ class TerminalSession extends ChangeNotifier {
         shell.origin != ShellOrigin.tmuxReattached) {
       shell.write(Uint8List.fromList(utf8.encode('$command\n')));
     }
+  }
+
+  final List<void Function(Uint8List bytes)> _outputListeners = [];
+
+  /// Tells [listener] every chunk of output from the shell — stdout and
+  /// stderr, interleaved as they arrive — before it is coalesced.
+  ///
+  /// Raw bytes, at the one point every byte passes: before the coalescer,
+  /// which may drop the oldest under a flood to keep the UI responsive, and
+  /// before decoding, so a listener can keep them exactly. The session's own
+  /// notices and a reattached tmux history are not output and do not come
+  /// through here. Session logging listens.
+  void addOutputListener(void Function(Uint8List bytes) listener) =>
+      _outputListeners.add(listener);
+
+  void removeOutputListener(void Function(Uint8List bytes) listener) =>
+      _outputListeners.remove(listener);
+
+  void _received(Uint8List bytes) {
+    if (_outputListeners.isNotEmpty) {
+      for (final listener in List.of(_outputListeners)) {
+        listener(bytes);
+      }
+    }
+    _coalescer.add(bytes);
   }
 
   /// Replaces this tab's buffer with the scrollback tmux kept for it.

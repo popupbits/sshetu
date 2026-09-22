@@ -21,6 +21,17 @@ import '../workspace_restore.dart';
 /// per process, however often the shell is rebuilt or remounted.
 class WorkspaceRestoreGate {
   bool attempted = false;
+
+  final Completer<void> _finished = Completer<void>();
+
+  /// Completes once this run's restore is over — reopened, declined, or
+  /// nothing to do — so work that must follow it (starting auto-start
+  /// tunnels at launch) never raises a dialog on top of it.
+  Future<void> get finished => _finished.future;
+
+  void markFinished() {
+    if (!_finished.isCompleted) _finished.complete();
+  }
 }
 
 final workspaceRestoreGateProvider = Provider<WorkspaceRestoreGate>(
@@ -57,7 +68,14 @@ class _WorkspaceRestoreListenerState
     final gate = ref.read(workspaceRestoreGateProvider);
     if (gate.attempted) return;
     gate.attempted = true;
+    try {
+      await _restoreOnce();
+    } finally {
+      gate.markFinished();
+    }
+  }
 
+  Future<void> _restoreOnce() async {
     final choice = ref.read(settingsControllerProvider).effectiveReopenTabs;
     if (choice == ReopenTabs.never) return;
 

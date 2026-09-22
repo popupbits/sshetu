@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../hosts/domain/ssh_host.dart';
 import '../hosts/hosts_controller.dart';
 import 'domain/tunnel.dart';
+import 'far_end_monitor.dart';
 import 'tunnels_controller.dart';
 import 'widgets/tunnel_tile.dart';
 
@@ -49,7 +50,10 @@ class TunnelsScreen extends ConsumerWidget {
 
     return tunnels.isEmpty
         ? _Empty(hasHosts: hosts.isNotEmpty)
-        : _TunnelList(tunnels: tunnels, hosts: hosts);
+        // Far ends are checked only while this list is on screen.
+        : FarEndWatcher(
+            child: _TunnelList(tunnels: tunnels, hosts: hosts),
+          );
   }
 }
 

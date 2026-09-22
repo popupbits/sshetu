@@ -48,7 +48,7 @@ void main() {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final sources = container.read(paletteSourcesProvider);
-    expect(sources, hasLength(6));
+    expect(sources, hasLength(8));
     expect(sources.toSet(), hasLength(sources.length));
   });
 }

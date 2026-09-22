@@ -11,6 +11,7 @@ import '../../core/util/launcher.dart';
 import '../../core/util/review_prompt.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/presentation/open_backup.dart';
+import '../session_log/widgets/session_log_tile.dart';
 import 'widgets/default_key_tile.dart';
 import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
@@ -18,9 +19,13 @@ import 'widgets/app_lock_tile.dart';
 import 'widgets/confirm_paste_tile.dart';
 import 'widgets/cursor_blink_tile.dart';
 import 'widgets/cursor_shape_tile.dart';
+import 'widgets/export_json_tile.dart';
+import 'widgets/import_json_tile.dart';
+import 'widgets/import_putty_tile.dart';
 import 'widgets/keep_alive_tile.dart';
 import '../../core/background/keep_alive_service.dart';
 import 'widgets/keep_sessions_tile.dart';
+import 'widgets/launch_tunnels_tile.dart';
 import 'widgets/reachability_tile.dart';
 import 'widgets/language_tile.dart';
 import 'widgets/scrollback_tile.dart';
@@ -73,6 +78,9 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
         const ConfirmPasteTile(),
         const KeepSessionsTile(),
         const ReopenTabsTile(),
+        const SessionLogTile(),
+        // Beside Reopen tabs: both decide what launching the app connects.
+        const LaunchTunnelsTile(),
         if (ref.watch(keepAliveSupportedProvider)) const KeepAliveTile(),
       ],
     ),
@@ -93,6 +101,10 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => openImport(context, ref),
         ),
+        // No lock-in: ways in from elsewhere, and a readable way out.
+        const ImportPuttyTile(),
+        const ImportJsonTile(),
+        const ExportJsonTile(),
         const ReachabilityTile(),
       ],
     ),

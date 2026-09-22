@@ -12,6 +12,10 @@ import '../../core/theme/tokens.dart';
 import '../../core/ui/views.dart';
 import '../hosts/widgets/open_key_setup.dart';
 import '../server_info/server_info_dock.dart';
+import '../session_log/session_log_actions.dart';
+import '../session_log/session_log_controller.dart';
+import '../session_log/widgets/session_log_dot.dart';
+import '../server_info/server_info_panel.dart';
 import '../snippets/open_snippets.dart';
 import '../../l10n/app_localizations.dart';
 import 'server_sessions.dart';
@@ -58,6 +62,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
     final theme = Theme.of(context);
     final sessions = ref.watch(sessionManagerProvider);
     final manager = ref.read(sessionManagerProvider.notifier);
+    final logs = ref.watch(sessionLogControllerProvider);
 
     // Follows the *active* session rather than the id this route was opened
     // with, so switching tabs in the strip changes what this screen shows
@@ -86,7 +91,19 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(session.title, style: theme.textTheme.titleMedium),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      session.title,
+                      style: theme.textTheme.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SessionLogDot(sessionId: session.id, leading: Spacing.sm),
+                ],
+              ),
               // The address under the name. With three sessions open on hosts
               // all called "prod", which machine you are typing into matters
               // more than the label you gave it.
@@ -137,8 +154,16 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
                   session,
                 ),
                 _MoreAction.serverInfo => openServerInfo(context, ref, session),
+                _MoreAction.ports => showServerInfoSheet(
+                  context,
+                  session,
+                  initialTab: ServerInfoPanel.portsTab,
+                ),
                 _MoreAction.keySetup => unawaited(
                   openKeySetup(context, ref, session.hostId),
+                ),
+                _MoreAction.log => unawaited(
+                  toggleSessionLog(context, ref, session),
                 ),
               },
               itemBuilder: (context) => [
@@ -161,6 +186,30 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
                   child: _MoreItem(
                     icon: PiconsRegular.gauge,
                     label: l10n.serverInfoTitle,
+                  ),
+                ),
+                // Logging, which the tab strip's menu also offers — but
+                // that strip is hidden with a single tab on a phone.
+                PopupMenuItem(
+                  key: const Key('terminal.log'),
+                  value: _MoreAction.log,
+                  child: _MoreItem(
+                    icon: logs.containsKey(session.id)
+                        ? PiconsRegular.stopCircle
+                        : PiconsRegular.record,
+                    label: logs.containsKey(session.id)
+                        ? l10n.sessionLogStop
+                        : l10n.sessionLogStartEllipsis,
+                  ),
+                ),
+                // What the server is listening on, each a tap from a
+                // forward to this phone.
+                PopupMenuItem(
+                  key: const Key('terminal.ports'),
+                  value: _MoreAction.ports,
+                  child: _MoreItem(
+                    icon: PiconsRegular.plugs,
+                    label: l10n.portsTitle,
                   ),
                 ),
                 // Offered only on a password session: this is the one screen
@@ -208,7 +257,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
   }
 }
 
-enum _MoreAction { runningSessions, serverInfo, keySetup }
+enum _MoreAction { runningSessions, serverInfo, ports, keySetup, log }
 
 /// An icon and a label, the shape of every row in the terminal's More menu.
 class _MoreItem extends StatelessWidget {

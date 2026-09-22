@@ -1,6 +1,7 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../core/db/migrations/migrations.dart';
+import '../../../core/db/upsert.dart';
 import '../../../core/secrets/secret_ref.dart';
 import '../../../core/secrets/secret_vault.dart';
 
@@ -66,9 +67,9 @@ class TransferPayload {
   /// v6 added `hosts.env_vars` (nullable) and `hosts.forward_agent` (NOT
   /// NULL DEFAULT 0) and did *not* raise it, deliberately: a v4 or v5 host
   /// row simply lacks both, inserts cleanly, and lands with no variables and
-  /// agent forwarding off. What that does mean is that applying an older
-  /// payload over a host that has them here resets them, which is "replace
-  /// by id, the sender wins" applied to a sender that never had either.
+  /// agent forwarding off. Over a host that already has them here, an older
+  /// payload leaves both as they are: rows are written by UPDATE, which sets
+  /// only the columns the sender sent.
   /// Dropping or renaming a column, or adding a NOT NULL one without a
   /// default, is the kind of change that must raise it.
   static const int oldestApplicableSchema = 4;
@@ -159,7 +160,7 @@ class TransferPayload {
 
   /// Writes this payload into [database] and [vault].
   ///
-  /// **Replaces by id**, in one transaction. A row that exists on both devices
+  /// **Writes by id**, in one transaction. A row that exists on both devices
   /// is the same row — the ids are the same because they came from the same
   /// place — so the sender's copy wins. That is the promise the sheet makes
   /// ("send these to that device"), and anything cleverer would be the
@@ -173,16 +174,42 @@ class TransferPayload {
     }
 
     await database.transaction((txn) async {
+      // Jump links are written after every host exists: a host can arrive
+      // ahead of the bastion it connects through.
+      final jumps = <String, Object?>{};
       for (final table in orderedTables) {
         // A table the sender's schema did not have arrives as an empty list,
         // which writes nothing: "none were sent", never "delete what is here".
         for (final row in tables[table] ?? const []) {
-          await txn.insert(
-            table,
-            row,
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
+          final id = row['id'];
+          if (id is! String) {
+            // Keyed by something other than an id (known hosts: hostname and
+            // port) and pointed at by nothing, so REPLACE is safe here.
+            await txn.insert(
+              table,
+              row,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+            continue;
+          }
+          // An UPDATE for a row both devices have, never REPLACE: its delete
+          // would cascade away this device's tunnels for the host, and trip
+          // ON DELETE RESTRICT for a bastion other hosts jump through.
+          final values = Map<String, Object?>.of(row);
+          if (table == 'hosts' && values['jump_host_id'] != null) {
+            jumps[id] = values['jump_host_id'];
+            values['jump_host_id'] = null;
+          }
+          await upsertRow(txn, table, values, id: id);
         }
+      }
+      for (final MapEntry(key: id, value: jump) in jumps.entries) {
+        await txn.update(
+          'hosts',
+          {'jump_host_id': jump},
+          where: 'id = ?',
+          whereArgs: [id],
+        );
       }
     });
 

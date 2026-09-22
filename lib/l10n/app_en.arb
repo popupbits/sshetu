@@ -161,6 +161,75 @@
   "terminalReconnect": "Reconnect",
   "terminalCloseTab": "Close tab",
   "terminalMoreActions": "More",
+  "sessionLogStartEllipsis": "Start logging…",
+  "sessionLogStop": "Stop logging",
+  "sessionLogKeyword": "log record save output",
+  "sessionLogStartTitle": "Log {session}",
+  "@sessionLogStartTitle": {
+    "placeholders": {
+      "session": {
+        "type": "String",
+        "example": "web-1"
+      }
+    }
+  },
+  "sessionLogStartAction": "Start logging",
+  "sessionLogFormat": "Log format",
+  "sessionLogFormatPlain": "Plain text",
+  "sessionLogFormatPlainHint": "Readable text, without colours or control codes",
+  "sessionLogFormatRaw": "Raw (with colours)",
+  "sessionLogFormatRawHint": "Exactly as received; replay it with cat",
+  "sessionLogFormatAsciicast": "asciicast (.cast)",
+  "sessionLogFormatAsciicastHint": "A timed recording; play it with asciinema",
+  "sessionLogPrivacyNote": "Everything the server prints is written to the file. What you type is not logged separately — the server echoes it back, so it appears only as shown on screen. Passwords typed at a prompt are not echoed, so they are not logged.",
+  "sessionLogStarted": "Logging to {file}",
+  "@sessionLogStarted": {
+    "placeholders": {
+      "file": {
+        "type": "String",
+        "example": "web-1-20260922-101500.log"
+      }
+    }
+  },
+  "sessionLogSaved": "Log saved: {file}",
+  "@sessionLogSaved": {
+    "placeholders": {
+      "file": {
+        "type": "String",
+        "example": "web-1-20260922-101500.log"
+      }
+    }
+  },
+  "sessionLogShare": "Share",
+  "sessionLogFailed": "Could not write the session log",
+  "sessionLogIndicator": "Logging to {file}",
+  "@sessionLogIndicator": {
+    "placeholders": {
+      "file": {
+        "type": "String",
+        "example": "web-1-20260922-101500.log"
+      }
+    }
+  },
+  "sessionLogLarge": "{file} is over 100 MB and still growing",
+  "@sessionLogLarge": {
+    "placeholders": {
+      "file": {
+        "type": "String",
+        "example": "web-1-20260922-101500.log"
+      }
+    }
+  },
+  "sessionLogMarkerDisconnected": "connection lost",
+  "sessionLogMarkerReconnected": "reconnected",
+  "sessionLogMarkerStopped": "logging stopped",
+  "sessionLogMarkerTabClosed": "tab closed",
+  "sessionLogFolder": "Session log folder",
+  "sessionLogFolderNone": "Not chosen — you are asked where to save each log",
+  "sessionLogFolderClear": "Clear folder",
+  "sessionLogAlways": "Always log new sessions",
+  "sessionLogAlwaysBody": "Every new terminal tab writes its output to a log file without asking.",
+  "sessionLogAlwaysNeedsFolder": "Choose a log folder first, so logs have somewhere to go without asking.",
   "terminalPaste": "Paste",
   "terminalCopy": "Copy",
   "sessionsEmptyTitle": "No open sessions",
@@ -526,6 +595,74 @@
   "tunnelStatusStarting": "Starting…",
   "tunnelStatusRunning": "Running",
   "tunnelStatusFailed": "Failed",
+  "tunnelFarEndListening": "Target listening",
+  "tunnelFarEndNotListening": "Nothing listening on target",
+  "tunnelFarEndHelp": "Checked from the server every 30 seconds while this screen is open.",
+  "portsTitle": "Ports on this server",
+  "portsTab": "Ports",
+  "portsLoading": "Looking for listening ports…",
+  "portsEmpty": "No listening ports found",
+  "portsEmptyBody": "Start a server on this machine and it shows up here within a few seconds. System services such as SSH and DNS are left out.",
+  "portsOfflineBody": "The list resumes when the session reconnects.",
+  "portsError": "Could not list this server's ports: {error}",
+  "@portsError": {
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "timed out"
+      }
+    }
+  },
+  "portsLoopbackOnly": "This server only",
+  "portsAllInterfaces": "All interfaces",
+  "portsForward": "Forward",
+  "portsForwardTooltip": "Forward a port on this device to port {port} on the server",
+  "@portsForwardTooltip": {
+    "placeholders": {
+      "port": {
+        "type": "int",
+        "example": "3000"
+      }
+    }
+  },
+  "portsForwardFailed": "Could not forward port {port}: {error}",
+  "@portsForwardFailed": {
+    "placeholders": {
+      "port": {
+        "type": "int",
+        "example": "3000"
+      },
+      "error": {
+        "type": "String",
+        "example": "Address in use"
+      }
+    }
+  },
+  "portsForwardActions": "Forward actions",
+  "portsOpenInBrowser": "Open in browser",
+  "portsCopyAddress": "Copy address",
+  "portsCopied": "Copied {address}",
+  "@portsCopied": {
+    "placeholders": {
+      "address": {
+        "type": "String",
+        "example": "localhost:3000"
+      }
+    }
+  },
+  "portsSaveAsTunnel": "Save as tunnel",
+  "portsSavedAsTunnel": "Saved as tunnel \"{label}\"",
+  "@portsSavedAsTunnel": {
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "node (3000)"
+      }
+    }
+  },
+  "portsStopForward": "Stop forward",
+  "settingsStartTunnelsAtLaunch": "Start auto-start tunnels when SSHetu opens",
+  "settingsStartTunnelsAtLaunchBody": "Tunnels set to start automatically connect as soon as the app opens, instead of waiting for a terminal to their server. SSHetu then connects to those servers without asking first.",
   "tunnelActiveConnections": "{count, plural, =1{1 active} other{{count} active}}",
   "@tunnelActiveConnections": {
     "placeholders": {
@@ -1757,5 +1894,94 @@
   "hostEditorEnvDuplicateName": "Already set above",
   "hostEditorEnvInvalidValue": "Cannot contain a line break",
   "hostEditorForwardAgent": "Forward SSH agent",
-  "hostEditorForwardAgentHelp": "Lets this server use your keys to sign in elsewhere while you're connected. Only enable it for servers you trust. If the server has AllowAgentForwarding disabled, the connection will fail."
+  "hostEditorForwardAgentHelp": "Lets this server use your keys to sign in elsewhere while you're connected. Only enable it for servers you trust. If the server has AllowAgentForwarding disabled, the connection will fail.",
+  "exportJsonTitle": "Export as JSON (no secrets)",
+  "exportJsonSubtitle": "A readable file of your hosts, tunnels and snippets for other tools. Keys and passwords are left out.",
+  "exportJsonBody": "Hosts, groups, tunnels, snippets, public keys and trusted host keys, in a documented format any tool can read. Importing it back into SSHetu loses nothing.",
+  "exportJsonNoSecrets": "Private keys, key passphrases and saved passwords are never included. To keep those too, save an encrypted backup instead.",
+  "exportJsonBackupInstead": "Encrypted backup…",
+  "exportJsonAction": "Export",
+  "exportJsonSaved": "Exported to {path}",
+  "@exportJsonSaved": {"placeholders": {"path": {"type": "String"}}},
+  "exportJsonShared": "Export ready to save.",
+  "exportJsonFailed": "Could not export: {error}",
+  "@exportJsonFailed": {"placeholders": {"error": {"type": "String"}}},
+  "importJsonTitle": "Import from JSON",
+  "importJsonSubtitle": "An SSHetu JSON export. You see what will change before anything is written.",
+  "importJsonNotJson": "This file is not JSON.",
+  "importJsonNotExport": "This is not an SSHetu export. Choose a file saved with Export as JSON.",
+  "importJsonNewer": "This export was written by a newer version of SSHetu (format version {version}; this build reads up to version {supported}). Update SSHetu and try again.",
+  "@importJsonNewer": {"placeholders": {"version": {"type": "int"}, "supported": {"type": "int"}}},
+  "importJsonInvalidVersion": "This export has no valid format version, so it cannot be read.",
+  "importJsonMalformed": "This export is damaged or was edited incorrectly: {field} is missing or invalid.",
+  "@importJsonMalformed": {"placeholders": {"field": {"type": "String"}}},
+  "importJsonReadFailed": "Could not read that file.",
+  "importJsonFrom": "From {name}",
+  "@importJsonFrom": {"placeholders": {"name": {"type": "String"}}},
+  "importJsonHostsNew": "{count, plural, =1{1 new host} other{{count} new hosts}}",
+  "@importJsonHostsNew": {"placeholders": {"count": {"type": "int"}}},
+  "importJsonHostsUpdated": "{count, plural, =1{1 saved host updated (same id)} other{{count} saved hosts updated (same id)}}",
+  "@importJsonHostsUpdated": {"placeholders": {"count": {"type": "int"}}},
+  "importJsonHostsUnchanged": "{count, plural, =1{1 host already up to date} other{{count} hosts already up to date}}",
+  "@importJsonHostsUnchanged": {"placeholders": {"count": {"type": "int"}}},
+  "importJsonConflicts": "{count, plural, =1{1 host matches a saved one by address} other{{count} hosts match saved ones by address}}",
+  "@importJsonConflicts": {"placeholders": {"count": {"type": "int"}}},
+  "importJsonConflictsBody": "Same user, host and port as a saved host, but a different id — probably the same server saved on two devices.",
+  "importJsonMerge": "Merge",
+  "importJsonAddAsNew": "Add as new",
+  "importJsonMergeHelp": "The saved host takes the file's settings. Its tunnels and saved password stay attached.",
+  "importJsonAddAsNewHelp": "The saved host is left as it is, and the file's is added as a second host.",
+  "importJsonConflictRow": "{incoming} → saved as {existing}",
+  "@importJsonConflictRow": {"placeholders": {"incoming": {"type": "String"}, "existing": {"type": "String"}}},
+  "importJsonAlso": "Also in this file",
+  "importJsonGroups": "Groups: {added} new, {updated} updated",
+  "@importJsonGroups": {"placeholders": {"added": {"type": "int"}, "updated": {"type": "int"}}},
+  "importJsonTunnels": "Tunnels: {count} to add or update",
+  "@importJsonTunnels": {"placeholders": {"count": {"type": "int"}}},
+  "importJsonSnippets": "Snippets: {added} new, {updated} updated",
+  "@importJsonSnippets": {"placeholders": {"added": {"type": "int"}, "updated": {"type": "int"}}},
+  "importJsonKnownHosts": "Trusted host keys: {count} new",
+  "@importJsonKnownHosts": {"placeholders": {"count": {"type": "int"}}},
+  "importJsonKnownHostsConflicting": "{count, plural, =1{1 trusted host key in the file differs from the one saved here and is left out. An import never replaces a trust decision.} other{{count} trusted host keys in the file differ from the ones saved here and are left out. An import never replaces a trust decision.}}",
+  "@importJsonKnownHostsConflicting": {"placeholders": {"count": {"type": "int"}}},
+  "importJsonMissingKeysTitle": "Keys to bring over",
+  "importJsonMissingKeysBody": "An export never contains private keys. These hosts are imported without their key until you bring it to this device — with an encrypted backup, Send to a device, or by pasting it under Keys — and choose it in the host.",
+  "importJsonMissingKeyHosts": "Used by: {hosts}",
+  "@importJsonMissingKeyHosts": {"placeholders": {"hosts": {"type": "String"}}},
+  "importJsonNothing": "Everything in this file is already on this device.",
+  "importJsonAction": "Import",
+  "importJsonDone": "Imported {hosts} hosts, {tunnels} tunnels and {snippets} snippets",
+  "@importJsonDone": {"placeholders": {"hosts": {"type": "int"}, "tunnels": {"type": "int"}, "snippets": {"type": "int"}}},
+  "puttyImportTitle": "Import from PuTTY",
+  "puttyImportSubtitleWindows": "Saved sessions from PuTTY on this PC, or a .reg file",
+  "puttyImportSubtitleFile": "From a .reg file of PuTTY sessions exported on Windows",
+  "puttyImportFile": "Import PuTTY .reg file",
+  "puttyChooseFile": "Choose .reg file…",
+  "puttyNoneFoundTitle": "No PuTTY sessions found",
+  "puttyNoneFoundBody": "This Windows account has no saved PuTTY sessions. You can choose a .reg file instead: on the PC that has them, export the key HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions with regedit.",
+  "puttyNoneInFile": "That file holds no PuTTY sessions.",
+  "puttyReadFailed": "Could not read PuTTY sessions: {error}",
+  "@puttyReadFailed": {"placeholders": {"error": {"type": "String"}}},
+  "puttySkippedProtocol": "Not SSH ({protocol}), so it is skipped",
+  "@puttySkippedProtocol": {"placeholders": {"protocol": {"type": "String"}}},
+  "puttySkippedNoHost": "No host name, so it is skipped",
+  "puttyAlreadySaved": "Already saved",
+  "puttyNoUsername": "No user name saved; {name} will be used",
+  "@puttyNoUsername": {"placeholders": {"name": {"type": "String"}}},
+  "puttyPpk": "Key not imported: {file}",
+  "@puttyPpk": {"placeholders": {"file": {"type": "String"}}},
+  "puttyProxy": "Proxy not imported: {proxy}",
+  "@puttyProxy": {"placeholders": {"proxy": {"type": "String"}}},
+  "puttyForwards": "{count, plural, =1{1 forward becomes a tunnel, off until you review it} other{{count} forwards become tunnels, off until you review them}}",
+  "@puttyForwards": {"placeholders": {"count": {"type": "int"}}},
+  "puttyInvalidForwards": "Forwards not understood: {list}",
+  "@puttyInvalidForwards": {"placeholders": {"list": {"type": "String"}}},
+  "puttyPpkTitle": "PuTTY keys (.ppk) can't be used directly",
+  "puttyPpkBody": "Convert each key with PuTTYgen: load the .ppk, then Conversions → Export OpenSSH key. Import the result under Keys and choose it in the host. Hosts that use a .ppk key: {hosts}",
+  "@puttyPpkBody": {"placeholders": {"hosts": {"type": "String"}}},
+  "puttyImportAction": "{count, plural, =0{Import} =1{Import 1 host} other{Import {count} hosts}}",
+  "@puttyImportAction": {"placeholders": {"count": {"type": "int"}}},
+  "puttyImportDone": "Imported {hosts} hosts and {tunnels} tunnels. Tunnels stay off until you review and start them.",
+  "@puttyImportDone": {"placeholders": {"hosts": {"type": "int"}, "tunnels": {"type": "int"}}},
+  "importMoreSources": "More ways to import"
 }

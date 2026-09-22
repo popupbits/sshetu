@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
+import '../../../core/db/upsert.dart';
 import '../../../core/secrets/secret_ref.dart';
 import '../../../core/secrets/secret_vault.dart';
 import '../domain/ssh_identity.dart';
@@ -54,11 +55,9 @@ class IdentityRepository {
     if (passphrase != null) {
       await vault.write(SecretRef.identityPassphrase(identity.id), passphrase);
     }
-    await database.insert(
-      _table,
-      _toRow(identity),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    // Not REPLACE: its delete would null `identity_id` on every host that
+    // uses this key (see [upsertRow]).
+    await upsertRow(database, _table, _toRow(identity), id: identity.id);
   }
 
   /// Whether the private key for [id] is actually present.

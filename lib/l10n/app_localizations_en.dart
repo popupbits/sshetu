@@ -392,6 +392,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String get terminalMoreActions => 'More';
 
   @override
+  String get sessionLogStartEllipsis => 'Start logging…';
+
+  @override
+  String get sessionLogStop => 'Stop logging';
+
+  @override
+  String get sessionLogKeyword => 'log record save output';
+
+  @override
+  String sessionLogStartTitle(String session) {
+    return 'Log $session';
+  }
+
+  @override
+  String get sessionLogStartAction => 'Start logging';
+
+  @override
+  String get sessionLogFormat => 'Log format';
+
+  @override
+  String get sessionLogFormatPlain => 'Plain text';
+
+  @override
+  String get sessionLogFormatPlainHint =>
+      'Readable text, without colours or control codes';
+
+  @override
+  String get sessionLogFormatRaw => 'Raw (with colours)';
+
+  @override
+  String get sessionLogFormatRawHint =>
+      'Exactly as received; replay it with cat';
+
+  @override
+  String get sessionLogFormatAsciicast => 'asciicast (.cast)';
+
+  @override
+  String get sessionLogFormatAsciicastHint =>
+      'A timed recording; play it with asciinema';
+
+  @override
+  String get sessionLogPrivacyNote =>
+      'Everything the server prints is written to the file. What you type is not logged separately — the server echoes it back, so it appears only as shown on screen. Passwords typed at a prompt are not echoed, so they are not logged.';
+
+  @override
+  String sessionLogStarted(String file) {
+    return 'Logging to $file';
+  }
+
+  @override
+  String sessionLogSaved(String file) {
+    return 'Log saved: $file';
+  }
+
+  @override
+  String get sessionLogShare => 'Share';
+
+  @override
+  String get sessionLogFailed => 'Could not write the session log';
+
+  @override
+  String sessionLogIndicator(String file) {
+    return 'Logging to $file';
+  }
+
+  @override
+  String sessionLogLarge(String file) {
+    return '$file is over 100 MB and still growing';
+  }
+
+  @override
+  String get sessionLogMarkerDisconnected => 'connection lost';
+
+  @override
+  String get sessionLogMarkerReconnected => 'reconnected';
+
+  @override
+  String get sessionLogMarkerStopped => 'logging stopped';
+
+  @override
+  String get sessionLogMarkerTabClosed => 'tab closed';
+
+  @override
+  String get sessionLogFolder => 'Session log folder';
+
+  @override
+  String get sessionLogFolderNone =>
+      'Not chosen — you are asked where to save each log';
+
+  @override
+  String get sessionLogFolderClear => 'Clear folder';
+
+  @override
+  String get sessionLogAlways => 'Always log new sessions';
+
+  @override
+  String get sessionLogAlwaysBody =>
+      'Every new terminal tab writes its output to a log file without asking.';
+
+  @override
+  String get sessionLogAlwaysNeedsFolder =>
+      'Choose a log folder first, so logs have somewhere to go without asking.';
+
+  @override
   String get terminalPaste => 'Paste';
 
   @override
@@ -1211,6 +1315,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tunnelStatusFailed => 'Failed';
+
+  @override
+  String get tunnelFarEndListening => 'Target listening';
+
+  @override
+  String get tunnelFarEndNotListening => 'Nothing listening on target';
+
+  @override
+  String get tunnelFarEndHelp =>
+      'Checked from the server every 30 seconds while this screen is open.';
+
+  @override
+  String get portsTitle => 'Ports on this server';
+
+  @override
+  String get portsTab => 'Ports';
+
+  @override
+  String get portsLoading => 'Looking for listening ports…';
+
+  @override
+  String get portsEmpty => 'No listening ports found';
+
+  @override
+  String get portsEmptyBody =>
+      'Start a server on this machine and it shows up here within a few seconds. System services such as SSH and DNS are left out.';
+
+  @override
+  String get portsOfflineBody =>
+      'The list resumes when the session reconnects.';
+
+  @override
+  String portsError(String error) {
+    return 'Could not list this server\'s ports: $error';
+  }
+
+  @override
+  String get portsLoopbackOnly => 'This server only';
+
+  @override
+  String get portsAllInterfaces => 'All interfaces';
+
+  @override
+  String get portsForward => 'Forward';
+
+  @override
+  String portsForwardTooltip(int port) {
+    return 'Forward a port on this device to port $port on the server';
+  }
+
+  @override
+  String portsForwardFailed(int port, String error) {
+    return 'Could not forward port $port: $error';
+  }
+
+  @override
+  String get portsForwardActions => 'Forward actions';
+
+  @override
+  String get portsOpenInBrowser => 'Open in browser';
+
+  @override
+  String get portsCopyAddress => 'Copy address';
+
+  @override
+  String portsCopied(String address) {
+    return 'Copied $address';
+  }
+
+  @override
+  String get portsSaveAsTunnel => 'Save as tunnel';
+
+  @override
+  String portsSavedAsTunnel(String label) {
+    return 'Saved as tunnel \"$label\"';
+  }
+
+  @override
+  String get portsStopForward => 'Stop forward';
+
+  @override
+  String get settingsStartTunnelsAtLaunch =>
+      'Start auto-start tunnels when SSHetu opens';
+
+  @override
+  String get settingsStartTunnelsAtLaunchBody =>
+      'Tunnels set to start automatically connect as soon as the app opens, instead of waiting for a terminal to their server. SSHetu then connects to those servers without asking first.';
 
   @override
   String tunnelActiveConnections(int count) {
@@ -3230,4 +3421,302 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get hostEditorForwardAgentHelp =>
       'Lets this server use your keys to sign in elsewhere while you\'re connected. Only enable it for servers you trust. If the server has AllowAgentForwarding disabled, the connection will fail.';
+
+  @override
+  String get exportJsonTitle => 'Export as JSON (no secrets)';
+
+  @override
+  String get exportJsonSubtitle =>
+      'A readable file of your hosts, tunnels and snippets for other tools. Keys and passwords are left out.';
+
+  @override
+  String get exportJsonBody =>
+      'Hosts, groups, tunnels, snippets, public keys and trusted host keys, in a documented format any tool can read. Importing it back into SSHetu loses nothing.';
+
+  @override
+  String get exportJsonNoSecrets =>
+      'Private keys, key passphrases and saved passwords are never included. To keep those too, save an encrypted backup instead.';
+
+  @override
+  String get exportJsonBackupInstead => 'Encrypted backup…';
+
+  @override
+  String get exportJsonAction => 'Export';
+
+  @override
+  String exportJsonSaved(String path) {
+    return 'Exported to $path';
+  }
+
+  @override
+  String get exportJsonShared => 'Export ready to save.';
+
+  @override
+  String exportJsonFailed(String error) {
+    return 'Could not export: $error';
+  }
+
+  @override
+  String get importJsonTitle => 'Import from JSON';
+
+  @override
+  String get importJsonSubtitle =>
+      'An SSHetu JSON export. You see what will change before anything is written.';
+
+  @override
+  String get importJsonNotJson => 'This file is not JSON.';
+
+  @override
+  String get importJsonNotExport =>
+      'This is not an SSHetu export. Choose a file saved with Export as JSON.';
+
+  @override
+  String importJsonNewer(int version, int supported) {
+    return 'This export was written by a newer version of SSHetu (format version $version; this build reads up to version $supported). Update SSHetu and try again.';
+  }
+
+  @override
+  String get importJsonInvalidVersion =>
+      'This export has no valid format version, so it cannot be read.';
+
+  @override
+  String importJsonMalformed(String field) {
+    return 'This export is damaged or was edited incorrectly: $field is missing or invalid.';
+  }
+
+  @override
+  String get importJsonReadFailed => 'Could not read that file.';
+
+  @override
+  String importJsonFrom(String name) {
+    return 'From $name';
+  }
+
+  @override
+  String importJsonHostsNew(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new hosts',
+      one: '1 new host',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importJsonHostsUpdated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved hosts updated (same id)',
+      one: '1 saved host updated (same id)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importJsonHostsUnchanged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hosts already up to date',
+      one: '1 host already up to date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importJsonConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hosts match saved ones by address',
+      one: '1 host matches a saved one by address',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importJsonConflictsBody =>
+      'Same user, host and port as a saved host, but a different id — probably the same server saved on two devices.';
+
+  @override
+  String get importJsonMerge => 'Merge';
+
+  @override
+  String get importJsonAddAsNew => 'Add as new';
+
+  @override
+  String get importJsonMergeHelp =>
+      'The saved host takes the file\'s settings. Its tunnels and saved password stay attached.';
+
+  @override
+  String get importJsonAddAsNewHelp =>
+      'The saved host is left as it is, and the file\'s is added as a second host.';
+
+  @override
+  String importJsonConflictRow(String incoming, String existing) {
+    return '$incoming → saved as $existing';
+  }
+
+  @override
+  String get importJsonAlso => 'Also in this file';
+
+  @override
+  String importJsonGroups(int added, int updated) {
+    return 'Groups: $added new, $updated updated';
+  }
+
+  @override
+  String importJsonTunnels(int count) {
+    return 'Tunnels: $count to add or update';
+  }
+
+  @override
+  String importJsonSnippets(int added, int updated) {
+    return 'Snippets: $added new, $updated updated';
+  }
+
+  @override
+  String importJsonKnownHosts(int count) {
+    return 'Trusted host keys: $count new';
+  }
+
+  @override
+  String importJsonKnownHostsConflicting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count trusted host keys in the file differ from the ones saved here and are left out. An import never replaces a trust decision.',
+      one: '1 trusted host key in the file differs from the one saved here and is left out. An import never replaces a trust decision.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importJsonMissingKeysTitle => 'Keys to bring over';
+
+  @override
+  String get importJsonMissingKeysBody =>
+      'An export never contains private keys. These hosts are imported without their key until you bring it to this device — with an encrypted backup, Send to a device, or by pasting it under Keys — and choose it in the host.';
+
+  @override
+  String importJsonMissingKeyHosts(String hosts) {
+    return 'Used by: $hosts';
+  }
+
+  @override
+  String get importJsonNothing =>
+      'Everything in this file is already on this device.';
+
+  @override
+  String get importJsonAction => 'Import';
+
+  @override
+  String importJsonDone(int hosts, int tunnels, int snippets) {
+    return 'Imported $hosts hosts, $tunnels tunnels and $snippets snippets';
+  }
+
+  @override
+  String get puttyImportTitle => 'Import from PuTTY';
+
+  @override
+  String get puttyImportSubtitleWindows =>
+      'Saved sessions from PuTTY on this PC, or a .reg file';
+
+  @override
+  String get puttyImportSubtitleFile =>
+      'From a .reg file of PuTTY sessions exported on Windows';
+
+  @override
+  String get puttyImportFile => 'Import PuTTY .reg file';
+
+  @override
+  String get puttyChooseFile => 'Choose .reg file…';
+
+  @override
+  String get puttyNoneFoundTitle => 'No PuTTY sessions found';
+
+  @override
+  String get puttyNoneFoundBody =>
+      'This Windows account has no saved PuTTY sessions. You can choose a .reg file instead: on the PC that has them, export the key HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions with regedit.';
+
+  @override
+  String get puttyNoneInFile => 'That file holds no PuTTY sessions.';
+
+  @override
+  String puttyReadFailed(String error) {
+    return 'Could not read PuTTY sessions: $error';
+  }
+
+  @override
+  String puttySkippedProtocol(String protocol) {
+    return 'Not SSH ($protocol), so it is skipped';
+  }
+
+  @override
+  String get puttySkippedNoHost => 'No host name, so it is skipped';
+
+  @override
+  String get puttyAlreadySaved => 'Already saved';
+
+  @override
+  String puttyNoUsername(String name) {
+    return 'No user name saved; $name will be used';
+  }
+
+  @override
+  String puttyPpk(String file) {
+    return 'Key not imported: $file';
+  }
+
+  @override
+  String puttyProxy(String proxy) {
+    return 'Proxy not imported: $proxy';
+  }
+
+  @override
+  String puttyForwards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count forwards become tunnels, off until you review them',
+      one: '1 forward becomes a tunnel, off until you review it',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String puttyInvalidForwards(String list) {
+    return 'Forwards not understood: $list';
+  }
+
+  @override
+  String get puttyPpkTitle => 'PuTTY keys (.ppk) can\'t be used directly';
+
+  @override
+  String puttyPpkBody(String hosts) {
+    return 'Convert each key with PuTTYgen: load the .ppk, then Conversions → Export OpenSSH key. Import the result under Keys and choose it in the host. Hosts that use a .ppk key: $hosts';
+  }
+
+  @override
+  String puttyImportAction(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count hosts',
+      one: 'Import 1 host',
+      zero: 'Import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String puttyImportDone(int hosts, int tunnels) {
+    return 'Imported $hosts hosts and $tunnels tunnels. Tunnels stay off until you review and start them.';
+  }
+
+  @override
+  String get importMoreSources => 'More ways to import';
 }

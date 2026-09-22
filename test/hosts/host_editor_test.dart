@@ -92,6 +92,15 @@ void main() {
   /// than fails.
   Future<List<Map<String, Object?>>> hosts(WidgetTester tester) async {
     late List<Map<String, Object?>> rows;
+    // A save is an UPDATE then, if nothing matched, an INSERT (see
+    // upsertRow). The step between them is a continuation in the fake zone,
+    // so it needs pumps between real turns to run before the rows are read.
+    for (var i = 0; i < 4; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
     await tester.runAsync(() async => rows = await database.raw.query('hosts'));
     return rows;
   }

@@ -102,6 +102,10 @@ class SqfliteKnownHostsStore implements KnownHostsStore {
     _cache.remove(_key(hostname, port));
   }
 
+  /// The row [key] is stored as, for a writer inside its own transaction.
+  /// Call [load] afterwards so the cache sees it.
+  static Map<String, Object?> rowOf(KnownHostKey key) => _toRow(key);
+
   static Map<String, Object?> _toRow(KnownHostKey key) => {
     'hostname': key.hostname,
     'port': key.port,

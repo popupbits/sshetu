@@ -17,6 +17,7 @@ import '../../features/sessions/session_manager.dart';
 import '../../features/sessions/session_shortcuts.dart';
 import '../../features/sessions/terminal_find_request.dart';
 import '../../features/sessions/workspace_pages.dart';
+import '../../features/session_log/session_log_actions.dart';
 import '../../features/snippets/open_snippets.dart';
 import '../../features/transfer/presentation/open_transfer.dart';
 import '../../l10n/app_localizations.dart';
@@ -218,6 +219,7 @@ class AppMenuBar extends ConsumerWidget {
               ],
             ),
             paneMenuGroup(context, ref),
+            sessionLogMenuGroup(context, ref),
           ],
         ),
         PlatformMenu(

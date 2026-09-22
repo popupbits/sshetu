@@ -72,6 +72,9 @@ class TunnelRepository {
     );
   }
 
+  /// The row [tunnel] is stored as, for a writer inside its own transaction.
+  static Map<String, Object?> rowOf(Tunnel tunnel) => _toRow(tunnel);
+
   static Map<String, Object?> _toRow(Tunnel tunnel) => {
     'id': tunnel.id,
     'host_id': tunnel.hostId,

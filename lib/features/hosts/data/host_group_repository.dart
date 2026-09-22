@@ -92,6 +92,9 @@ class HostGroupRepository {
     });
   }
 
+  /// The row [group] is stored as, for a writer inside its own transaction.
+  static Map<String, Object?> rowOf(HostGroup group) => _toRow(group);
+
   static Map<String, Object?> _toRow(HostGroup group) => {
     'id': group.id,
     'name': group.name,

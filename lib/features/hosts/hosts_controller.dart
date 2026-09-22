@@ -121,11 +121,16 @@ class HostsController {
 
   Future<void> save(SshHost host) async {
     await _ref.read(hostRepositoryProvider).save(host);
+    // The write can outlive whoever asked for it (a test that has already
+    // torn its container down); a disposed ref cannot invalidate, and there
+    // is nothing left to refresh.
+    if (!_ref.mounted) return;
     _ref.invalidate(hostsProvider);
   }
 
   Future<void> saveAll(List<SshHost> hosts) async {
     await _ref.read(hostRepositoryProvider).saveAll(hosts);
+    if (!_ref.mounted) return;
     _ref.invalidate(hostsProvider);
   }
 

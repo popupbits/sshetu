@@ -56,6 +56,9 @@ class SnippetRepository {
     );
   }
 
+  /// The row [snippet] is stored as, for a writer inside its own transaction.
+  static Map<String, Object?> rowOf(Snippet snippet) => _toRow(snippet);
+
   static Map<String, Object?> _toRow(Snippet snippet) => {
     'id': snippet.id,
     'label': snippet.label,

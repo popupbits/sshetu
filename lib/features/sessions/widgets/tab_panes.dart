@@ -6,6 +6,7 @@ import '../../../core/terminal/terminal_session.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../session_log/widgets/session_log_dot.dart';
 import '../pane_commands.dart';
 import '../pane_layouts.dart';
 import '../pane_tree.dart';
@@ -372,6 +373,7 @@ class _PaneHeader extends ConsumerWidget {
                 ),
               ),
             ),
+            SessionLogDot(sessionId: session.id, leading: Spacing.xs),
             if (status != null) ...[
               const SizedBox(width: Spacing.sm),
               Expanded(
