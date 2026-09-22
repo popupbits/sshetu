@@ -151,7 +151,77 @@ class SshConnection {
     await _states.close();
   }
 
+  /// Whether the server still answers, within [timeout].
+  ///
+  /// For the moments a socket is most likely to have died without anyone
+  /// noticing — the app coming back from the background, the phone changing
+  /// networks. A connection that does not answer is torn down on the spot
+  /// and reported as dropped, which is what lets a reconnect start now
+  /// rather than after TCP's own timeout, many minutes later.
+  Future<bool> probe({Duration timeout = const Duration(seconds: 5)}) async {
+    final current = _client;
+    if (current == null || current.isClosed) return false;
+    try {
+      await current.ping().timeout(timeout);
+      return true;
+    } on Object catch (e) {
+      _declareDead(current, e is TimeoutException ? null : e);
+      return false;
+    }
+  }
+
+  Timer? _watchdog;
+  bool _watchdogBusy = false;
+
+  /// Pings the server every keepalive interval and treats silence as a drop.
+  void _startWatchdog(SSHClient client) {
+    _watchdog?.cancel();
+    _watchdog = null;
+    final interval = target.keepaliveOrNull;
+    if (interval == null) return;
+    // Generous: a slow link is not a dead one. At least ten seconds, and
+    // never longer than the interval itself, so pings cannot pile up.
+    final timeout = interval < const Duration(seconds: 10)
+        ? const Duration(seconds: 10)
+        : interval;
+    _watchdog = Timer.periodic(interval, (_) async {
+      if (_watchdogBusy || !identical(_client, client)) return;
+      _watchdogBusy = true;
+      try {
+        await probe(timeout: timeout);
+      } finally {
+        _watchdogBusy = false;
+      }
+    });
+  }
+
+  /// Tears down [client] because it stopped answering, and says so.
+  void _declareDead(SSHClient client, Object? error) {
+    if (!identical(_client, client)) return;
+    _client = null;
+    _watchdog?.cancel();
+    _watchdog = null;
+    // Closing the client ends every channel on it, which is how the shell
+    // learns the link is gone.
+    unawaited(client.close().catchError((Object _) {}));
+    for (final hop in _chain.reversed) {
+      if (!hop.isClosed) unawaited(hop.close().catchError((Object _) {}));
+    }
+    _chain.clear();
+    if (_closed) return;
+    _emit(
+      SshConnectionState(
+        status: SshConnectionStatus.disconnected,
+        error: error == null
+            ? 'The server stopped responding.'
+            : _describe(error),
+      ),
+    );
+  }
+
   Future<void> _teardown() async {
+    _watchdog?.cancel();
+    _watchdog = null;
     final current = _client;
     _client = null;
     if (current != null && !current.isClosed) current.close();
@@ -189,6 +259,7 @@ class SshConnection {
       try {
         final client = await _connectOnce();
         _client = client;
+        _startWatchdog(client);
         _emit(const SshConnectionState(status: SshConnectionStatus.connected));
         return client;
       } on SshConnectionException catch (e) {
@@ -326,7 +397,12 @@ class SshConnection {
             KeyboardInteractivePrompt(prompt.promptText, echo: prompt.echo),
         ],
       ),
-      keepAliveInterval: hop.keepaliveOrNull,
+      // The final hop is watched by [_startWatchdog] instead: dartssh2's own
+      // keepalive ignores an unanswered ping, so a link that died silently —
+      // the normal fate of a phone's socket while it sleeps — would stay
+      // "connected" until TCP gave up, many minutes later. A bastion keeps
+      // dartssh2's, because the watchdog's ping travels through it anyway.
+      keepAliveInterval: identical(hop, target) ? null : hop.keepaliveOrNull,
       // Not [connectTimeout]: both of these can be waiting on a dialog.
       handshakeTimeout: interactiveTimeout,
       authTimeout: interactiveTimeout,
@@ -451,6 +527,8 @@ class SshConnection {
     // authenticated, or one already replaced by a reconnect, is not news.
     if (!identical(_client, client)) return;
     _client = null;
+    _watchdog?.cancel();
+    _watchdog = null;
     if (_closed) return;
     _emit(
       SshConnectionState(

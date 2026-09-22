@@ -128,6 +128,7 @@ void main() {
           'hosts',
           'known_hosts',
           'tunnels',
+          'snippets',
         }),
       );
     });
@@ -335,6 +336,84 @@ void main() {
         'fingerprint',
         'trusted_at',
       });
+    });
+  });
+
+  group('v5 — snippets', () {
+    test('a snippet needs only an id, a label, a body and times', () async {
+      await db.insert('snippets', {
+        'id': 's1',
+        'label': 'uptime',
+        'body': 'uptime',
+        'created_at': t,
+        'updated_at': t,
+      });
+      final row = (await db.query('snippets')).single;
+      expect(row['sort_order'], 0);
+      expect(row['description'], isNull);
+      expect(row['tags'], isNull);
+      expect(row['deleted_at'], isNull);
+    });
+
+    test('label and body are required', () async {
+      expect(
+        () => db.insert('snippets', {
+          'id': 's1',
+          'body': 'uptime',
+          'created_at': t,
+          'updated_at': t,
+        }),
+        throwsA(isA<DatabaseException>()),
+      );
+      expect(
+        () => db.insert('snippets', {
+          'id': 's2',
+          'label': 'uptime',
+          'created_at': t,
+          'updated_at': t,
+        }),
+        throwsA(isA<DatabaseException>()),
+      );
+    });
+
+    test('carries the tombstone column the other tables do', () async {
+      final columns = (await db.rawQuery('PRAGMA table_info(snippets)'))
+          .map((c) => c['name'])
+          .toSet();
+      expect(
+        columns,
+        containsAll({'id', 'label', 'body', 'deleted_at', 'sort_order'}),
+      );
+    });
+
+    test('upgrading a v4 database adds it and keeps what was there', () async {
+      // The path every existing install takes: v1–v4 already applied, then
+      // only v5 on the next launch.
+      // A separate instance: sqflite hands every open of the same path the
+      // same database, and `db` is already fully migrated.
+      final old = await databaseFactory.openDatabase(
+        inMemoryDatabasePath,
+        options: OpenDatabaseOptions(singleInstance: false),
+      );
+      addTearDown(old.close);
+      await old.execute('PRAGMA foreign_keys = ON');
+      Future<String> load(String path) async => File(path).readAsString();
+      for (final migration in migrations.take(4)) {
+        await migration.run(old, load);
+      }
+      await old.insert('hosts', {
+        'id': 'h1',
+        'label': 'h1',
+        'hostname': 'h1.example.com',
+        'username': 'root',
+        'created_at': t,
+        'updated_at': t,
+      });
+
+      await migrations[4].run(old, load);
+
+      expect(await old.query('hosts'), hasLength(1));
+      expect(await old.query('snippets'), isEmpty);
     });
   });
 

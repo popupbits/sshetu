@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/settings/settings_controller.dart';
+import '../snippets/open_snippets.dart';
 import 'session_manager.dart';
 import 'terminal_find_request.dart';
 import 'workspace_pages.dart';
@@ -92,6 +93,29 @@ SingleActivator findInTerminalActivator() =>
         shift: true,
       );
 
+/// Open the snippet picker on the active terminal.
+class OpenSnippetsIntent extends Intent {
+  const OpenSnippetsIntent();
+}
+
+/// **Cmd+Shift+S** on macOS; **Ctrl+Shift+S** elsewhere.
+///
+/// Shifted for the same reason find is: plain Ctrl+S is XOFF and readline's
+/// forward-search, and it has to keep reaching the shell. The shifted chord
+/// sends that same XOFF byte from a terminal that does not claim it — which
+/// freezes output and is never what anyone meant — so taking it costs the
+/// shell nothing. No default xterm2 binding and no menu item uses it; on
+/// macOS it would conventionally be Save As, which this app does not have.
+///
+/// Installed in the terminal view's own shortcut map too, like find, because
+/// a focused terminal answers every Ctrl chord before its ancestors do.
+SingleActivator snippetPickerActivator() => SingleActivator(
+  LogicalKeyboardKey.keyS,
+  meta: defaultTargetPlatform == TargetPlatform.macOS,
+  control: defaultTargetPlatform != TargetPlatform.macOS,
+  shift: true,
+);
+
 /// Wraps the app in the tab shortcuts every desktop application has.
 ///
 /// **The modifier is the platform's, not a guess.** `LogicalKeySet` with a hard
@@ -168,6 +192,7 @@ class SessionShortcuts extends ConsumerWidget {
     // Digit 0 is free: 1-9 pick a tab, and no tenth tab wants it.
     _primary(LogicalKeyboardKey.digit0): const TerminalFontSizeIntent.reset(),
     findInTerminalActivator(): const FindInTerminalIntent(),
+    snippetPickerActivator(): const OpenSnippetsIntent(),
   };
 
   @override
@@ -199,6 +224,12 @@ class SessionShortcuts extends ConsumerWidget {
           FindInTerminalIntent: CallbackAction<FindInTerminalIntent>(
             onInvoke: (_) {
               openTerminalFind(ref);
+              return null;
+            },
+          ),
+          OpenSnippetsIntent: CallbackAction<OpenSnippetsIntent>(
+            onInvoke: (_) {
+              openSnippetPicker(context, ref);
               return null;
             },
           ),

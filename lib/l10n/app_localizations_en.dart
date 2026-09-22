@@ -1340,6 +1340,181 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuTunnels => 'Tunnels';
 
   @override
+  String get menuSnippets => 'Snippets';
+
+  @override
+  String get menuSnippetsEllipsis => 'Snippets…';
+
+  @override
+  String get navSnippets => 'Snippets';
+
+  @override
+  String get snippetsAdd => 'New snippet';
+
+  @override
+  String get snippetsSearch => 'Search snippets';
+
+  @override
+  String get snippetsEmptyTitle => 'No snippets yet';
+
+  @override
+  String snippetsEmptyBody(String example) {
+    return 'Save commands you type often, then insert or run them in any session. Use $example for a value to fill in each time.';
+  }
+
+  @override
+  String get snippetsNoMatch => 'No snippets match';
+
+  @override
+  String get snippetsEdit => 'Edit';
+
+  @override
+  String get snippetsDelete => 'Delete';
+
+  @override
+  String get snippetsMore => 'More';
+
+  @override
+  String get snippetsDeleteConfirm => 'Delete this snippet?';
+
+  @override
+  String get snippetsNoSession =>
+      'Open a session first — a snippet needs somewhere to go.';
+
+  @override
+  String get snippetCopy => 'Copy command';
+
+  @override
+  String get snippetCopied => 'Command copied';
+
+  @override
+  String get snippetEditorNew => 'New snippet';
+
+  @override
+  String get snippetEditorEdit => 'Edit snippet';
+
+  @override
+  String get snippetEditorLabel => 'Name';
+
+  @override
+  String get snippetEditorLabelHint => 'Restart nginx';
+
+  @override
+  String get snippetEditorBody => 'Command';
+
+  @override
+  String snippetEditorBodyHint(String example) {
+    return 'For example: $example';
+  }
+
+  @override
+  String get snippetEditorDescription => 'Description (optional)';
+
+  @override
+  String get snippetEditorTags => 'Tags';
+
+  @override
+  String snippetEditorVariablesHint(
+    String ask,
+    String prefilled,
+    String builtins,
+  ) {
+    return '$ask asks for a value when used, $prefilled prefills it. $builtins come from the session.';
+  }
+
+  @override
+  String snippetEditorAsks(String names) {
+    return 'Asks for: $names';
+  }
+
+  @override
+  String snippetEditorFills(String names) {
+    return 'Fills in: $names';
+  }
+
+  @override
+  String snippetPickerTitle(String session) {
+    return 'Snippets · $session';
+  }
+
+  @override
+  String get snippetPickerManage => 'Manage snippets';
+
+  @override
+  String get snippetInsert => 'Insert';
+
+  @override
+  String get snippetRun => 'Run';
+
+  @override
+  String get snippetRunOn => 'Run on…';
+
+  @override
+  String get snippetRunOnTitle => 'Run on which sessions?';
+
+  @override
+  String get snippetRunOnAll => 'All connected sessions';
+
+  @override
+  String get snippetRunOnNotConnected => 'Not connected';
+
+  @override
+  String snippetRunOnConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Run in $count sessions',
+      one: 'Run in 1 session',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get snippetVariablesTitle => 'Fill in the snippet';
+
+  @override
+  String get snippetVariablesPreview => 'Will type';
+
+  @override
+  String get snippetNotConnected =>
+      'This session isn\'t connected, so nothing was typed.';
+
+  @override
+  String get snippetEmpty => 'That snippet has nothing to type.';
+
+  @override
+  String get snippetMultilineInsertRefused =>
+      'This shell would run each line as it arrived, so the snippet was not inserted. Use Run instead.';
+
+  @override
+  String snippetRanIn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ran in $count sessions',
+      one: 'Ran in 1 session',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String snippetRanInSome(int sent, int total) {
+    return 'Ran in $sent of $total sessions — the rest weren\'t connected';
+  }
+
+  @override
+  String transferOfferSnippets(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count snippets',
+      one: '1 snippet',
+      zero: 'No snippets',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get menuSettings => 'Settings';
 
   @override
@@ -1839,4 +2014,94 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsConfirmPasteBody =>
       'Ask before pasting text with a line break, which would run commands.';
+
+  @override
+  String get settingsKeepAlive => 'Keep connections alive in the background';
+
+  @override
+  String get settingsKeepAliveBody =>
+      'Shows a notification while sessions or tunnels are open, so Android does not close them when you switch apps.';
+
+  @override
+  String get keepAliveChannelName => 'Active connections';
+
+  @override
+  String get keepAliveTitle => 'Connections open';
+
+  @override
+  String keepAliveSessions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sessions',
+      one: '1 session',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String keepAliveTunnels(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tunnels',
+      one: '1 tunnel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String keepAliveSummaryBoth(String sessions, String tunnels) {
+    return '$sessions, $tunnels active';
+  }
+
+  @override
+  String keepAliveSummaryOne(String what) {
+    return '$what active';
+  }
+
+  @override
+  String get keepAliveDisconnectAll => 'Disconnect all';
+
+  @override
+  String get settingsKeepSessions => 'Keep sessions running on the server';
+
+  @override
+  String get settingsKeepSessionsBody =>
+      'Runs each tab inside tmux when the server has it, so a dropped connection picks up where it left off. Closing the tab ends it.';
+
+  @override
+  String get terminalNoticeConnectionLost => '[connection lost — reconnecting]';
+
+  @override
+  String get terminalNoticeSessionEnded => '[session ended]';
+
+  @override
+  String get terminalNoticeSessionClosed => '[session closed]';
+
+  @override
+  String get terminalNoticeReconnected => '[reconnected]';
+
+  @override
+  String get terminalNoticeTmuxUnavailable =>
+      '[tmux is not installed on this server, so this session will not survive a dropped connection]';
+
+  @override
+  String terminalReconnectWaiting(int seconds, int attempt) {
+    return 'Connection lost — reconnecting in $seconds s (attempt $attempt)';
+  }
+
+  @override
+  String terminalReconnectWaitingShort(int seconds) {
+    return 'Reconnecting in $seconds s';
+  }
+
+  @override
+  String get terminalReconnecting => 'Reconnecting…';
+
+  @override
+  String get terminalRetryNow => 'Retry now';
+
+  @override
+  String get terminalStopReconnecting => 'Stop';
 }

@@ -158,6 +158,45 @@ void main() {
     });
   });
 
+  group('the snippets shortcut', () {
+    SingleActivator snippetsOn(TargetPlatform platform) =>
+        activatorFor(shortcutsFor(platform), (i) => i is OpenSnippetsIntent)!
+            as SingleActivator;
+
+    test('is Command+Shift+S on macOS', () {
+      final activator = snippetsOn(TargetPlatform.macOS);
+      expect(activator.trigger, LogicalKeyboardKey.keyS);
+      expect(activator.meta, isTrue);
+      expect(activator.shift, isTrue);
+      expect(activator.control, isFalse);
+    });
+
+    for (final platform in [TargetPlatform.windows, TargetPlatform.linux]) {
+      test('is Control+Shift+S on $platform, leaving Ctrl+S to the shell', () {
+        final activator = snippetsOn(platform);
+        expect(activator.trigger, LogicalKeyboardKey.keyS);
+        expect(activator.control, isTrue);
+        expect(activator.shift, isTrue, reason: 'Ctrl+S is XOFF / i-search');
+        expect(activator.meta, isFalse);
+      });
+    }
+
+    test('collides with no other binding', () {
+      for (final platform in [TargetPlatform.macOS, TargetPlatform.windows]) {
+        final mine = snippetsOn(platform);
+        final clashes = shortcutsFor(platform).entries.where((e) {
+          final other = e.key as SingleActivator;
+          return e.value is! OpenSnippetsIntent &&
+              other.trigger == mine.trigger &&
+              other.control == mine.control &&
+              other.meta == mine.meta &&
+              other.shift == mine.shift;
+        });
+        expect(clashes, isEmpty, reason: '$platform');
+      }
+    });
+  });
+
   group('the terminal zoom shortcuts', () {
     Iterable<TerminalFontSizeIntent> zoomOn(TargetPlatform platform) =>
         shortcutsFor(platform).values.whereType<TerminalFontSizeIntent>();

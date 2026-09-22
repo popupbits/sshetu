@@ -150,6 +150,11 @@ class OutputCoalescer {
     // is pending, a post-frame callback can wait indefinitely.
     _watchdog ??= _scheduleWatchdog(watchdogDelay, () {
       _watchdog = null;
+      // Cleared here too: when the frame callback never comes — no binding,
+      // as in a headless session — leaving this set would route every later
+      // chunk into a `_schedule` that returns early, and output would stop
+      // for good after the first one that arrived mid-burst.
+      _scheduled = false;
       if (!_disposed) flush();
     });
   }

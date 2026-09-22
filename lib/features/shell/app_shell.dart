@@ -11,6 +11,9 @@ import '../../l10n/app_localizations.dart';
 import '../keys/widgets/generate_key_sheet.dart';
 import '../sessions/session_shortcuts.dart';
 import '../sessions/widgets/terminal_workspace.dart';
+import '../snippets/open_snippets.dart';
+import '../../core/router/navigation.dart';
+import '../../core/router/routes.dart';
 import '../../core/settings/settings_controller.dart';
 import 'workspace_layout.dart';
 
@@ -50,6 +53,7 @@ class AppShell extends ConsumerWidget {
         label: l10n.navTunnels,
         icon: PiconsRegular.arrowsLeftRight,
       ),
+      ShellDestination(label: l10n.navSnippets, icon: PiconsRegular.codeBlock),
       ShellDestination(label: l10n.navSettings, icon: PiconsRegular.gear),
     ];
   }
@@ -116,6 +120,30 @@ class AppShell extends ConsumerWidget {
           onPressed: () => openTunnelEditor(context, ref),
         ),
       ],
+      // Sessions, on a phone: the bottom bar has no room for Snippets (see
+      // [_compactBranches]), and this is the destination they belong to.
+      1 => [
+        IconButton(
+          key: const Key('shell.openSnippets'),
+          tooltip: l10n.navSnippets,
+          icon: Icon(PiconsRegular.codeBlock, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
+          onPressed: () => context.goTo(Routes.snippets),
+        ),
+      ],
+      // Snippets
+      4 => [
+        IconButton(
+          tooltip: l10n.snippetsAdd,
+          icon: Icon(PiconsRegular.plus, size: size),
+          visualDensity: dense ? VisualDensity.compact : null,
+          padding: dense ? EdgeInsets.zero : null,
+          constraints: constraints,
+          onPressed: () => openSnippetEditor(context, ref),
+        ),
+      ],
       _ => const [],
     };
   }
@@ -135,11 +163,27 @@ class AppShell extends ConsumerWidget {
   /// Sessions is missing on purpose. When the terminal is always on the right
   /// it is not a place you navigate to, so a rail entry leading to it would be
   /// a button that goes where you already are.
-  static const List<int> _wideBranches = [0, 2, 3, 4];
+  static const List<int> _wideBranches = [0, 2, 3, 4, 5];
 
   /// And when the window is too narrow to hold both, Sessions comes back —
   /// the terminal is a separate pane again, so it needs a way to be reached.
-  static const List<int> _narrowBranches = [0, 1, 2, 3, 4];
+  static const List<int> _narrowBranches = [0, 1, 2, 3, 4, 5];
+
+  /// The phone's bottom bar: every destination except Snippets.
+  ///
+  /// Six is one more than a bottom bar holds — Material caps it at five, and
+  /// at phone width six labels either truncate or vanish. Of the six,
+  /// Snippets is the one that is never a place you *start*: a snippet is
+  /// used from inside a terminal, where the terminal screen has its own
+  /// button for the picker, and is managed from Sessions, whose app bar
+  /// carries the way in. Keys and Tunnels are both configuration you go and
+  /// look at, so they keep their tabs.
+  static const List<int> _compactBranches = [0, 1, 2, 3, 5];
+
+  /// The branch a compact bar highlights for [index]: Snippets lights up
+  /// Sessions, which is where it is reached from.
+  static int _compactSelected(int index) =>
+      _compactBranches.contains(index) ? index : 1;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -297,13 +341,13 @@ class AppShell extends ConsumerWidget {
       // phone is the most valuable 48 points on the bar.
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: _go,
+        selectedIndex: _compactBranches.indexOf(_compactSelected(index)),
+        onDestinationSelected: (i) => _go(_compactBranches[i]),
         destinations: [
-          for (final destination in destinations)
+          for (final branch in _compactBranches)
             NavigationDestination(
-              icon: Icon(destination.icon),
-              label: destination.label,
+              icon: Icon(destinations[branch].icon),
+              label: destinations[branch].label,
             ),
         ],
       ),

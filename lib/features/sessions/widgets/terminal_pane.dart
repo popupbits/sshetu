@@ -15,12 +15,14 @@ import '../../../core/ui/keyboard_accessory.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/util/responsive.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../snippets/open_snippets.dart';
 import '../terminal_font_size.dart';
 import '../session_shortcuts.dart';
 import '../terminal_find_request.dart';
 import '../terminal_paste.dart';
 import 'terminal_find_bar.dart';
 import 'terminal_key_bar.dart';
+import 'pane_status_bar.dart';
 import 'terminal_link_sheet.dart';
 
 /// One session's terminal, with the chrome that belongs to the pane itself.
@@ -182,6 +184,7 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
           ? const TerminalPasteIntent()
           : entry.value,
     findInTerminalActivator(): const FindInTerminalIntent(),
+    snippetPickerActivator(): const OpenSnippetsIntent(),
   };
 
   /// Copy, paste, find, a link under the pointer, and the housekeeping.
@@ -234,6 +237,12 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
         label: l10n.terminalFind,
         icon: PiconsRegular.magnifyingGlass,
         onSelected: _openFind,
+      ),
+      MenuAction(
+        label: l10n.menuSnippets,
+        icon: PiconsRegular.codeBlock,
+        onSelected: () =>
+            openSnippetPicker(context, ref, sessionId: session.id),
       ),
       MenuAction(
         label: l10n.actionSelectAll,
@@ -289,6 +298,12 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
               return null;
             },
           ),
+          OpenSnippetsIntent: CallbackAction<OpenSnippetsIntent>(
+            onInvoke: (_) {
+              openSnippetPicker(context, ref, sessionId: session.id);
+              return null;
+            },
+          ),
         },
         child: Listener(
           onPointerDown: (event) => _lastPointerDown = event.position,
@@ -319,7 +334,7 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
       ),
       builder: (context, child) => Column(
         children: [
-          if (!session.isLive) _PaneStatusBar(session: session),
+          if (!session.isLive) PaneStatusBar(session: session),
           if (_findOpen)
             TerminalFindBar(key: _findBarKey, find: _find, onClose: _closeFind),
           Expanded(
@@ -338,85 +353,6 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-/// The bar drawn over a pane whose session is not live.
-///
-/// A terminal that cannot be typed into looks exactly like one that can — a
-/// prompt is a prompt whether it is live or a week old. This says which, in
-/// words, and carries the only way back. Nothing here reconnects on its own:
-/// a session the user ended should stay ended.
-class _PaneStatusBar extends StatelessWidget {
-  const _PaneStatusBar({required this.session});
-
-  final TerminalSession session;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final l10n = AppLocalizations.of(context);
-    final failed = session.status == TerminalSessionStatus.failed;
-
-    if (session.status == TerminalSessionStatus.connecting) {
-      return Container(
-        height: Chrome.statusBar,
-        color: scheme.surfaceContainerHigh,
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-        child: Row(
-          children: [
-            const SizedBox.square(
-              dimension: 10,
-              child: CircularProgressIndicator(strokeWidth: 1.5),
-            ),
-            const SizedBox(width: Spacing.sm),
-            Text(l10n.terminalConnecting, style: theme.textTheme.labelSmall),
-          ],
-        ),
-      );
-    }
-
-    return Material(
-      color: failed ? scheme.errorContainer : scheme.surfaceContainerHigh,
-      child: SizedBox(
-        height: Chrome.statusBar,
-        child: Row(
-          children: [
-            const SizedBox(width: Spacing.md),
-            Icon(
-              failed ? PiconsRegular.warning : PiconsRegular.plugsConnected,
-              size: 12,
-              color: failed ? scheme.onErrorContainer : scheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: Spacing.sm),
-            Expanded(
-              child: Text(
-                // The failure's own words when there are any: "connection
-                // refused" is worth more than "disconnected".
-                session.error ?? l10n.terminalSessionEnded,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: failed ? scheme.onErrorContainer : null,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: session.start,
-              style: TextButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(l10n.terminalReconnect),
-            ),
-            const SizedBox(width: Spacing.sm),
-          ],
-        ),
       ),
     );
   }

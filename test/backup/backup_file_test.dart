@@ -159,6 +159,33 @@ void main() {
     expect((header['kdf']! as Map)['salt'], isA<String>());
   });
 
+  test('snippets are backed up, counted inside, and restored', () async {
+    await seed();
+    await source.raw.insert('snippets', {
+      'id': 's1',
+      'label': 'Deploy',
+      'body': 'cd {{dir}} && git pull',
+      'tags': 'ops',
+      'created_at': now,
+      'updated_at': now,
+    });
+
+    final bytes = await backup();
+    // A label is as telling as a hostname; it must not be in the clear.
+    expect(utf8.decode(bytes), isNot(contains('git pull')));
+
+    final opened = await BackupFile.read(
+      bytes: bytes,
+      passphrase: 'correct horse battery staple',
+    );
+    expect(opened.contents.snippets, 1);
+
+    await opened.payload.apply(destination.raw, vault: destinationVault);
+    final rows = await destination.raw.query('snippets');
+    expect(rows.single['body'], 'cd {{dir}} && git pull');
+    expect(rows.single['tags'], 'ops');
+  });
+
   test('what it holds is known only after opening it', () async {
     await seed(hosts: 3);
 

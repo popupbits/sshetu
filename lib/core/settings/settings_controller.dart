@@ -31,6 +31,8 @@ const _keyDefaultIdentity = 'settings.defaultIdentity';
 const _keyTerminalFontSize = 'settings.terminalFontSize';
 const _keyRequireUnlock = 'settings.requireUnlock';
 const _keyConfirmMultilinePaste = 'settings.confirmMultilinePaste';
+const _keyKeepAlive = 'settings.keepAliveInBackground';
+const _keyKeepSessionsOnServer = 'settings.keepSessionsOnServer';
 
 /// Read persisted settings, falling back to defaults for anything missing or
 /// corrupt. Called from bootstrap before the first frame.
@@ -56,6 +58,9 @@ AppSettings readSettings(SharedPreferences preferences) {
     requireUnlock: _readBool(preferences, _keyRequireUnlock) ?? false,
     confirmMultilinePaste:
         _readBool(preferences, _keyConfirmMultilinePaste) ?? true,
+    keepAliveInBackground: _readBool(preferences, _keyKeepAlive) ?? true,
+    keepSessionsOnServer:
+        _readBool(preferences, _keyKeepSessionsOnServer) ?? true,
   );
 }
 
@@ -143,6 +148,22 @@ class SettingsController extends Notifier<AppSettings> {
     state.copyWith(confirmMultilinePaste: confirm),
     _keyConfirmMultilinePaste,
     confirm,
+  );
+
+  /// Android only: whether a foreground service keeps connections alive in
+  /// the background. Off stops a running one.
+  void setKeepAliveInBackground(bool enabled) => _update(
+    state.copyWith(keepAliveInBackground: enabled),
+    _keyKeepAlive,
+    enabled,
+  );
+
+  /// Whether new terminal tabs keep their shell running on the server, in
+  /// tmux. Tabs already open keep what they started with.
+  void setKeepSessionsOnServer(bool keep) => _update(
+    state.copyWith(keepSessionsOnServer: keep),
+    _keyKeepSessionsOnServer,
+    keep,
   );
 
   /// Sets how wide the desktop list panel should be.

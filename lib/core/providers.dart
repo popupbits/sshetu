@@ -13,6 +13,7 @@ import 'ssh/known_hosts_store.dart';
 import '../features/hosts/data/host_group_repository.dart';
 import '../features/hosts/data/host_repository.dart';
 import '../features/keys/data/identity_repository.dart';
+import '../features/snippets/data/snippet_repository.dart';
 import '../features/tunnels/data/tunnel_repository.dart';
 
 /// The one vault, and the only place a credential is ever stored.
@@ -108,4 +109,8 @@ final identityRepositoryProvider = Provider<IdentityRepository>(
 
 final tunnelRepositoryProvider = Provider<TunnelRepository>(
   (ref) => TunnelRepository(database: ref.watch(databaseProvider).raw),
+);
+
+final snippetRepositoryProvider = Provider<SnippetRepository>(
+  (ref) => SnippetRepository(database: ref.watch(databaseProvider).raw),
 );

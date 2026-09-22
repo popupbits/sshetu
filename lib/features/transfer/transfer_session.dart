@@ -54,6 +54,7 @@ class TransferOffer {
     required this.tunnels,
     required this.knownHosts,
     required this.includesSecrets,
+    this.snippets = 0,
   });
 
   final String deviceName;
@@ -61,6 +62,9 @@ class TransferOffer {
   final int identities;
   final int tunnels;
   final int knownHosts;
+
+  /// Zero from a sender that predates snippets, which never says.
+  final int snippets;
 
   /// Whether private keys and passwords are in this transfer. Shown to the
   /// user in as many words: it is the difference between copying a list of
@@ -261,6 +265,7 @@ class TransferSender {
             'identities': _payload.identityCount,
             'tunnels': _payload.tunnelCount,
             'knownHosts': _payload.knownHostCount,
+            'snippets': _payload.snippetCount,
             'secrets': _payload.includesSecrets,
           }),
         ),
@@ -389,6 +394,7 @@ class TransferReceiver {
         identities: offered['identities'] as int? ?? 0,
         tunnels: offered['tunnels'] as int? ?? 0,
         knownHosts: offered['knownHosts'] as int? ?? 0,
+        snippets: offered['snippets'] as int? ?? 0,
         includesSecrets: offered['secrets'] as bool? ?? false,
       ),
     );

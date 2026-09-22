@@ -210,6 +210,11 @@ class _BackupImportScreenState extends ConsumerState<BackupImportScreen> {
                       ),
                       style: theme.textTheme.bodyLarge,
                     ),
+                    if (contents.snippets > 0)
+                      Text(
+                        l10n.transferOfferSnippets(contents.snippets),
+                        style: theme.textTheme.bodyMedium,
+                      ),
                     const SizedBox(height: Spacing.sm),
                     Text(
                       contents.includesSecrets

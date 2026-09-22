@@ -9,6 +9,8 @@ import 'package:sshetu/features/hosts/domain/ssh_host.dart';
 import 'package:sshetu/features/hosts/hosts_controller.dart';
 import 'package:sshetu/features/keys/domain/ssh_identity.dart';
 import 'package:sshetu/features/keys/keys_controller.dart';
+import 'package:sshetu/features/snippets/domain/snippet.dart';
+import 'package:sshetu/features/snippets/snippets_controller.dart';
 import 'package:sshetu/features/tunnels/domain/tunnel.dart';
 import 'package:sshetu/features/tunnels/tunnels_controller.dart';
 
@@ -79,6 +81,17 @@ void main() {
     ),
   ];
 
+  final snippets = [
+    Snippet(
+      id: 's1',
+      label: 'restart every worker on the primary cluster and tail the log',
+      body: 'sudo systemctl restart worker@{{n:1}}.service && journalctl -fu worker',
+      tags: const ['production', 'workers', 'on-call'],
+      createdAt: now,
+      updatedAt: now,
+    ),
+  ];
+
   Future<void> pumpApp(WidgetTester tester, Size size) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -98,6 +111,7 @@ void main() {
           // has none of, and the screen renders its error state — which tests
           // the error view rather than the screen.
           tunnelsProvider.overrideWith((ref) => tunnels),
+          snippetsProvider.overrideWith((ref) => snippets),
         ],
         child: const SshetuApp(),
       ),
@@ -141,6 +155,35 @@ void main() {
       });
     });
   }
+
+  testWidgets('the bottom bar holds five destinations, and Snippets is '
+      'reached from Sessions', (tester) async {
+    // Six labels do not fit a 320pt bar. Snippets is the one left off it,
+    // because it is used from a terminal and managed from Sessions.
+    await pumpApp(tester, const Size(320, 568));
+
+    final bar = find.byType(NavigationBar);
+    expect(tester.widget<NavigationBar>(bar).destinations, hasLength(5));
+    expect(
+      find.descendant(of: bar, matching: find.text('Snippets')),
+      findsNothing,
+    );
+
+    await tester.tap(find.descendant(of: bar, matching: find.text('Sessions')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('shell.openSnippets')));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    // The app bar names it, and the bar keeps Sessions lit — where it is
+    // reached from.
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Snippets')),
+      findsOneWidget,
+    );
+    expect(tester.widget<NavigationBar>(bar).selectedIndex, 1);
+    expect(find.textContaining('restart every worker'), findsOneWidget);
+  });
 
   testWidgets('an error view survives a message longer than the screen', (
     tester,

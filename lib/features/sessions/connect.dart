@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/background/keep_alive_service.dart';
 import '../../core/error/error_logger.dart';
 import '../../core/providers.dart';
 import '../../core/router/navigation.dart';
@@ -112,6 +113,8 @@ Future<void> connectToHost(
   if (session.status == TerminalSessionStatus.failed) {
     context.toast(session.error ?? 'Could not connect');
   } else {
+    // Only now, with every dialog of the handshake behind us (Android only).
+    unawaited(ref.read(keepAliveControllerProvider).askForNotificationsOnce());
     // Fire-and-forget: this reuses the connection that just succeeded, so it
     // raises no dialog of its own (the host key is already trusted, the
     // credential already worked) and must not hold up navigating to the

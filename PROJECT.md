@@ -534,6 +534,61 @@ run until someone clicks *More info → Run anyway*. Fixing that needs an OV or
 EV code-signing certificate, the same shape of problem as notarising the dmg,
 and the script says so rather than pretending otherwise.
 
+## 12c. Keeping connections alive on Android
+
+Android freezes or kills a backgrounded app within minutes, and every SSH
+socket goes with it. While any session or tunnel is open, the app runs a
+foreground service (`android/.../KeepAliveService.kt`) with a notification in
+the "Active connections" channel — "2 sessions, 1 tunnel active", tap to open,
+**Disconnect all** to close everything. The service does no networking: the
+sockets stay in the Dart isolate, and the service only keeps the process alive
+and in the foreground, holding a `PARTIAL_WAKE_LOCK` so the isolate keeps
+running with the screen off. `core/background/keep_alive_service.dart` starts
+it at the first connection, updates it as counts change and stops it at zero.
+Settings → Terminal → *Keep connections alive in the background* (Android
+only, on by default) turns it off. `POST_NOTIFICATIONS` is asked for at the
+first connection, never at launch; declined, the service still runs.
+
+Limits worth knowing: swiping the app out of Recents destroys the Flutter
+engine and every session with it, so the service stops too. Vendor battery
+managers (Xiaomi, Huawei, some Samsung modes) can still kill a foreground
+service; that is outside what an app can fix. iOS has no equivalent — nothing
+keeps a socket open once the app is suspended — so iOS relies on reconnect.
+
+**Service type: `specialUse`, not `dataSync`.** `dataSync` is for bounded
+transfers (upload, download, backup) and Android 15 caps it at six hours in
+24; an interactive shell is neither bounded nor a transfer. `specialUse` fits,
+has no time cap, and needs the manifest subtype property plus a Play Console
+declaration. Play also watches *excessive partial wake locks* in Android
+vitals — check it after the first release that ships this.
+
+### Play Console declaration (App content → Foreground service permissions)
+
+Select `FOREGROUND_SERVICE_SPECIAL_USE`, enter the use case manually, and use:
+
+> **Description.** SSHetu is an SSH client. When the user opens an interactive
+> terminal session or starts an SSH port forward to a server, the app starts a
+> special-use foreground service that keeps those user-initiated connections
+> open while the user switches to another app — for example to copy a command
+> from a browser or answer a message mid-session. The service does no work of
+> its own; it keeps the process alive so the open SSH connections are not
+> dropped. It shows a persistent notification listing what is connected, with
+> a "Disconnect all" action, runs only while at least one user-opened
+> connection is active, and stops as soon as the last one closes. It can be
+> turned off in Settings.
+>
+> **User impact if deferred or interrupted.** The user's live SSH sessions and
+> port forwards are disconnected. Any command running interactively in the
+> session is lost or killed on the server, unsent input is lost, and the user
+> has to reconnect and re-authenticate. It cannot be deferred: the connection
+> exists only while the user is using it, and no other API keeps an
+> interactive TCP session open in the background.
+
+The declaration also asks for **a video**: record the app connecting to a
+server, switching to another app, the notification, returning to the still-live
+session, and tapping *Disconnect all*. Store submission is the owner's; this is
+the text, not a submission.
+
 ## 13. Tooling — use it when it is there
 
 Prefer a real tool over shelling out by hand. Each of these is optional: check

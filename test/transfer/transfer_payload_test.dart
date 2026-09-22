@@ -256,6 +256,120 @@ void main() {
     );
   });
 
+  group('snippets', () {
+    Future<void> seedSnippets() async {
+      await source.raw.insert('snippets', {
+        'id': 's1',
+        'label': 'Tail logs',
+        'body': 'cd {{dir:/var/log}}\ntail -f syslog',
+        'description': 'follow it',
+        'tags': 'logs,ops',
+        'sort_order': 2,
+        'created_at': now,
+        'updated_at': now,
+      });
+      await source.raw.insert('snippets', {
+        'id': 's-deleted',
+        'label': 'gone',
+        'body': 'true',
+        'created_at': now,
+        'updated_at': now,
+        'deleted_at': now,
+      });
+    }
+
+    test('travel with every column, and tombstones stay behind', () async {
+      await seed();
+      await seedSnippets();
+
+      final payload = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      expect(payload.snippetCount, 1);
+
+      // Through JSON, the way it actually crosses.
+      await TransferPayload.fromJson(payload.toJson())
+          .apply(destination.raw, vault: destinationVault);
+
+      final rows = await destination.raw.query('snippets');
+      expect(rows, hasLength(1));
+      expect(rows.single, {
+        'id': 's1',
+        'label': 'Tail logs',
+        'body': 'cd {{dir:/var/log}}\ntail -f syslog',
+        'description': 'follow it',
+        'tags': 'logs,ops',
+        'sort_order': 2,
+        'created_at': now,
+        'updated_at': now,
+        'deleted_at': null,
+      });
+    });
+
+    test('replace by id, like every other row', () async {
+      await seedSnippets();
+      await destination.raw.insert('snippets', {
+        'id': 's1',
+        'label': 'older copy',
+        'body': 'ls',
+        'created_at': now,
+        'updated_at': now,
+      });
+
+      await (await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      )).apply(destination.raw, vault: destinationVault);
+
+      final rows = await destination.raw.query('snippets');
+      expect(rows.single['label'], 'Tail logs');
+    });
+
+    test('a payload from before snippets still applies', () async {
+      // A v4 backup has no snippets table at all. Refusing it would strand
+      // every backup written before this update.
+      await seed();
+      final current = await TransferPayload.read(
+        source.raw,
+        includeSecrets: false,
+      );
+      final json = current.toJson();
+      final tables = Map<String, Object?>.from(json['tables']! as Map)
+        ..remove('snippets');
+      final fromV4 = TransferPayload.fromJson({
+        ...json,
+        'schema': 4,
+        'tables': tables,
+      });
+
+      await destination.raw.insert('snippets', {
+        'id': 'mine',
+        'label': 'already here',
+        'body': 'uptime',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await fromV4.apply(destination.raw, vault: destinationVault);
+
+      expect(await destination.raw.query('hosts'), hasLength(1));
+      // "No snippets sent" is not "delete the snippets that are here".
+      expect(await destination.raw.query('snippets'), hasLength(1));
+    });
+
+    test('a payload older than transfer itself is refused', () {
+      final ancient = TransferPayload(
+        schemaVersion: TransferPayload.oldestApplicableSchema - 1,
+        tables: const {},
+        secrets: const {},
+      );
+      expect(
+        () => ancient.apply(destination.raw, vault: destinationVault),
+        throwsA(isA<TransferPayloadException>()),
+      );
+    });
+  });
+
   test('the payload survives JSON, which is how it travels', () async {
     await seed();
     final original = await (await TransferPayload.read(

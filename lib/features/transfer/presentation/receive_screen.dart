@@ -153,6 +153,7 @@ class _TransferReceiveScreenState extends ConsumerState<TransferReceiveScreen> {
             Text(l10n.transferOfferKeys(offer.identities)),
             Text(l10n.transferOfferTunnels(offer.tunnels)),
             Text(l10n.transferOfferTrusted(offer.knownHosts)),
+            Text(l10n.transferOfferSnippets(offer.snippets)),
             const SizedBox(height: Spacing.md),
             // The line that matters. Coloured and iconned because it is the
             // difference between copying a list of addresses and copying the

@@ -52,6 +52,17 @@ abstract final class Routes {
   /// section that already knows which one.
   static String tunnelNewFor(String hostId) => '$tunnelNew?host=$hostId';
 
+  /// Saved commands.
+  static const String snippets = '/snippets';
+
+  /// Add a snippet.
+  static const String snippetNew = '/snippets/new';
+
+  /// Edit the snippet with this id.
+  static const String snippetEdit = '/snippets/edit';
+
+  static String snippetEditFor(String id) => '$snippetEdit/$id';
+
   /// The SFTP browser for one session's connection.
   static const String files = '/files';
 

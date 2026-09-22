@@ -2404,6 +2404,268 @@ abstract class AppLocalizations {
   /// **'Tunnels'**
   String get menuTunnels;
 
+  /// No description provided for @menuSnippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Snippets'**
+  String get menuSnippets;
+
+  /// No description provided for @menuSnippetsEllipsis.
+  ///
+  /// In en, this message translates to:
+  /// **'Snippets…'**
+  String get menuSnippetsEllipsis;
+
+  /// No description provided for @navSnippets.
+  ///
+  /// In en, this message translates to:
+  /// **'Snippets'**
+  String get navSnippets;
+
+  /// No description provided for @snippetsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'New snippet'**
+  String get snippetsAdd;
+
+  /// No description provided for @snippetsSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search snippets'**
+  String get snippetsSearch;
+
+  /// No description provided for @snippetsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No snippets yet'**
+  String get snippetsEmptyTitle;
+
+  /// No description provided for @snippetsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Save commands you type often, then insert or run them in any session. Use {example} for a value to fill in each time.'**
+  String snippetsEmptyBody(String example);
+
+  /// No description provided for @snippetsNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No snippets match'**
+  String get snippetsNoMatch;
+
+  /// No description provided for @snippetsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get snippetsEdit;
+
+  /// No description provided for @snippetsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get snippetsDelete;
+
+  /// No description provided for @snippetsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get snippetsMore;
+
+  /// No description provided for @snippetsDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this snippet?'**
+  String get snippetsDeleteConfirm;
+
+  /// No description provided for @snippetsNoSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a session first — a snippet needs somewhere to go.'**
+  String get snippetsNoSession;
+
+  /// No description provided for @snippetCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy command'**
+  String get snippetCopy;
+
+  /// No description provided for @snippetCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Command copied'**
+  String get snippetCopied;
+
+  /// No description provided for @snippetEditorNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New snippet'**
+  String get snippetEditorNew;
+
+  /// No description provided for @snippetEditorEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit snippet'**
+  String get snippetEditorEdit;
+
+  /// No description provided for @snippetEditorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get snippetEditorLabel;
+
+  /// No description provided for @snippetEditorLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart nginx'**
+  String get snippetEditorLabelHint;
+
+  /// No description provided for @snippetEditorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Command'**
+  String get snippetEditorBody;
+
+  /// No description provided for @snippetEditorBodyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: {example}'**
+  String snippetEditorBodyHint(String example);
+
+  /// No description provided for @snippetEditorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get snippetEditorDescription;
+
+  /// No description provided for @snippetEditorTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get snippetEditorTags;
+
+  /// Explains placeholder syntax; the placeholders are literal examples of that syntax
+  ///
+  /// In en, this message translates to:
+  /// **'{ask} asks for a value when used, {prefilled} prefills it. {builtins} come from the session.'**
+  String snippetEditorVariablesHint(
+    String ask,
+    String prefilled,
+    String builtins,
+  );
+
+  /// No description provided for @snippetEditorAsks.
+  ///
+  /// In en, this message translates to:
+  /// **'Asks for: {names}'**
+  String snippetEditorAsks(String names);
+
+  /// No description provided for @snippetEditorFills.
+  ///
+  /// In en, this message translates to:
+  /// **'Fills in: {names}'**
+  String snippetEditorFills(String names);
+
+  /// Heading of the snippet picker, naming the session the snippet will be typed into
+  ///
+  /// In en, this message translates to:
+  /// **'Snippets · {session}'**
+  String snippetPickerTitle(String session);
+
+  /// No description provided for @snippetPickerManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage snippets'**
+  String get snippetPickerManage;
+
+  /// No description provided for @snippetInsert.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert'**
+  String get snippetInsert;
+
+  /// No description provided for @snippetRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get snippetRun;
+
+  /// No description provided for @snippetRunOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Run on…'**
+  String get snippetRunOn;
+
+  /// No description provided for @snippetRunOnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run on which sessions?'**
+  String get snippetRunOnTitle;
+
+  /// No description provided for @snippetRunOnAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All connected sessions'**
+  String get snippetRunOnAll;
+
+  /// No description provided for @snippetRunOnNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get snippetRunOnNotConnected;
+
+  /// No description provided for @snippetRunOnConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Run in 1 session} other{Run in {count} sessions}}'**
+  String snippetRunOnConfirm(int count);
+
+  /// No description provided for @snippetVariablesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the snippet'**
+  String get snippetVariablesTitle;
+
+  /// No description provided for @snippetVariablesPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Will type'**
+  String get snippetVariablesPreview;
+
+  /// No description provided for @snippetNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'This session isn\'t connected, so nothing was typed.'**
+  String get snippetNotConnected;
+
+  /// No description provided for @snippetEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'That snippet has nothing to type.'**
+  String get snippetEmpty;
+
+  /// No description provided for @snippetMultilineInsertRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'This shell would run each line as it arrived, so the snippet was not inserted. Use Run instead.'**
+  String get snippetMultilineInsertRefused;
+
+  /// No description provided for @snippetRanIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Ran in 1 session} other{Ran in {count} sessions}}'**
+  String snippetRanIn(int count);
+
+  /// No description provided for @snippetRanInSome.
+  ///
+  /// In en, this message translates to:
+  /// **'Ran in {sent} of {total} sessions — the rest weren\'t connected'**
+  String snippetRanInSome(int sent, int total);
+
+  /// No description provided for @transferOfferSnippets.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No snippets} =1{1 snippet} other{{count} snippets}}'**
+  String transferOfferSnippets(int count);
+
   /// No description provided for @menuSettings.
   ///
   /// In en, this message translates to:
@@ -3237,6 +3499,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask before pasting text with a line break, which would run commands.'**
   String get settingsConfirmPasteBody;
+
+  /// No description provided for @settingsKeepAlive.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep connections alive in the background'**
+  String get settingsKeepAlive;
+
+  /// No description provided for @settingsKeepAliveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows a notification while sessions or tunnels are open, so Android does not close them when you switch apps.'**
+  String get settingsKeepAliveBody;
+
+  /// Android notification channel name, shown in the system's notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Active connections'**
+  String get keepAliveChannelName;
+
+  /// No description provided for @keepAliveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections open'**
+  String get keepAliveTitle;
+
+  /// No description provided for @keepAliveSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 session} other{{count} sessions}}'**
+  String keepAliveSessions(int count);
+
+  /// No description provided for @keepAliveTunnels.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 tunnel} other{{count} tunnels}}'**
+  String keepAliveTunnels(int count);
+
+  /// Notification text, e.g. '2 sessions, 1 tunnel active'
+  ///
+  /// In en, this message translates to:
+  /// **'{sessions}, {tunnels} active'**
+  String keepAliveSummaryBoth(String sessions, String tunnels);
+
+  /// Notification text when only sessions or only tunnels are open, e.g. '1 session active'
+  ///
+  /// In en, this message translates to:
+  /// **'{what} active'**
+  String keepAliveSummaryOne(String what);
+
+  /// No description provided for @keepAliveDisconnectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect all'**
+  String get keepAliveDisconnectAll;
+
+  /// No description provided for @settingsKeepSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep sessions running on the server'**
+  String get settingsKeepSessions;
+
+  /// No description provided for @settingsKeepSessionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs each tab inside tmux when the server has it, so a dropped connection picks up where it left off. Closing the tab ends it.'**
+  String get settingsKeepSessionsBody;
+
+  /// No description provided for @terminalNoticeConnectionLost.
+  ///
+  /// In en, this message translates to:
+  /// **'[connection lost — reconnecting]'**
+  String get terminalNoticeConnectionLost;
+
+  /// No description provided for @terminalNoticeSessionEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'[session ended]'**
+  String get terminalNoticeSessionEnded;
+
+  /// No description provided for @terminalNoticeSessionClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'[session closed]'**
+  String get terminalNoticeSessionClosed;
+
+  /// No description provided for @terminalNoticeReconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'[reconnected]'**
+  String get terminalNoticeReconnected;
+
+  /// No description provided for @terminalNoticeTmuxUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'[tmux is not installed on this server, so this session will not survive a dropped connection]'**
+  String get terminalNoticeTmuxUnavailable;
+
+  /// No description provided for @terminalReconnectWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost — reconnecting in {seconds} s (attempt {attempt})'**
+  String terminalReconnectWaiting(int seconds, int attempt);
+
+  /// No description provided for @terminalReconnectWaitingShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting in {seconds} s'**
+  String terminalReconnectWaitingShort(int seconds);
+
+  /// No description provided for @terminalReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting…'**
+  String get terminalReconnecting;
+
+  /// No description provided for @terminalRetryNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry now'**
+  String get terminalRetryNow;
+
+  /// No description provided for @terminalStopReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get terminalStopReconnecting;
 }
 
 class _AppLocalizationsDelegate

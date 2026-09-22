@@ -48,7 +48,21 @@ class TransferPayload {
     'hosts',
     'tunnels',
     'known_hosts',
+    // References nothing, so its place in the order is free.
+    'snippets',
   ];
+
+  /// The oldest schema a payload may come from and still be applied.
+  ///
+  /// A schema step that only *adds* a table leaves every carried row valid:
+  /// a v4 payload simply has no `snippets`, and applying it writes the tables
+  /// it does have. Refusing it would strand every backup written before the
+  /// update — a backup is read years after it is made, by definition on a
+  /// newer build. v4 is where transfer began, so no older payload exists.
+  ///
+  /// A migration that changes a carried table's columns must raise this to
+  /// its own version, and say why here.
+  static const int oldestApplicableSchema = 4;
 
   final int schemaVersion;
 
@@ -71,6 +85,12 @@ class TransferPayload {
   int get identityCount => tables['identities']?.length ?? 0;
   int get tunnelCount => tables['tunnels']?.length ?? 0;
   int get knownHostCount => tables['known_hosts']?.length ?? 0;
+  int get snippetCount => tables['snippets']?.length ?? 0;
+
+  /// Whether this build can apply a payload written at [schema]: anything
+  /// from [oldestApplicableSchema] up to its own version, never newer.
+  static bool canApply(int schema) =>
+      schema >= oldestApplicableSchema && schema <= kSchemaVersion;
 
   /// Reads everything this device would send.
   ///
@@ -136,7 +156,7 @@ class TransferPayload {
   /// ("send these to that device"), and anything cleverer would be the
   /// merge logic this design exists to avoid.
   Future<void> apply(Database database, {required SecretVault vault}) async {
-    if (schemaVersion != kSchemaVersion) {
+    if (!canApply(schemaVersion)) {
       throw TransferPayloadException(
         'The other device is on database version $schemaVersion and this one '
         'is on $kSchemaVersion. Update SSHetu on both, then try again.',
@@ -145,6 +165,8 @@ class TransferPayload {
 
     await database.transaction((txn) async {
       for (final table in orderedTables) {
+        // A table the sender's schema did not have arrives as an empty list,
+        // which writes nothing: "none were sent", never "delete what is here".
         for (final row in tables[table] ?? const []) {
           await txn.insert(
             table,

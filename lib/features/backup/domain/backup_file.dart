@@ -31,12 +31,16 @@ class BackupContents {
     required this.includesSecrets,
     required this.created,
     required this.appVersion,
+    this.snippets = 0,
   });
 
   final int hosts;
   final int identities;
   final int tunnels;
   final int knownHosts;
+
+  /// Zero in a backup written before snippets existed.
+  final int snippets;
 
   /// Whether private keys and passwords are inside. The difference between a
   /// list of addresses and the keys to every one of them.
@@ -118,6 +122,7 @@ class BackupFile {
         'identities': payload.identityCount,
         'tunnels': payload.tunnelCount,
         'knownHosts': payload.knownHostCount,
+        'snippets': payload.snippetCount,
       },
       'secrets': payload.secrets.isNotEmpty,
       'header': _fingerprint(header),
@@ -196,6 +201,7 @@ class BackupFile {
         identities: _count(counts, 'identities'),
         tunnels: _count(counts, 'tunnels'),
         knownHosts: _count(counts, 'knownHosts'),
+        snippets: _count(counts, 'snippets'),
         includesSecrets: body['secrets'] == true,
         created:
             DateTime.tryParse(header['created'] as String? ?? '')?.toLocal() ??

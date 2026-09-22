@@ -159,6 +159,17 @@ void main() {
         expect(findShortcut.trigger, LogicalKeyboardKey.keyF);
         expect(findShortcut.meta, isTrue, reason: 'Command+F on macOS');
         expect(itemFor('New Server…')?.onSelected, isNotNull);
+
+        // The picker needs a session to type into, so it waits for one too,
+        // and it shows the same chord the keyboard answers to.
+        expect(itemFor('Snippets…'), isNotNull);
+        expect(itemFor('Snippets…')?.onSelected, isNull);
+        final snippets = itemFor('Snippets…')!.shortcut! as SingleActivator;
+        expect(snippets.trigger, LogicalKeyboardKey.keyS);
+        expect(snippets.meta, isTrue);
+        expect(snippets.shift, isTrue);
+        // The destination itself is always reachable.
+        expect(itemFor('Snippets')?.onSelected, isNotNull);
       });
     });
 

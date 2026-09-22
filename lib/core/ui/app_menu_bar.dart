@@ -14,9 +14,11 @@ import '../../features/sessions/session_manager.dart';
 import '../../features/sessions/session_shortcuts.dart';
 import '../../features/sessions/terminal_find_request.dart';
 import '../../features/sessions/workspace_pages.dart';
+import '../../features/snippets/open_snippets.dart';
 import '../../features/transfer/presentation/open_transfer.dart';
 import '../../l10n/app_localizations.dart';
 import '../router/navigation.dart';
+import '../router/router.dart' show rootNavigatorKey;
 import '../router/routes.dart';
 import '../util/responsive.dart';
 
@@ -164,6 +166,18 @@ class AppMenuBar extends ConsumerWidget {
                       ? () => openTerminalFind(ref)
                       : null,
                 ),
+                PlatformMenuItem(
+                  label: l10n.menuSnippetsEllipsis,
+                  shortcut: snippetPickerActivator(),
+                  // This bar sits above the router's navigator, so the
+                  // picker is shown from the navigator's own context.
+                  onSelected: _hasSessions(ref)
+                      ? () => openSnippetPicker(
+                          rootNavigatorKey.currentContext ?? context,
+                          ref,
+                        )
+                      : null,
+                ),
               ],
             ),
             PlatformMenuItemGroup(
@@ -210,6 +224,10 @@ class AppMenuBar extends ConsumerWidget {
             PlatformMenuItem(
               label: l10n.menuTunnels,
               onSelected: () => context.goTo(Routes.tunnels),
+            ),
+            PlatformMenuItem(
+              label: l10n.menuSnippets,
+              onSelected: () => context.goTo(Routes.snippets),
             ),
             PlatformMenuItemGroup(
               members: [

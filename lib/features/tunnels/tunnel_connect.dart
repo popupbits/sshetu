@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/background/keep_alive_service.dart';
 import '../../core/error/error_logger.dart';
 import '../../core/providers.dart';
 import '../../core/ssh/host_key.dart';
@@ -82,6 +85,9 @@ Future<void> startTunnel(
   final status = ref.read(tunnelRunnersProvider)[tunnel.id];
   if (status != null && status.state == TunnelRunState.failed) {
     context.toast(status.error ?? l10n.tunnelsStartFailed, isError: true);
+  } else {
+    // After the handshake's dialogs, never on top of them (Android only).
+    unawaited(ref.read(keepAliveControllerProvider).askForNotificationsOnce());
   }
 }
 

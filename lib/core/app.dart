@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'background/keep_alive_service.dart';
 import 'router/router.dart';
 import 'settings/settings_controller.dart';
 import 'theme/app_theme.dart';
@@ -16,6 +17,9 @@ class SshetuApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
     final router = ref.watch(routerProvider);
+    // Lives for the whole run: holds Android's foreground service while any
+    // session or tunnel is open. A no-op on every other platform.
+    ref.watch(keepAliveControllerProvider);
 
     return MaterialApp.router(
       title: 'SSHetu',

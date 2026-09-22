@@ -9,6 +9,8 @@ import '../../features/import/import_screen.dart';
 import '../../features/sessions/terminal_screen.dart';
 import '../../features/sessions/sessions_screen.dart';
 import '../../features/keys/keys_screen.dart';
+import '../../features/snippets/snippet_editor_screen.dart';
+import '../../features/snippets/snippets_screen.dart';
 import '../../features/tunnels/tunnel_editor_screen.dart';
 import '../../features/tunnels/tunnels_screen.dart';
 import '../../features/settings/about_screen.dart';
@@ -81,6 +83,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             TunnelEditorScreen(tunnelId: state.pathParameters['id']),
       ),
       GoRoute(
+        path: Routes.snippetNew,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (_, _) => const SnippetEditorScreen(),
+      ),
+      GoRoute(
+        path: '${Routes.snippetEdit}/:id',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (_, state) =>
+            SnippetEditorScreen(snippetId: state.pathParameters['id']),
+      ),
+      GoRoute(
         path: Routes.importOpenSsh,
         parentNavigatorKey: rootNavigatorKey,
         builder: (_, state) => ImportScreen(
@@ -116,6 +129,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.tunnels,
                 builder: (_, _) => const TunnelsScreen(),
+              ),
+            ],
+          ),
+          // Before Settings, which stays last: AppShell's destination list is
+          // in exactly this order.
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.snippets,
+                builder: (_, _) => const SnippetsScreen(),
               ),
             ],
           ),

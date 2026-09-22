@@ -10,6 +10,7 @@ import 'open_screens.dart';
 import '../../core/ssh/ssh_target.dart';
 import '../../core/ui/views.dart';
 import '../hosts/widgets/open_key_setup.dart';
+import '../snippets/open_snippets.dart';
 import '../../l10n/app_localizations.dart';
 import 'session_manager.dart';
 import 'terminal_find_request.dart';
@@ -112,6 +113,14 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
               onPressed: () => ref
                   .read(terminalFindRequestProvider.notifier)
                   .request(session.id),
+            ),
+            // No Ctrl+Shift+S on a phone either; saved commands get a button.
+            IconButton(
+              key: const Key('terminal.snippets'),
+              tooltip: l10n.menuSnippets,
+              icon: const Icon(PiconsRegular.codeBlock),
+              onPressed: () =>
+                  openSnippetPicker(context, ref, sessionId: session.id),
             ),
             // Opens the SFTP browser over this session's *existing*
             // connection rather than dialling the host a second time.

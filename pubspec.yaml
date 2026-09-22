@@ -113,6 +113,11 @@ dependencies:
   cryptography: ^2.9.0
   marionette_flutter: ^0.6.0
 
+  # Tells a session waiting to reconnect that the network is back, so it
+  # tries now instead of at the end of its countdown. Read only while a
+  # terminal tab is open; see features/sessions/reconnect_triggers.dart.
+  connectivity_plus: ^7.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

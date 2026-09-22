@@ -716,6 +716,143 @@
   "menuHosts": "Servers",
   "menuKeys": "Keys",
   "menuTunnels": "Tunnels",
+  "menuSnippets": "Snippets",
+  "menuSnippetsEllipsis": "Snippets…",
+  "navSnippets": "Snippets",
+  "snippetsAdd": "New snippet",
+  "snippetsSearch": "Search snippets",
+  "snippetsEmptyTitle": "No snippets yet",
+  "snippetsEmptyBody": "Save commands you type often, then insert or run them in any session. Use {example} for a value to fill in each time.",
+  "@snippetsEmptyBody": {
+    "placeholders": {
+      "example": {
+        "type": "String",
+        "example": "{{name}}"
+      }
+    }
+  },
+  "snippetsNoMatch": "No snippets match",
+  "snippetsEdit": "Edit",
+  "snippetsDelete": "Delete",
+  "snippetsMore": "More",
+  "snippetsDeleteConfirm": "Delete this snippet?",
+  "snippetsNoSession": "Open a session first — a snippet needs somewhere to go.",
+  "snippetCopy": "Copy command",
+  "snippetCopied": "Command copied",
+  "snippetEditorNew": "New snippet",
+  "snippetEditorEdit": "Edit snippet",
+  "snippetEditorLabel": "Name",
+  "snippetEditorLabelHint": "Restart nginx",
+  "snippetEditorBody": "Command",
+  "snippetEditorBodyHint": "For example: {example}",
+  "@snippetEditorBodyHint": {
+    "placeholders": {
+      "example": {
+        "type": "String",
+        "example": "sudo systemctl restart {{service:nginx}}"
+      }
+    }
+  },
+  "snippetEditorDescription": "Description (optional)",
+  "snippetEditorTags": "Tags",
+  "snippetEditorVariablesHint": "{ask} asks for a value when used, {prefilled} prefills it. {builtins} come from the session.",
+  "@snippetEditorVariablesHint": {
+    "description": "Explains placeholder syntax; the placeholders are literal examples of that syntax",
+    "placeholders": {
+      "ask": {
+        "type": "String",
+        "example": "{{name}}"
+      },
+      "prefilled": {
+        "type": "String",
+        "example": "{{name:default}}"
+      },
+      "builtins": {
+        "type": "String",
+        "example": "{{host}}, {{user}}, {{port}}, {{label}}, {{date}}, {{time}}"
+      }
+    }
+  },
+  "snippetEditorAsks": "Asks for: {names}",
+  "@snippetEditorAsks": {
+    "placeholders": {
+      "names": {
+        "type": "String",
+        "example": "service, dir"
+      }
+    }
+  },
+  "snippetEditorFills": "Fills in: {names}",
+  "@snippetEditorFills": {
+    "placeholders": {
+      "names": {
+        "type": "String",
+        "example": "host, date"
+      }
+    }
+  },
+  "snippetPickerTitle": "Snippets · {session}",
+  "@snippetPickerTitle": {
+    "description": "Heading of the snippet picker, naming the session the snippet will be typed into",
+    "placeholders": {
+      "session": {
+        "type": "String",
+        "example": "prod-web"
+      }
+    }
+  },
+  "snippetPickerManage": "Manage snippets",
+  "snippetInsert": "Insert",
+  "snippetRun": "Run",
+  "snippetRunOn": "Run on…",
+  "snippetRunOnTitle": "Run on which sessions?",
+  "snippetRunOnAll": "All connected sessions",
+  "snippetRunOnNotConnected": "Not connected",
+  "snippetRunOnConfirm": "{count, plural, =1{Run in 1 session} other{Run in {count} sessions}}",
+  "@snippetRunOnConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "snippetVariablesTitle": "Fill in the snippet",
+  "snippetVariablesPreview": "Will type",
+  "snippetNotConnected": "This session isn't connected, so nothing was typed.",
+  "snippetEmpty": "That snippet has nothing to type.",
+  "snippetMultilineInsertRefused": "This shell would run each line as it arrived, so the snippet was not inserted. Use Run instead.",
+  "snippetRanIn": "{count, plural, =1{Ran in 1 session} other{Ran in {count} sessions}}",
+  "@snippetRanIn": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "snippetRanInSome": "Ran in {sent} of {total} sessions — the rest weren't connected",
+  "@snippetRanInSome": {
+    "placeholders": {
+      "sent": {
+        "type": "int",
+        "example": "2"
+      },
+      "total": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "transferOfferSnippets": "{count, plural, =0{No snippets} =1{1 snippet} other{{count} snippets}}",
+  "@transferOfferSnippets": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
   "menuSettings": "Settings",
   "menuTrustedHostKeys": "Trusted Host Keys",
   "menuDiagnostics": "Diagnostics",
@@ -925,5 +1062,87 @@
   "pasteConfirmAction": "Paste",
   "settingsTerminal": "Terminal",
   "settingsConfirmPaste": "Confirm multi-line paste",
-  "settingsConfirmPasteBody": "Ask before pasting text with a line break, which would run commands."
+  "settingsConfirmPasteBody": "Ask before pasting text with a line break, which would run commands.",
+  "settingsKeepAlive": "Keep connections alive in the background",
+  "settingsKeepAliveBody": "Shows a notification while sessions or tunnels are open, so Android does not close them when you switch apps.",
+  "keepAliveChannelName": "Active connections",
+  "@keepAliveChannelName": {
+    "description": "Android notification channel name, shown in the system's notification settings"
+  },
+  "keepAliveTitle": "Connections open",
+  "keepAliveSessions": "{count, plural, =1{1 session} other{{count} sessions}}",
+  "@keepAliveSessions": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "keepAliveTunnels": "{count, plural, =1{1 tunnel} other{{count} tunnels}}",
+  "@keepAliveTunnels": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "keepAliveSummaryBoth": "{sessions}, {tunnels} active",
+  "@keepAliveSummaryBoth": {
+    "description": "Notification text, e.g. '2 sessions, 1 tunnel active'",
+    "placeholders": {
+      "sessions": {
+        "type": "String",
+        "example": "2 sessions"
+      },
+      "tunnels": {
+        "type": "String",
+        "example": "1 tunnel"
+      }
+    }
+  },
+  "keepAliveSummaryOne": "{what} active",
+  "@keepAliveSummaryOne": {
+    "description": "Notification text when only sessions or only tunnels are open, e.g. '1 session active'",
+    "placeholders": {
+      "what": {
+        "type": "String",
+        "example": "1 session"
+      }
+    }
+  },
+  "keepAliveDisconnectAll": "Disconnect all",
+  "settingsKeepSessions": "Keep sessions running on the server",
+  "settingsKeepSessionsBody": "Runs each tab inside tmux when the server has it, so a dropped connection picks up where it left off. Closing the tab ends it.",
+  "terminalNoticeConnectionLost": "[connection lost — reconnecting]",
+  "terminalNoticeSessionEnded": "[session ended]",
+  "terminalNoticeSessionClosed": "[session closed]",
+  "terminalNoticeReconnected": "[reconnected]",
+  "terminalNoticeTmuxUnavailable": "[tmux is not installed on this server, so this session will not survive a dropped connection]",
+  "terminalReconnectWaiting": "Connection lost — reconnecting in {seconds} s (attempt {attempt})",
+  "@terminalReconnectWaiting": {
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "5"
+      },
+      "attempt": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "terminalReconnectWaitingShort": "Reconnecting in {seconds} s",
+  "@terminalReconnectWaitingShort": {
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "terminalReconnecting": "Reconnecting…",
+  "terminalRetryNow": "Retry now",
+  "terminalStopReconnecting": "Stop"
 }

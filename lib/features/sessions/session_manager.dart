@@ -1,6 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../../core/secrets/app_lock.dart' show appLocalizationsFor;
+import '../../core/settings/settings_controller.dart';
 import '../../core/ssh/host_key_verifier.dart';
 import '../../core/ssh/key_material_cache.dart';
 import '../../core/ssh/ssh_connection.dart';
@@ -8,6 +13,7 @@ import '../../core/ssh/ssh_credentials.dart';
 import '../../core/ssh/vault_credential_source.dart';
 import '../../core/terminal/terminal_session.dart';
 import '../hosts/domain/ssh_host.dart';
+import 'reconnect_triggers.dart';
 
 /// The open terminal tabs.
 ///
@@ -27,12 +33,50 @@ class SessionManager extends Notifier<List<TerminalSession>> {
   @override
   List<TerminalSession> build() {
     ref.onDispose(() {
+      unawaited(_triggers?.cancel());
+      _triggers = null;
+      // Disposed, not ended: the app going away is not the user closing
+      // their tabs, so a session kept in tmux stays there to be reattached.
       for (final session in _sessions) {
         session.dispose();
       }
       _sessions.clear();
     });
     return const [];
+  }
+
+  /// The lifecycle and network events, listened to only while there is at
+  /// least one tab — see [ReconnectTriggers].
+  StreamSubscription<ReconnectTrigger>? _triggers;
+
+  void _watchTriggers() {
+    if (_sessions.isEmpty) {
+      unawaited(_triggers?.cancel());
+      _triggers = null;
+      return;
+    }
+    _triggers ??= ref
+        .read(reconnectTriggersProvider)
+        .events
+        .listen((_) => nudgeAll());
+  }
+
+  /// Asks every tab to check its link: a tab waiting to reconnect tries now,
+  /// and a tab that believes it is connected proves it. Called when the app
+  /// returns to the foreground or the network comes back.
+  void nudgeAll() {
+    for (final session in List.of(_sessions)) {
+      unawaited(session.nudge());
+    }
+  }
+
+  /// Puts an already-built session in the list, as [connect] does. For tests
+  /// that need a tab without a server behind it.
+  @visibleForTesting
+  void adopt(TerminalSession session) {
+    _sessions.add(session);
+    _watchTriggers();
+    _publish();
   }
 
   var _counter = 0;
@@ -90,21 +134,35 @@ class SessionManager extends Notifier<List<TerminalSession>> {
       interactivePrompt: interactivePrompt,
     );
 
+    final settings = ref.read(settingsControllerProvider);
+    final l10n = appLocalizationsFor(settings.localeCode);
     final session = TerminalSession(
       // Must be safe in a URL path: the session id goes into
       // `/terminal/<id>`, and a '#' would be read as a fragment delimiter —
       // go_router would then match `/terminal/<hostId>` and look up an id that
       // does not exist, so the screen would open on "no open sessions" and
       // tapping a host would appear to do nothing at all.
+      //
+      // Also the tmux session's name on the server, so it must stay the same
+      // for the life of the tab: that is how a reconnect finds it again.
       id: '${host.id}-${_counter++}',
       title: host.label,
       hostId: host.id,
       connection: connection,
       startupCommand: host.startupCommand,
+      keepOnServer: settings.keepSessionsOnServer,
+      notices: TerminalNotices(
+        connectionLost: l10n.terminalNoticeConnectionLost,
+        sessionEnded: l10n.terminalNoticeSessionEnded,
+        sessionClosed: l10n.terminalNoticeSessionClosed,
+        reconnected: l10n.terminalNoticeReconnected,
+        tmuxUnavailable: l10n.terminalNoticeTmuxUnavailable,
+      ),
     );
 
     _activeId = session.id;
     _sessions.add(session);
+    _watchTriggers();
     _publish();
     await ref
         .read(hostRepositoryProvider)
@@ -128,6 +186,10 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     }
     return null;
   }
+
+  /// Whether any tab is open to [hostId], live or waiting to reconnect.
+  bool hasTabFor(String hostId) =>
+      _sessions.any((session) => session.hostId == hostId);
 
   /// Opens a connection to [host] outside of any terminal tab.
   ///
@@ -227,7 +289,10 @@ class SessionManager extends Notifier<List<TerminalSession>> {
     final index = _sessions.indexWhere((s) => s.id == id);
     if (index < 0) return;
 
-    _sessions.removeAt(index).dispose();
+    // Ended, not merely disposed: closing a tab is the user's decision, so a
+    // tmux session kept for it on the server goes too.
+    _sessions.removeAt(index).end();
+    _watchTriggers();
 
     // Focus the neighbour, the way every tabbed interface does: closing the
     // tab you are looking at should leave you next to where you were, not on

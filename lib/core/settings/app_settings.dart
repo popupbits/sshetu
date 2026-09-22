@@ -40,6 +40,8 @@ class AppSettings {
     this.terminalFontSize = defaultTerminalFontSize,
     this.requireUnlock = false,
     this.confirmMultilinePaste = true,
+    this.keepAliveInBackground = true,
+    this.keepSessionsOnServer = true,
   });
 
   /// The terminal grid's own size, in logical pixels.
@@ -92,6 +94,18 @@ class AppSettings {
   /// the command before anyone has read it.
   final bool confirmMultilinePaste;
 
+  /// Android only: hold a foreground service while anything is connected, so
+  /// backgrounding the app does not drop every session. See
+  /// `core/background/keep_alive_service.dart`.
+  final bool keepAliveInBackground;
+
+  /// Whether a terminal tab runs its shell inside tmux on the server, so a
+  /// dropped connection reattaches to the same shell — programs still
+  /// running — instead of starting a new one. On by default: it is the
+  /// practical answer to a phone suspending the app, and it falls back to an
+  /// ordinary shell by itself where the server has no tmux.
+  final bool keepSessionsOnServer;
+
   AccentOption get accent => Accents.byId(accentId);
 
   Locale? get locale => localeCode == null ? null : Locale(localeCode!);
@@ -108,6 +122,8 @@ class AppSettings {
     double? terminalFontSize,
     bool? requireUnlock,
     bool? confirmMultilinePaste,
+    bool? keepAliveInBackground,
+    bool? keepSessionsOnServer,
   }) {
     return AppSettings(
       accentId: accentId ?? this.accentId,
@@ -122,6 +138,9 @@ class AppSettings {
       requireUnlock: requireUnlock ?? this.requireUnlock,
       confirmMultilinePaste:
           confirmMultilinePaste ?? this.confirmMultilinePaste,
+      keepAliveInBackground:
+          keepAliveInBackground ?? this.keepAliveInBackground,
+      keepSessionsOnServer: keepSessionsOnServer ?? this.keepSessionsOnServer,
     );
   }
 
@@ -136,7 +155,9 @@ class AppSettings {
       other.defaultIdentityId == defaultIdentityId &&
       other.terminalFontSize == terminalFontSize &&
       other.requireUnlock == requireUnlock &&
-      other.confirmMultilinePaste == confirmMultilinePaste;
+      other.confirmMultilinePaste == confirmMultilinePaste &&
+      other.keepAliveInBackground == keepAliveInBackground &&
+      other.keepSessionsOnServer == keepSessionsOnServer;
 
   @override
   int get hashCode => Object.hash(
@@ -149,6 +170,8 @@ class AppSettings {
     terminalFontSize,
     requireUnlock,
     confirmMultilinePaste,
+    keepAliveInBackground,
+    keepSessionsOnServer,
   );
 }
 

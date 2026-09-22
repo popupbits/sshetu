@@ -16,6 +16,9 @@ import '../transfer/presentation/open_transfer.dart';
 import 'widgets/accent_tile.dart';
 import 'widgets/app_lock_tile.dart';
 import 'widgets/confirm_paste_tile.dart';
+import 'widgets/keep_alive_tile.dart';
+import '../../core/background/keep_alive_service.dart';
+import 'widgets/keep_sessions_tile.dart';
 import 'widgets/language_tile.dart';
 import 'widgets/terminal_font_size_tile.dart';
 import 'widgets/text_scale_tile.dart';
@@ -51,7 +54,11 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
     SettingsSection(title: l10n.settingsGeneral, tiles: const [LanguageTile()]),
     SettingsSection(
       title: l10n.settingsTerminal,
-      tiles: const [ConfirmPasteTile()],
+      tiles: [
+        const ConfirmPasteTile(),
+        const KeepSessionsTile(),
+        if (ref.watch(keepAliveSupportedProvider)) const KeepAliveTile(),
+      ],
     ),
     SettingsSection(
       title: l10n.hostsTitle,

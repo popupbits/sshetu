@@ -52,4 +52,49 @@ void main() {
       );
     },
   );
+
+  // Keeping connections alive in the background. Android 14 refuses to start
+  // a foreground service whose type is undeclared or whose permission is
+  // missing — at runtime, on the phone, with nothing in Dart to show for it.
+  group('the keep-alive foreground service', () {
+    late String manifest;
+    setUp(
+      () =>
+          manifest = File('android/app/src/main/AndroidManifest.xml')
+              .readAsStringSync(),
+    );
+
+    test('has the permissions it needs', () {
+      for (final permission in [
+        'android.permission.FOREGROUND_SERVICE"',
+        'android.permission.FOREGROUND_SERVICE_SPECIAL_USE"',
+        'android.permission.WAKE_LOCK"',
+        'android.permission.POST_NOTIFICATIONS"',
+      ]) {
+        expect(manifest, contains(permission));
+      }
+    });
+
+    test('is declared, unexported, as specialUse with its subtype', () {
+      final service = RegExp(
+        r'<service\s[^>]*android:name="\.KeepAliveService"[\s\S]*?</service>',
+      ).firstMatch(manifest)?.group(0);
+      expect(service, isNotNull, reason: 'KeepAliveService is not declared');
+      expect(service, contains('android:exported="false"'));
+      expect(service, contains('android:foregroundServiceType="specialUse"'));
+      expect(
+        service,
+        contains('android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE'),
+        reason: 'Play review reads this subtype for a specialUse service',
+      );
+    });
+
+    test('starts with the type the manifest declares', () {
+      final source = File(
+        'android/app/src/main/kotlin/com/popupbits/sshetu/KeepAliveService.kt',
+      ).readAsStringSync();
+      expect(source, contains('FOREGROUND_SERVICE_TYPE_SPECIAL_USE'));
+      expect(source, contains('PARTIAL_WAKE_LOCK'));
+    });
+  });
 }
