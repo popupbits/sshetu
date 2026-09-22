@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:sshetu/features/mcp/mcp_settings.dart';
 import 'package:sshetu/features/palette/domain/palette_item.dart';
 import 'package:sshetu/features/settings/settings_palette.dart';
 import 'package:sshetu/features/settings/tiles.dart';
@@ -43,7 +44,15 @@ void main() {
         .where((i) => i.category == PaletteCategory.setting)
         .toList();
 
-    expect(sections, hasLength(settingsSectionTitles(l10n).length));
+    expect(
+      sections,
+      hasLength(
+        settingsSectionTitles(
+          l10n,
+          integrations: container.read(mcpSupportedProvider),
+        ).length,
+      ),
+    );
     expect(
       sections.first.title,
       l10n.paletteSettingsSection(l10n.settingsAppearance),
@@ -54,6 +63,7 @@ void main() {
     tester,
   ) async {
     late List<String> real;
+    late bool integrations;
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
@@ -64,6 +74,7 @@ void main() {
           home: Consumer(
             builder: (context, ref, _) {
               real = [for (final s in settingsSections(context, ref)) s.title];
+              integrations = ref.read(mcpSupportedProvider);
               return const SizedBox.shrink();
             },
           ),
@@ -71,7 +82,13 @@ void main() {
       ),
     );
 
-    final ours = [for (final (_, title) in settingsSectionTitles(l10n)) title];
+    final ours = [
+      for (final (_, title) in settingsSectionTitles(
+        l10n,
+        integrations: integrations,
+      ))
+        title,
+    ];
     // Same sections, same order: a section added to Settings without a
     // palette entry, or renamed, fails here.
     expect(ours, real);

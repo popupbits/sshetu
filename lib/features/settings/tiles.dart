@@ -35,6 +35,8 @@ import 'widgets/terminal_font_tile.dart';
 import 'widgets/terminal_theme_tile.dart';
 import 'widgets/text_scale_tile.dart';
 import 'widgets/theme_mode_tile.dart';
+import '../mcp/mcp_settings.dart';
+import '../mcp/widgets/mcp_integration_tile.dart';
 
 /// A titled group of rows on the Settings screen.
 class SettingsSection {
@@ -165,6 +167,13 @@ List<SettingsSection> settingsSections(BuildContext context, WidgetRef ref) {
         ),
       ],
     ),
+    // Desktop only: a local MCP server an AI assistant on this computer can
+    // use — it reads freely and acts only with the user's approval.
+    if (ref.watch(mcpSupportedProvider))
+      SettingsSection(
+        title: l10n.settingsIntegrations,
+        tiles: const [McpIntegrationTile()],
+      ),
     SettingsSection(
       title: l10n.settingsAbout,
       tiles: [

@@ -3829,4 +3829,200 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tmuxRestartConfirmAction => 'Restart';
+
+  @override
+  String get settingsIntegrations => 'Integrations';
+
+  @override
+  String get mcpToggle => 'Let AI assistants use SSHetu';
+
+  @override
+  String get mcpToggleBody =>
+      'Runs a local MCP server on this computer. Assistants can read your hosts and open sessions; anything that changes something asks you first. Passwords and keys are never shared.';
+
+  @override
+  String get mcpStatusStarting => 'Starting…';
+
+  @override
+  String mcpStatusRunning(String url) {
+    return 'Listening on $url';
+  }
+
+  @override
+  String mcpStatusFailed(String error) {
+    return 'Could not start: $error';
+  }
+
+  @override
+  String mcpStatusFallback(int preferred, int port) {
+    return 'Port $preferred was busy, so $port is used for now. Clients set up for $preferred will not connect until it is free again.';
+  }
+
+  @override
+  String get mcpToken => 'Access token';
+
+  @override
+  String get mcpTokenBody =>
+      'Clients send this with every request. Anyone with it can ask; only you can approve.';
+
+  @override
+  String get mcpTokenShow => 'Show token';
+
+  @override
+  String get mcpTokenHide => 'Hide token';
+
+  @override
+  String get mcpTokenCopy => 'Copy token';
+
+  @override
+  String get mcpTokenRegenerate => 'Regenerate token';
+
+  @override
+  String get mcpTokenRegenerateTitle => 'Regenerate the access token?';
+
+  @override
+  String get mcpTokenRegenerateBody =>
+      'Every client set up with the current token stops working until you give it the new one.';
+
+  @override
+  String get mcpCopied => 'Copied';
+
+  @override
+  String get mcpSetupTitle => 'Connect a client';
+
+  @override
+  String get mcpSetupClaude => 'Claude Code';
+
+  @override
+  String get mcpSetupJson => 'Other clients (JSON)';
+
+  @override
+  String get mcpActivity => 'Activity';
+
+  @override
+  String mcpActivityBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count calls recorded',
+      one: '1 call recorded',
+      zero: 'No calls yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mcpActivityTitle => 'MCP activity';
+
+  @override
+  String get mcpActivityEmpty =>
+      'No calls yet. Every call an assistant makes is listed here.';
+
+  @override
+  String get mcpActivityClear => 'Clear log';
+
+  @override
+  String get mcpActivityClearTitle => 'Clear the activity log?';
+
+  @override
+  String mcpActivityBytes(String size) {
+    return '$size returned';
+  }
+
+  @override
+  String get mcpDecisionRead => 'Read';
+
+  @override
+  String get mcpDecisionApproved => 'Approved';
+
+  @override
+  String get mcpDecisionRemembered => 'Approved (remembered)';
+
+  @override
+  String get mcpDecisionDenied => 'Denied';
+
+  @override
+  String get mcpDecisionTimedOut => 'No answer';
+
+  @override
+  String get mcpDecisionUnavailable => 'Not shown';
+
+  @override
+  String get mcpDecisionRejected => 'Refused';
+
+  @override
+  String mcpApprovalTitle(String client, String action) {
+    return '$client wants to $action';
+  }
+
+  @override
+  String get mcpActionRunCommand => 'run a command';
+
+  @override
+  String get mcpActionSendInput => 'type into a session';
+
+  @override
+  String get mcpActionOpenSession => 'open a session';
+
+  @override
+  String get mcpActionStartTunnel => 'start a tunnel';
+
+  @override
+  String get mcpActionStopTunnel => 'stop a tunnel';
+
+  @override
+  String get mcpActionRunSnippet => 'run a snippet';
+
+  @override
+  String get mcpActionDownload => 'download a file';
+
+  @override
+  String get mcpActionUpload => 'upload a file';
+
+  @override
+  String mcpActionOther(String tool) {
+    return 'use $tool';
+  }
+
+  @override
+  String get mcpApprovalTarget => 'Where';
+
+  @override
+  String get mcpApprovalNote =>
+      'The name is what the client calls itself. Approve only if you asked your assistant to do this.';
+
+  @override
+  String mcpApprovalRemember(int minutes) {
+    return 'Allow this in this session for $minutes minutes without asking';
+  }
+
+  @override
+  String get mcpApprovalApprove => 'Approve';
+
+  @override
+  String get mcpApprovalDeny => 'Deny';
+
+  @override
+  String get mcpDetailCommand => 'Command';
+
+  @override
+  String get mcpDetailInput => 'Keystrokes';
+
+  @override
+  String get mcpDetailHost => 'Host';
+
+  @override
+  String get mcpDetailTunnel => 'Tunnel';
+
+  @override
+  String get mcpDetailSnippet => 'Snippet';
+
+  @override
+  String get mcpDetailRemotePath => 'On the server';
+
+  @override
+  String get mcpDetailLocalPath => 'On this computer';
+
+  @override
+  String get mcpDetailOverwrite => 'Replaces the file if it already exists';
 }

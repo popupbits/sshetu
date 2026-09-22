@@ -8,6 +8,7 @@ import '../../core/settings/app_settings.dart';
 import '../../core/settings/settings_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../backup/presentation/open_backup.dart';
+import '../mcp/mcp_settings.dart';
 import '../palette/domain/palette_item.dart';
 import '../sessions/open_screens.dart';
 import '../transfer/presentation/open_transfer.dart';
@@ -107,7 +108,10 @@ final settingsPaletteItemsProvider =
             keywords: [name],
             run: (context, ref) => context.goTo(route),
           ),
-        for (final (id, section) in settingsSectionTitles(l10n))
+        for (final (id, section) in settingsSectionTitles(
+          l10n,
+          integrations: ref.watch(mcpSupportedProvider),
+        ))
           simple(
             id: 'settings:$id',
             title: l10n.paletteSettingsSection(section),
@@ -122,7 +126,10 @@ final settingsPaletteItemsProvider =
 /// The Settings screen's sections, by a stable id and the title
 /// `settingsSections` gives them. Kept in step with that list by
 /// `settings_palette_test.dart`, which fails if a title here names no section.
-List<(String, String)> settingsSectionTitles(AppLocalizations l10n) => [
+List<(String, String)> settingsSectionTitles(
+  AppLocalizations l10n, {
+  bool integrations = false,
+}) => [
   ('appearance', l10n.settingsAppearance),
   ('terminalAppearance', l10n.settingsTerminalAppearance),
   ('general', l10n.settingsGeneral),
@@ -131,6 +138,8 @@ List<(String, String)> settingsSectionTitles(AppLocalizations l10n) => [
   ('security', l10n.settingsSecurity),
   ('transfer', l10n.transferTitle),
   ('backup', l10n.backupTitle),
+  // Desktop only, like the section itself.
+  if (integrations) ('integrations', l10n.settingsIntegrations),
   ('about', l10n.settingsAbout),
 ];
 

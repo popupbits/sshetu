@@ -658,6 +658,60 @@ A first debug build on a physical iPhone or a signed Mac registers the new
 `.debug` bundle id with the team; automatic signing does that on its own.
 Release signing and `match` are untouched — they only ever build Release.
 
+## 12e. MCP integration (desktop)
+
+Settings → Integrations → *Let AI assistants use SSHetu* runs a local
+[MCP](https://modelcontextprotocol.io) server so an assistant on the same
+computer (Claude Code, or any MCP client) can use the app. Off by default,
+desktop only (`mcpSupportedProvider`). Code: `lib/features/mcp/`.
+
+**What it exposes.** Read tools answer at once: `list_hosts` (label, address,
+group, tags — never notes, passwords or keys), `list_sessions`,
+`read_terminal` (the last N lines of a tab's buffer, as text — screen-scraping,
+said so in the description), `server_info` (the server panel's stats),
+`list_tunnels`, `list_snippets`. Act tools — `run_command`, `send_input`,
+`open_session`, `start_tunnel`, `stop_tunnel`, `run_snippet`, `sftp_download`,
+`sftp_upload` — each show an approval dialog naming the client (as it named
+itself), the action, the exact session/host/tunnel and the exact text,
+keystrokes or paths, with control and invisible characters made visible. Deny
+has the focus. No answer in two minutes is a refusal. For typing into one
+session, "allow this for 10 minutes" can be ticked (never by default); the
+grant is keyed on client + tool + session (+ snippet), held in memory, and
+dropped when the server restarts. Every call is logged to Settings →
+Integrations → Activity (last 500, shared_preferences, clearable).
+
+**Security model.** `HttpServer` bound to 127.0.0.1 only. Each request must
+come from a loopback peer, carry a `Host` of `127.0.0.1|localhost|[::1]:<port>`
+(DNS rebinding), carry **no** `Origin` (any browser is refused), hit `/mcp`,
+present `Authorization: Bearer <token>` (compared in constant time), and fit
+in 1 MiB. The token is 32 random bytes, made when the switch is first turned
+on and regenerable; it lives in shared_preferences because it is a local
+capability behind a human approval — the keychain would add an OS prompt to
+every launch for no protection the dialog does not already give. The
+approval is enforced by the server (`McpDispatcher` → `ApprovalGate`), not by
+the client's annotations. Typing from MCP never fans out to other panes, even
+with "type in all panes" on.
+
+**Protocol.** Streamable HTTP, JSON responses only (no SSE). Dual-era: an
+`initialize` handshake (2024-11-05 … 2025-11-25, with `Mcp-Session-Id`) and
+the stateless 2026-07-28 revision (per-request `_meta`, mirrored headers,
+`server/discover`) are both served on the one endpoint.
+
+**Port.** 47832 first; if something else holds it the server takes a free
+port and Settings says so (clients configured for 47832 will not reach it
+until it is free).
+
+**Connecting Claude Code** (manual check — needs the desktop app running):
+
+```sh
+claude mcp add --transport http sshetu http://127.0.0.1:47832/mcp \
+  --header "Authorization: Bearer <token from Settings>"
+```
+
+Then in Claude Code: `/mcp` should list `sshetu` with 14 tools; ask it to
+list your hosts (no dialog), then to run `uptime` in an open session (dialog
+in SSHetu; Deny should come back as a refusal the model reports).
+
 ## 13. Tooling — use it when it is there
 
 Prefer a real tool over shelling out by hand. Each of these is optional: check

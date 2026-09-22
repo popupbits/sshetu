@@ -3830,4 +3830,200 @@ class AppLocalizationsNe extends AppLocalizations {
 
   @override
   String get tmuxRestartConfirmAction => 'फेरि सुरु गर्नुहोस्';
+
+  @override
+  String get settingsIntegrations => 'एकीकरण';
+
+  @override
+  String get mcpToggle => 'AI सहायकलाई SSHetu प्रयोग गर्न दिनुहोस्';
+
+  @override
+  String get mcpToggleBody =>
+      'यो कम्प्युटरमा स्थानीय MCP सर्भर चलाउँछ। सहायकले तपाईंका होस्ट र खुला सेसन पढ्न सक्छ; केही परिवर्तन गर्ने हरेक कामका लागि पहिले तपाईंलाई सोधिन्छ। पासवर्ड र कुञ्जी कहिल्यै दिइँदैन।';
+
+  @override
+  String get mcpStatusStarting => 'सुरु हुँदै…';
+
+  @override
+  String mcpStatusRunning(String url) {
+    return '$url मा सुनिरहेको';
+  }
+
+  @override
+  String mcpStatusFailed(String error) {
+    return 'सुरु गर्न सकिएन: $error';
+  }
+
+  @override
+  String mcpStatusFallback(int preferred, int port) {
+    return 'पोर्ट $preferred व्यस्त थियो, त्यसैले अहिले $port प्रयोग हुँदैछ। $preferred का लागि सेट गरिएका क्लाइन्ट त्यो खाली नभएसम्म जडान हुँदैनन्।';
+  }
+
+  @override
+  String get mcpToken => 'पहुँच टोकन';
+
+  @override
+  String get mcpTokenBody =>
+      'क्लाइन्टले हरेक अनुरोधसँग यो पठाउँछ। यो भएका जोकोहीले सोध्न सक्छन्; स्वीकृति तपाईं मात्र दिन सक्नुहुन्छ।';
+
+  @override
+  String get mcpTokenShow => 'टोकन देखाउनुहोस्';
+
+  @override
+  String get mcpTokenHide => 'टोकन लुकाउनुहोस्';
+
+  @override
+  String get mcpTokenCopy => 'टोकन कपी गर्नुहोस्';
+
+  @override
+  String get mcpTokenRegenerate => 'नयाँ टोकन बनाउनुहोस्';
+
+  @override
+  String get mcpTokenRegenerateTitle => 'पहुँच टोकन नयाँ बनाउने?';
+
+  @override
+  String get mcpTokenRegenerateBody =>
+      'हालको टोकनसँग सेट गरिएका सबै क्लाइन्टले नयाँ टोकन नपाएसम्म काम गर्न छोड्छन्।';
+
+  @override
+  String get mcpCopied => 'कपी भयो';
+
+  @override
+  String get mcpSetupTitle => 'क्लाइन्ट जडान गर्नुहोस्';
+
+  @override
+  String get mcpSetupClaude => 'Claude Code';
+
+  @override
+  String get mcpSetupJson => 'अन्य क्लाइन्ट (JSON)';
+
+  @override
+  String get mcpActivity => 'गतिविधि';
+
+  @override
+  String mcpActivityBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count कल रेकर्ड भए',
+      one: '1 कल रेकर्ड भयो',
+      zero: 'अहिलेसम्म कुनै कल छैन',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mcpActivityTitle => 'MCP गतिविधि';
+
+  @override
+  String get mcpActivityEmpty =>
+      'अहिलेसम्म कुनै कल छैन। सहायकले गर्ने हरेक कल यहाँ देखिन्छ।';
+
+  @override
+  String get mcpActivityClear => 'लग खाली गर्नुहोस्';
+
+  @override
+  String get mcpActivityClearTitle => 'गतिविधि लग खाली गर्ने?';
+
+  @override
+  String mcpActivityBytes(String size) {
+    return '$size फर्काइयो';
+  }
+
+  @override
+  String get mcpDecisionRead => 'पढियो';
+
+  @override
+  String get mcpDecisionApproved => 'स्वीकृत';
+
+  @override
+  String get mcpDecisionRemembered => 'स्वीकृत (सम्झिएको)';
+
+  @override
+  String get mcpDecisionDenied => 'अस्वीकृत';
+
+  @override
+  String get mcpDecisionTimedOut => 'जवाफ आएन';
+
+  @override
+  String get mcpDecisionUnavailable => 'देखाइएन';
+
+  @override
+  String get mcpDecisionRejected => 'अस्वीकार गरियो';
+
+  @override
+  String mcpApprovalTitle(String client, String action) {
+    return '$client $action चाहन्छ';
+  }
+
+  @override
+  String get mcpActionRunCommand => 'कमान्ड चलाउन';
+
+  @override
+  String get mcpActionSendInput => 'सेसनमा टाइप गर्न';
+
+  @override
+  String get mcpActionOpenSession => 'सेसन खोल्न';
+
+  @override
+  String get mcpActionStartTunnel => 'टनेल सुरु गर्न';
+
+  @override
+  String get mcpActionStopTunnel => 'टनेल रोक्न';
+
+  @override
+  String get mcpActionRunSnippet => 'स्निपेट चलाउन';
+
+  @override
+  String get mcpActionDownload => 'फाइल डाउनलोड गर्न';
+
+  @override
+  String get mcpActionUpload => 'फाइल अपलोड गर्न';
+
+  @override
+  String mcpActionOther(String tool) {
+    return '$tool प्रयोग गर्न';
+  }
+
+  @override
+  String get mcpApprovalTarget => 'कहाँ';
+
+  @override
+  String get mcpApprovalNote =>
+      'यो नाम क्लाइन्टले आफैँ भनेको हो। तपाईंले सहायकलाई यो गर्न भन्नुभएको हो भने मात्र स्वीकृति दिनुहोस्।';
+
+  @override
+  String mcpApprovalRemember(int minutes) {
+    return 'यो सेसनमा $minutes मिनेटसम्म नसोधी यो अनुमति दिनुहोस्';
+  }
+
+  @override
+  String get mcpApprovalApprove => 'स्वीकृति दिनुहोस्';
+
+  @override
+  String get mcpApprovalDeny => 'अस्वीकार गर्नुहोस्';
+
+  @override
+  String get mcpDetailCommand => 'कमान्ड';
+
+  @override
+  String get mcpDetailInput => 'किस्ट्रोक';
+
+  @override
+  String get mcpDetailHost => 'होस्ट';
+
+  @override
+  String get mcpDetailTunnel => 'टनेल';
+
+  @override
+  String get mcpDetailSnippet => 'स्निपेट';
+
+  @override
+  String get mcpDetailRemotePath => 'सर्भरमा';
+
+  @override
+  String get mcpDetailLocalPath => 'यो कम्प्युटरमा';
+
+  @override
+  String get mcpDetailOverwrite => 'फाइल पहिल्यै भए त्यसलाई बदल्छ';
 }

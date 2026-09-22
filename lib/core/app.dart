@@ -3,6 +3,8 @@ import 'package:material_ui/material_ui.dart';
 
 import 'background/keep_alive_service.dart';
 import 'config/app_config.dart';
+import '../features/mcp/mcp_server_controller.dart';
+import '../features/mcp/widgets/mcp_ui_host.dart';
 import 'router/router.dart';
 import 'settings/settings_controller.dart';
 import 'theme/app_theme.dart';
@@ -21,6 +23,10 @@ class SshetuApp extends ConsumerWidget {
     // Lives for the whole run: holds Android's foreground service while any
     // session or tunnel is open. A no-op on every other platform.
     ref.watch(keepAliveControllerProvider);
+    // Also for the whole run: the local MCP server, running only while
+    // Settings → Integrations has it on. Listened to rather than watched, so
+    // its status changing does not rebuild the app.
+    ref.listen(mcpServerControllerProvider, (_, _) {});
 
     return MaterialApp.router(
       // 'SSHetu' for release, as before; 'SSHetu Debug' in Android's recents
@@ -57,7 +63,9 @@ class SshetuApp extends ConsumerWidget {
         // The desktop menu bar wraps everything, so its items can reach the
         // router and the session list from anywhere in the app. It renders
         // nothing on a phone.
-        final wrapped = AppMenuBar(child: UpdateListener(child: bridged));
+        final wrapped = AppMenuBar(
+          child: UpdateListener(child: McpUiHost(child: bridged)),
+        );
         // The user's text-size preference multiplies the platform scale
         // rather than replacing it, so device accessibility settings still
         // apply on top.

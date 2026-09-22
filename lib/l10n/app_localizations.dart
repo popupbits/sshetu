@@ -6155,6 +6155,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restart'**
   String get tmuxRestartConfirmAction;
+
+  /// No description provided for @settingsIntegrations.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrations'**
+  String get settingsIntegrations;
+
+  /// No description provided for @mcpToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let AI assistants use SSHetu'**
+  String get mcpToggle;
+
+  /// No description provided for @mcpToggleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs a local MCP server on this computer. Assistants can read your hosts and open sessions; anything that changes something asks you first. Passwords and keys are never shared.'**
+  String get mcpToggleBody;
+
+  /// No description provided for @mcpStatusStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting…'**
+  String get mcpStatusStarting;
+
+  /// No description provided for @mcpStatusRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening on {url}'**
+  String mcpStatusRunning(String url);
+
+  /// No description provided for @mcpStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start: {error}'**
+  String mcpStatusFailed(String error);
+
+  /// No description provided for @mcpStatusFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Port {preferred} was busy, so {port} is used for now. Clients set up for {preferred} will not connect until it is free again.'**
+  String mcpStatusFallback(int preferred, int port);
+
+  /// No description provided for @mcpToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Access token'**
+  String get mcpToken;
+
+  /// No description provided for @mcpTokenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Clients send this with every request. Anyone with it can ask; only you can approve.'**
+  String get mcpTokenBody;
+
+  /// No description provided for @mcpTokenShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show token'**
+  String get mcpTokenShow;
+
+  /// No description provided for @mcpTokenHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide token'**
+  String get mcpTokenHide;
+
+  /// No description provided for @mcpTokenCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy token'**
+  String get mcpTokenCopy;
+
+  /// No description provided for @mcpTokenRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate token'**
+  String get mcpTokenRegenerate;
+
+  /// No description provided for @mcpTokenRegenerateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate the access token?'**
+  String get mcpTokenRegenerateTitle;
+
+  /// No description provided for @mcpTokenRegenerateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every client set up with the current token stops working until you give it the new one.'**
+  String get mcpTokenRegenerateBody;
+
+  /// No description provided for @mcpCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get mcpCopied;
+
+  /// No description provided for @mcpSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a client'**
+  String get mcpSetupTitle;
+
+  /// No description provided for @mcpSetupClaude.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude Code'**
+  String get mcpSetupClaude;
+
+  /// No description provided for @mcpSetupJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Other clients (JSON)'**
+  String get mcpSetupJson;
+
+  /// No description provided for @mcpActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get mcpActivity;
+
+  /// No description provided for @mcpActivityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No calls yet} =1{1 call recorded} other{{count} calls recorded}}'**
+  String mcpActivityBody(int count);
+
+  /// No description provided for @mcpActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MCP activity'**
+  String get mcpActivityTitle;
+
+  /// No description provided for @mcpActivityEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No calls yet. Every call an assistant makes is listed here.'**
+  String get mcpActivityEmpty;
+
+  /// No description provided for @mcpActivityClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear log'**
+  String get mcpActivityClear;
+
+  /// No description provided for @mcpActivityClearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the activity log?'**
+  String get mcpActivityClearTitle;
+
+  /// No description provided for @mcpActivityBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} returned'**
+  String mcpActivityBytes(String size);
+
+  /// No description provided for @mcpDecisionRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get mcpDecisionRead;
+
+  /// No description provided for @mcpDecisionApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get mcpDecisionApproved;
+
+  /// No description provided for @mcpDecisionRemembered.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved (remembered)'**
+  String get mcpDecisionRemembered;
+
+  /// No description provided for @mcpDecisionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Denied'**
+  String get mcpDecisionDenied;
+
+  /// No description provided for @mcpDecisionTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'No answer'**
+  String get mcpDecisionTimedOut;
+
+  /// No description provided for @mcpDecisionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not shown'**
+  String get mcpDecisionUnavailable;
+
+  /// No description provided for @mcpDecisionRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Refused'**
+  String get mcpDecisionRejected;
+
+  /// No description provided for @mcpApprovalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{client} wants to {action}'**
+  String mcpApprovalTitle(String client, String action);
+
+  /// No description provided for @mcpActionRunCommand.
+  ///
+  /// In en, this message translates to:
+  /// **'run a command'**
+  String get mcpActionRunCommand;
+
+  /// No description provided for @mcpActionSendInput.
+  ///
+  /// In en, this message translates to:
+  /// **'type into a session'**
+  String get mcpActionSendInput;
+
+  /// No description provided for @mcpActionOpenSession.
+  ///
+  /// In en, this message translates to:
+  /// **'open a session'**
+  String get mcpActionOpenSession;
+
+  /// No description provided for @mcpActionStartTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'start a tunnel'**
+  String get mcpActionStartTunnel;
+
+  /// No description provided for @mcpActionStopTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'stop a tunnel'**
+  String get mcpActionStopTunnel;
+
+  /// No description provided for @mcpActionRunSnippet.
+  ///
+  /// In en, this message translates to:
+  /// **'run a snippet'**
+  String get mcpActionRunSnippet;
+
+  /// No description provided for @mcpActionDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'download a file'**
+  String get mcpActionDownload;
+
+  /// No description provided for @mcpActionUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'upload a file'**
+  String get mcpActionUpload;
+
+  /// No description provided for @mcpActionOther.
+  ///
+  /// In en, this message translates to:
+  /// **'use {tool}'**
+  String mcpActionOther(String tool);
+
+  /// No description provided for @mcpApprovalTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get mcpApprovalTarget;
+
+  /// No description provided for @mcpApprovalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The name is what the client calls itself. Approve only if you asked your assistant to do this.'**
+  String get mcpApprovalNote;
+
+  /// No description provided for @mcpApprovalRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow this in this session for {minutes} minutes without asking'**
+  String mcpApprovalRemember(int minutes);
+
+  /// No description provided for @mcpApprovalApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get mcpApprovalApprove;
+
+  /// No description provided for @mcpApprovalDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get mcpApprovalDeny;
+
+  /// No description provided for @mcpDetailCommand.
+  ///
+  /// In en, this message translates to:
+  /// **'Command'**
+  String get mcpDetailCommand;
+
+  /// No description provided for @mcpDetailInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Keystrokes'**
+  String get mcpDetailInput;
+
+  /// No description provided for @mcpDetailHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get mcpDetailHost;
+
+  /// No description provided for @mcpDetailTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnel'**
+  String get mcpDetailTunnel;
+
+  /// No description provided for @mcpDetailSnippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Snippet'**
+  String get mcpDetailSnippet;
+
+  /// No description provided for @mcpDetailRemotePath.
+  ///
+  /// In en, this message translates to:
+  /// **'On the server'**
+  String get mcpDetailRemotePath;
+
+  /// No description provided for @mcpDetailLocalPath.
+  ///
+  /// In en, this message translates to:
+  /// **'On this computer'**
+  String get mcpDetailLocalPath;
+
+  /// No description provided for @mcpDetailOverwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces the file if it already exists'**
+  String get mcpDetailOverwrite;
 }
 
 class _AppLocalizationsDelegate
