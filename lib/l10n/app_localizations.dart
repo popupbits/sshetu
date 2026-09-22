@@ -988,6 +988,12 @@ abstract class AppLocalizations {
   /// **'Copy'**
   String get terminalCopy;
 
+  /// No description provided for @terminalNothingSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing selected. Long-press the terminal to select text, then copy.'**
+  String get terminalNothingSelected;
+
   /// No description provided for @sessionsEmptyTitle.
   ///
   /// In en, this message translates to:

@@ -165,4 +165,54 @@ void main() {
     await tester.pump();
     expect(output, ['\x1c'], reason: r'ctrl-\ is FS');
   });
+
+  // A phone's long press selects text and cannot also open the menu, so the
+  // bar is the only way to copy or paste on one. It must fit at 320pt.
+  testWidgets('copy and paste sit in the ⋯ row and call back', (tester) async {
+    var copies = 0;
+    var pastes = 0;
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(320, 568);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              const Expanded(child: SizedBox.expand()),
+              TerminalKeyBar(
+                terminal: terminal,
+                modifiers: modifiers,
+                onCopy: () => copies++,
+                onPaste: () => pastes++,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('paste'), findsNothing, reason: 'not on the main row');
+    await tester.tap(find.text('⋯'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('copy'));
+    await tester.tap(find.text('paste'));
+    await tester.pump();
+
+    expect(copies, 1);
+    expect(pastes, 1);
+    expect(output, isEmpty, reason: 'neither is a key sent to the shell');
+    expect(tester.takeException(), isNull, reason: 'the row fits at 320pt');
+  });
+
+  testWidgets('without callbacks the ⋯ row shows neither', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('⋯'));
+    await tester.pumpAndSettle();
+    expect(find.text('copy'), findsNothing);
+    expect(find.text('paste'), findsNothing);
+  });
 }

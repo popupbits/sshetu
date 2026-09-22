@@ -502,6 +502,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get terminalCopy => 'Copy';
 
   @override
+  String get terminalNothingSelected =>
+      'Nothing selected. Long-press the terminal to select text, then copy.';
+
+  @override
   String get sessionsEmptyTitle => 'No open sessions';
 
   @override

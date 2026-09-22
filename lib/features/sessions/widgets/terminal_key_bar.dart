@@ -52,6 +52,10 @@ class TerminalKeyBar extends StatefulWidget {
   const TerminalKeyBar({
     required this.terminal,
     required this.modifiers,
+    this.copyLabel = 'copy',
+    this.pasteLabel = 'paste',
+    this.onCopy,
+    this.onPaste,
     super.key,
   });
 
@@ -61,6 +65,20 @@ class TerminalKeyBar extends StatefulWidget {
   final Terminal terminal;
 
   final TerminalModifiers modifiers;
+
+  /// Copy the selection and paste the clipboard, in the ⋯ row.
+  ///
+  /// **On a phone this is the only way to either.** The terminal's context
+  /// menu opens on a long press, and on a touch screen the terminal's own
+  /// long-press *selection* wins that gesture — so the menu with Copy and
+  /// Paste never appeared, the keyboard's clipboard chip types nothing into
+  /// a terminal, and there was no way to get text in or out at all. Paste
+  /// here goes through the same sanitising and confirmation as everywhere
+  /// else; it is the caller's [onPaste].
+  final VoidCallback? onCopy;
+  final VoidCallback? onPaste;
+  final String copyLabel;
+  final String pasteLabel;
 
   @override
   State<TerminalKeyBar> createState() => _TerminalKeyBarState();
@@ -94,7 +112,8 @@ class _TerminalKeyBarState extends State<TerminalKeyBar> {
     _Key('end', key: TerminalKey.end),
     _Key('pgup', key: TerminalKey.pageUp),
     _Key('pgdn', key: TerminalKey.pageDown),
-    _Key('ins', key: TerminalKey.insert),
+    // No `ins`: a shell on a phone has no use for overtype, and its cell is
+    // better spent on copy and paste, which a phone had no other way to do.
     _Key('del', key: TerminalKey.delete),
   ];
 
@@ -200,6 +219,10 @@ class _TerminalKeyBarState extends State<TerminalKeyBar> {
         _Back(onTap: () => _show(_Row.main)),
         for (final key in _more)
           _Cell(label: key.label, onTap: () => _press(key)),
+        if (widget.onCopy case final onCopy?)
+          _Cell(label: widget.copyLabel, onTap: onCopy),
+        if (widget.onPaste case final onPaste?)
+          _Cell(label: widget.pasteLabel, onTap: onPaste),
         _Cell(label: 'F1-12', onTap: () => _show(_Row.function)),
       ],
     ),

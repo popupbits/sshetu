@@ -232,6 +232,7 @@
   "sessionLogAlwaysNeedsFolder": "Choose a log folder first, so logs have somewhere to go without asking.",
   "terminalPaste": "Paste",
   "terminalCopy": "Copy",
+  "terminalNothingSelected": "Nothing selected. Long-press the terminal to select text, then copy.",
   "sessionsEmptyTitle": "No open sessions",
   "sessionsEmptyBody": "Connect to a host and it appears here.",
   "hostKeyTitle": "Unknown host",

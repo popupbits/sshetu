@@ -53,6 +53,20 @@ class RemoteEntry {
   String toString() => 'RemoteEntry($path)';
 }
 
+/// Whether [path] is `~` or starts with `~/` — the home shorthand a person
+/// types, which the SFTP protocol itself does not understand.
+bool isRemoteHomeShorthand(String path) => path == '~' || path.startsWith('~/');
+
+/// [path] with a leading `~` replaced by [home]. Anything else is returned
+/// unchanged. `~user` forms are not expanded: SFTP has no way to look up
+/// another account's home.
+String expandHomeShorthand(String path, String home) {
+  if (!isRemoteHomeShorthand(path)) return path;
+  final rest = path.substring(1).replaceFirst(RegExp('^/+'), '');
+  if (rest.isEmpty) return home;
+  return home.endsWith('/') ? '$home$rest' : '$home/$rest';
+}
+
 /// What kind of failure an [SftpException] wraps, drawn only from the status
 /// codes the SFTP protocol actually defines (`sftp_status_code.dart`) — never
 /// from parsing the human-readable message a server chose to send, which
@@ -516,6 +530,14 @@ class SshSftpService implements SftpService {
   Future<String> resolveRemotePath(String path) async {
     try {
       final sftp = await _client();
+      // SFTP's REALPATH does not expand `~`: OpenSSH resolves `~/x` as a
+      // directory literally named `~` under the working directory, which
+      // does not exist. An SFTP session starts in the user's home, so `.`
+      // is what `~` means — resolve that, and build the rest on it.
+      if (isRemoteHomeShorthand(path)) {
+        final home = await sftp.absolute('.');
+        return await sftp.absolute(expandHomeShorthand(path, home));
+      }
       return await sftp.absolute(path);
     } on Object catch (e) {
       throw _wrap(e, 'Could not resolve $path');

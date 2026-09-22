@@ -91,6 +91,7 @@ class _PathBarState extends State<PathBar> {
         _error = result;
       }
     });
+    if (result == PathSubmitResult.ok) _focusNode.unfocus();
   }
 
   String _errorText(AppLocalizations l10n, PathSubmitResult result) =>
@@ -170,6 +171,12 @@ class _PathBarState extends State<PathBar> {
                   )
                 : null,
           ),
+          // Keeps focus through the submit. The default completion unfocuses
+          // first — on a phone's Done key that ran [_onFocusChange] before
+          // the answer came back, so a rejected path closed the field and
+          // its error with it, and nothing appeared to happen. [_submit]
+          // lets go of focus itself once the path is accepted.
+          onEditingComplete: () {},
           onSubmitted: (_) => _submit(),
         ),
       ),

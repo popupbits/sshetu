@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/services.dart';
@@ -11,6 +13,7 @@ import '../../../core/terminal/terminal_links.dart';
 import '../../../core/terminal/terminal_session.dart';
 import '../../../core/settings/settings_controller.dart';
 import '../../../core/ui/context_menu.dart';
+import '../../../core/ui/feedback.dart';
 import '../../../core/ui/keyboard_accessory.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/util/responsive.dart';
@@ -210,6 +213,22 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
   }
 
   /// The link under where the pointer last went down, if any.
+  /// Copies the selection, or says how to make one. The key bar's copy: a
+  /// phone's long press selects text but cannot also open the menu.
+  Future<void> _copySelection(
+    BuildContext context,
+    TerminalSession session,
+  ) async {
+    final selection = _controller.selection;
+    if (selection == null) {
+      context.toast(AppLocalizations.of(context).terminalNothingSelected);
+      return;
+    }
+    final text = session.terminal.buffer.getText(selection);
+    await Clipboard.setData(ClipboardData(text: text));
+    _controller.clearSelection();
+  }
+
   String? _linkUnderPointer() {
     final global = _lastPointerDown;
     final view = _viewKey.currentState;
@@ -329,6 +348,7 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
+    final l10n = AppLocalizations.of(context);
     final fontSize = ref.watch(terminalFontSizeProvider(session.hostId));
     final preset = ref.watch(terminalThemePresetProvider(session.hostId));
     final font = ref.watch(terminalFontProvider);
@@ -439,6 +459,15 @@ class _TerminalPaneState extends ConsumerState<TerminalPane> {
               child: TerminalKeyBar(
                 terminal: session.terminal,
                 modifiers: session.modifiers,
+                copyLabel: l10n.terminalCopy.toLowerCase(),
+                pasteLabel: l10n.terminalPaste.toLowerCase(),
+                onCopy: () => unawaited(_copySelection(context, session)),
+                onPaste: () => pasteClipboardInto(
+                  context,
+                  ref,
+                  session.terminal,
+                  deliver: _deliverPaste,
+                ),
               ),
             ),
         ],
