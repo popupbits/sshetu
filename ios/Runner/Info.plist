@@ -6,6 +6,43 @@
 	<string>To scan the QR code shown by your other device, so your servers and keys can be sent straight between them without going through a server.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>To confirm it is you before a saved password or key is used, when you turn on the credential lock in Settings.</string>
+	<!--
+	  Local network. Two things in this app talk to addresses on the user's
+	  own network, and since iOS 14 both need this string or the system
+	  simply refuses the traffic:
+
+	  - connecting to a server at a private address (192.168.x.x, 10.x.x.x,
+	    a .local name) — a very ordinary thing to do with an SSH client;
+	  - "Send to a device", which opens a direct sealed TCP channel to the
+	    other device after its QR code is scanned.
+
+	  There is no NSBonjourServices here on purpose: nothing in this app
+	  browses or advertises over mDNS. The receiving device gets the sender's
+	  address and port out of the QR code and connects to it directly, so
+	  there is no service type to declare. Add the key only if discovery is
+	  ever added — an unused Bonjour declaration is a question at review.
+
+	  Guarded by test/ios_plist_test.dart.
+	-->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>To reach servers on your own network, and to send your servers and keys straight to your other device after you scan its QR code — instead of through anyone else&apos;s server.</string>
+	<!--
+	  Export compliance. SSHetu is an SSH client: it implements the SSH
+	  transport itself, in Dart, and carries standard published ciphers
+	  (AES-GCM, ChaCha20-Poly1305), key exchange (Curve25519, ECDH) and
+	  signature algorithms (Ed25519, ECDSA, RSA) rather than only calling
+	  Apple's TLS or HTTPS. None of the exemptions App Store Connect offers
+	  fit that — not "limited to authentication or digital signature", not
+	  "encryption within the operating system", not HTTPS-only — so the
+	  honest answer is true, and the app needs export-compliance
+	  documentation on file.
+	  RELEASE_READINESS.md has the full answer and what the owner must do
+	  with BIS; it differs from the PopupBits default of `false`, which is
+	  the right answer only for an app whose encryption is Apple's.
+	  Guarded by test/ios_plist_test.dart.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<true/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

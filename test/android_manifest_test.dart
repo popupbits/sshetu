@@ -97,4 +97,66 @@ void main() {
       expect(source, contains('PARTIAL_WAKE_LOCK'));
     });
   });
+
+  // Android's default is to back everything up. For an app whose database is
+  // an inventory of someone's servers that is the wrong default twice over:
+  // it copies that inventory to a cloud the user never chose, and it restores
+  // a host list whose credentials cannot be decrypted, because the key that
+  // sealed them never left the old phone's AndroidKeyStore.
+  group('backup', () {
+    late String manifest;
+    setUp(
+      () =>
+          manifest = File('android/app/src/main/AndroidManifest.xml')
+              .readAsStringSync(),
+    );
+
+    test('is off, and the rules file that covers D2D is named', () {
+      expect(
+        manifest,
+        contains('android:allowBackup="false"'),
+        reason: 'the database and the credential store must not go to Drive',
+      );
+      expect(
+        manifest,
+        contains('android:dataExtractionRules="@xml/data_extraction_rules"'),
+        reason:
+            'allowBackup does not cover the Android 12+ device-to-device '
+            'transfer; the rules file does',
+      );
+    });
+
+    test('excludes every domain from both cloud backup and D2D', () {
+      final rules = File(
+        'android/app/src/main/res/xml/data_extraction_rules.xml',
+      );
+      expect(rules.existsSync(), isTrue, reason: 'the rules file is missing');
+      final source = rules.readAsStringSync();
+
+      for (final section in ['cloud-backup', 'device-transfer']) {
+        final body = RegExp('<$section[^>]*>([\\s\\S]*?)</$section>')
+            .firstMatch(source)
+            ?.group(1);
+        expect(body, isNotNull, reason: '<$section> is missing');
+        for (final domain in [
+          'root',
+          'file',
+          'database',
+          'sharedpref',
+          'external',
+        ]) {
+          expect(
+            body,
+            contains('<exclude domain="$domain" />'),
+            reason: '$section does not exclude the $domain domain',
+          );
+        }
+        expect(
+          body,
+          isNot(contains('<include')),
+          reason: 'an include here would opt data back in',
+        );
+      }
+    });
+  });
 }

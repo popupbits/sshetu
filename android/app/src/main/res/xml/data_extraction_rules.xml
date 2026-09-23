@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What Android is allowed to copy off this device. Nothing.
+
+  SSHetu's database holds every host, tunnel, snippet and known-host pin the
+  user has, and `flutter_secure_storage` keeps the passwords and private keys
+  in EncryptedSharedPreferences whose master key lives in the AndroidKeyStore.
+  Two things follow, and they point the same way:
+
+  - **Privacy.** An app holding the keys to someone's production
+    infrastructure has no business pushing a copy of that inventory to a
+    cloud backup the user never asked for. The same reasoning as PROJECT.md
+    §12, "No backend".
+  - **Correctness.** The AndroidKeyStore master key is non-exportable, so a
+    restored copy of the encrypted preferences is ciphertext nothing on the
+    new device can open. Backing up the database without the secrets restores
+    a host list where every credential silently fails — worse than restoring
+    nothing.
+
+  `android:allowBackup="false"` in the manifest already stops Google Drive
+  backup. It does **not** stop the Android 12+ device-to-device transfer, so
+  that is excluded here as well.
+
+  Moving to a new device is a deliberate act in this app: Settings → Backup
+  (an encrypted file, Argon2id + XSalsa20-Poly1305) or Send to a device (a
+  one-shot sealed transfer over the local network). Both carry the secrets,
+  and both happen because the user chose them.
+
+  Guarded by test/android_manifest_test.dart.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

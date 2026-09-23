@@ -4,6 +4,19 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>To scan the QR code shown by your other device, so your servers and keys can be sent straight between them without going through a server.</string>
+	<!--
+	  macOS 15 brought iOS's local-network prompt to the Mac, and this app
+	  trips it twice: connecting to a server at a private address, and
+	  "Send to a device", which both binds a listening socket and connects
+	  to one on the LAN. Without this string the prompt has no reason in it,
+	  and on a sandboxed build the traffic is refused outright — which looks
+	  exactly like an unreachable host.
+	  The matching sandbox entitlements (network.client and network.server)
+	  are in Runner/{DebugProfile,Release}.entitlements; this is the
+	  user-facing half. Guarded by test/ios_plist_test.dart.
+	-->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>To reach servers on your own network, and to send your servers and keys straight to your other device after you scan its QR code — instead of through anyone else&apos;s server.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleLocalizations</key>

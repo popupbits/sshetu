@@ -53,10 +53,26 @@
       "SSHetu Debug", a separate app with its own data. See PROJECT.md,
       "Debug builds have their own identity".
     -->
+    <!--
+      Nothing this app stores leaves the device unless the user sends it.
+
+      `allowBackup="false"` keeps the database, the preferences and the
+      encrypted credential store out of Google Drive backup; the extraction
+      rules keep them out of the Android 12+ device-to-device transfer, which
+      `allowBackup` does not cover. The reasoning — privacy, and a restored
+      host list whose credentials cannot be decrypted on the new device — is
+      in res/xml/data_extraction_rules.xml. Moving to a new device is
+      Settings → Backup or Send to a device, both of which carry the secrets
+      and both of which the user chooses.
+
+      Guarded by test/android_manifest_test.dart.
+    -->
     <application
         android:label="${appLabel}"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The app target's privacy manifest.
+
+  Apple has required one since May 2024 for any target that touches a
+  "required reason" API, and App Store Connect refuses the *upload* over it
+  rather than the review — so a missing one fails before anyone has looked at
+  the app. Each plugin ships its own manifest for what it does; this file
+  covers the Runner target and says, once, what the app collects: nothing.
+
+  SSHetu has no backend, no account and no analytics (PROJECT.md §12). Hosts,
+  keys and known-host pins live in this device's database and keychain, and
+  the error log in Settings → Diagnostics never leaves the device unless the
+  user shares it deliberately. So NSPrivacyCollectedDataTypes is empty and
+  NSPrivacyTracking is false — and those two answers must stay in step with
+  the App Privacy questionnaire in App Store Connect. See
+  RELEASE_READINESS.md for the exact answers to enter there.
+
+  Guarded by test/ios_plist_test.dart.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<!--
+		  File timestamps, inside this app's own container only: the session
+		  log, the encrypted backup file, and the one-time database move,
+		  which compares what it copied against what it copied from.
+		-->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+		<!--
+		  UserDefaults, this app's own: shared_preferences backs the settings,
+		  the MCP integration's state and the diagnostics log.
+		-->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

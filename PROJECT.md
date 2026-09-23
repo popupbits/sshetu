@@ -405,6 +405,15 @@ audits whether the submission will be **accepted**, and
 installed**. The Play listing itself is in the repo under
 `android/fastlane/metadata/`, so listing copy is reviewed like code.
 
+**[RELEASE_READINESS.md](RELEASE_READINESS.md)** is that audit, written out for
+the first release: the blockers and who owns each, the exact Data safety and
+App Privacy answers to type into the consoles, the export-compliance answer
+(`true`, not the house default — an SSH client carries its own ciphers), the
+Play special-use declaration, and a step-by-step first-release checklist. Redo
+it before a release that changes permissions, adds a dependency that talks to
+a network, or follows a long gap. `docs/privacy-policy.md` is the policy text,
+drafted and **not yet hosted** — until it is, neither store will take the app.
+
 **Never print, rewrite or commit signing credentials.**
 
 ## 12. No backend
