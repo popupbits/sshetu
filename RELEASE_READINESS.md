@@ -12,13 +12,43 @@ covered here only where a store answer depends on them.
 | [Play Data safety](https://support.google.com/googleplay/android-developer/answer/10787469) | Every app must complete the form, *including* one that collects nothing, and it needs a privacy-policy URL to submit |
 | [App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) | 2.1(a) completeness, 4.2.7 remote desktop clients, 5.1.1(i) privacy policy, 5.1.1(ii) purpose strings |
 
+**Updated: 23 September 2026** — release paperwork written (`CHANGELOG.md`,
+both stores' release notes, and a full draft of both listings in English plus
+the Nepali Play listing). The blocker table below is updated with what that
+closed and what it did not: **drafted is not approved**, and nothing about
+artwork, hosted URLs or a console has changed.
+
 **Verdict: not submittable today.** The build itself is in good shape — the
 target API level is current, the permissions are all justified, the foreground
 service is typed and documented. What is missing is everything outside the
-binary: there is no privacy policy anywhere, no support URL, no store artwork,
-no screenshots, and the listing copy still says TODO. Eight blockers below;
-six of them are the owner's, in a console or on a web host, and cannot be
-fixed in this repository.
+binary: there is no privacy policy anywhere, no support URL, no store artwork
+and no screenshots. The listing copy no longer says TODO, but it is a draft
+nobody has signed off. Eight blockers below; six of them are the owner's, in a
+console or on a web host, and cannot be fixed in this repository.
+
+---
+
+## Decisions for this release
+
+Made by the owner, and binding on everything below.
+
+| Decision | Value | Consequence |
+| --- | --- | --- |
+| **Version** | **1.0.0+1**, unchanged | `versionCode` **1** and `versionName` **1.0.0**, read from `pubspec.yaml` by `flutter.versionCode` / `flutter.versionName` in `android/app/build.gradle.kts`. Nothing in `android-release.yml` passes `--build-number`, so the AAB really is code 1. The Play release notes therefore live in `changelogs/1.txt`. **Code 1 can be spent only once** — a failed upload still burns it. |
+| **Audience** | **Internal testers only** | Play **internal testing** track and **TestFlight**. No public store listing yet, no production track, no App Store review submission. |
+| **Later** | **The same build is promoted** | Not rebuilt. Promotion from internal → closed/open → production on Play, and from TestFlight → App Store review, all carry version code 1. |
+
+Two things follow from "internal testers only" that are easy to get wrong:
+
+- **The Play listing still has to exist** before the app can leave Draft, but
+  internal testing does not need it complete. In `android/fastlane/Fastfile`
+  only the `release` lane passes `upload_metadata: true`; `internal` does not,
+  and neither does `beta`. So the listing copy below can stay a draft through
+  the whole internal round — as long as nobody runs `upload_metadata`,
+  `upload_listing` or `release`, which exist precisely to push it.
+- **`upload_to_app_store` on iOS uploads metadata by default.** Use the `beta`
+  lane for TestFlight — it goes to `upload_to_testflight` and does not touch
+  the listing. Do not run the `release` lane until the copy is approved.
 
 ---
 
@@ -30,7 +60,7 @@ Ordered by what stops you first.
 | --- | --- | --- | --- | --- |
 | B1 | Both | **No privacy policy exists.** Not in the repo, not on a host, not in the listing — `ios/fastlane/metadata/en-US/privacy_url.txt` is empty and Play's field is unset. Play will not accept the Data safety form without one; Apple rejects without one in metadata *and* reachable in-app. | Play Data safety; Apple 5.1.1(i) | **Owner** to host; drafted here |
 | B2 | App Store | **Support URL is empty.** `ios/fastlane/metadata/en-US/support_url.txt` ships blank on purpose (`metadata/README.md` says so). Apple requires a working `https://` page and rejects a `mailto:`. | Apple 2.1(a) | **Owner** |
-| B3 | Both | **Listing copy is placeholder.** `android/…/full_description.txt` and `ios/…/description.txt` both literally contain "TODO: Write the full … before the first release." `deliver` and `supply` upload them verbatim. | Apple 2.1(a); Play listing policy | **Owner** (copy); `app-store-optimization` skill |
+| B3 | Both | **Listing copy is drafted, not approved.** The TODO text is gone: title, short and full description exist for Play in `en-US` and `ne-NP`, and name, subtitle, keywords, promotional text and description exist for the App Store, all inside the character limits (counted, table below). They are a **draft written by an agent** — nobody has signed off on the claims or the tone, and `deliver` and `supply` upload them verbatim. Not a blocker for the internal round, which uploads no metadata; a blocker for the first public release. | Apple 2.1(a); Play listing policy | **Owner** to approve |
 | B4 | Both | **No store artwork or screenshots at all.** No 512×512 icon, no 1024×500 feature graphic, no phone screenshots under `android/fastlane/metadata/`; `ios/fastlane/screenshots/` does not exist. Play cannot publish without an icon, a feature graphic and two phone shots. The iOS target is `TARGETED_DEVICE_FAMILY = "1,2"`, so Apple needs **iPhone 6.9" and iPad 13"** sets. | Play listing requirements; Apple screenshot specs | **Us** — run the two screenshot workflows (PROJECT.md §10) |
 | B5 | App Store | **Export compliance is unanswered, and the honest answer is not the house default.** `ITSAppUsesNonExemptEncryption` was absent. It is now `true` (see below) — which is correct for an SSH client and which means the build lands in **Missing Compliance** until documentation is on file. | US EAR; App Store Connect export compliance | **Owner** (BIS filing) |
 | B6 | Play | **`FOREGROUND_SERVICE_SPECIAL_USE` is undeclared in the Play Console,** and the declaration needs a screen-recorded demo video. Without it the release is rejected at review. Text is written (PROJECT.md §12c, repeated below); the video is not recorded. | Play foreground service policy | **Owner** |
@@ -50,6 +80,54 @@ them has been proven on a device — see *What is unverified* at the end.
 | F4 | App Store | Export compliance unanswered, so App Store Connect asked on every upload. | `ITSAppUsesNonExemptEncryption` set to `true`, with the reasoning in the plist. |
 | F5 | — | None of the above was pinned by a test. | `test/ios_plist_test.dart` (new) and the `backup` group in `test/android_manifest_test.dart`. |
 
+### Release paperwork — written 23 September 2026
+
+No code changed. Every file below is plain text that a store uploads verbatim,
+so each one was counted in Unicode characters against its store's limit.
+
+| File | Chars | Limit | What it is |
+| --- | --- | --- | --- |
+| `CHANGELOG.md` | — | — | Keep a Changelog, first entry `[1.0.0] - 2026-09-23`. Written as *what the app is*, not a diff of internal batches, with a **Known limits** section (no cloud sync by design; MCP and split panes desktop-only; Devanagari in the terminal does not line up; Linux never run by a person). |
+| `android/…/en-US/changelogs/1.txt` | 422 | 500 | Play release notes for **versionCode 1**. |
+| `android/…/en-US/changelogs/default.txt` | 422 | 500 | The same text. `supply` falls back to this when no file matches the version code, so leaving the template warning here would have published it. |
+| `android/…/ne-NP/changelogs/{1,default}.txt` | 401 | 500 | The Nepali release notes. |
+| `ios/…/en-US/release_notes.txt` | 533 | 4000 | A short "what this is" note, right for a first release. |
+| `android/…/en-US/title.txt` | 29 | 30 | `SSHetu: SSH Client & Terminal` |
+| `android/…/en-US/short_description.txt` | 77 | 80 | |
+| `android/…/en-US/full_description.txt` | 3172 | 4000 | Written for a person, not for a keyword crawler — Play's own guidance asks for that and penalises the opposite. |
+| `android/…/ne-NP/{title,short_description,full_description}.txt` | 29 / 71 / 2841 | 30 / 80 / 4000 | Nepali listing (S6). Translated against the glossary in `lib/l10n/app_ne.arb` — सर्भर, होस्ट, कुञ्जी, टनेल, सेसन, टर्मिनल, स्निपेट, फाइल — not word-for-word from the English. |
+| `ios/…/en-US/name.txt` | 25 | 30 | `SSHetu: SSH Client & SFTP` — deliberately not the Play title. Apple indexes name + subtitle + keywords, so the three must not repeat each other. |
+| `ios/…/en-US/subtitle.txt` | 26 | 30 | `Terminal, tunnels and keys` |
+| `ios/…/en-US/keywords.txt` | 96 | 100 | 14 terms, comma-separated, **no space after a comma**, and no word already spent in the name or subtitle. No competitor or trademarked name. |
+| `ios/…/en-US/promotional_text.txt` | 159 | 170 | The one field editable without a new build. |
+| `ios/…/en-US/description.txt` | 2891 | 4000 | Not indexed by Apple, so it is persuasion only. |
+| `ios/fastlane/metadata/primary_category.txt` | — | — | `DEVELOPER_TOOLS` (S4) |
+| `ios/fastlane/metadata/secondary_category.txt` | — | — | `UTILITIES` (S4) |
+| `ios/fastlane/metadata/review_information/` | notes 3228 / 4000 | — | The App Review notes from this document, turned into the file `deliver` actually reads (S4): the 4.2.7 answer, what the app does, the permission-by-permission reasons, the tmux and MCP paragraphs, and step-by-step demo instructions. `demo_user.txt` and `demo_password.txt` are **empty on purpose** — no credentials were invented; the notes say any SSH server works and offer a throwaway account through Resolution Center on request. |
+| `screenshots/headlines.json` | — | — | Headlines and subheads replaced (they were the bare screen names) with copy matching the real feature set, and `ne-NP` strings added throughout with `Noto Sans Devanagari` as that locale's font. The workflows were **not** run. |
+
+Two judgement calls worth knowing about:
+
+- **Nothing inside a `.txt` says "draft".** `ios/fastlane/metadata/README.md` is
+  explicit that there is nowhere to leave a note inside one, because anything
+  typed there uploads. The draft status is recorded here and in the blocker
+  table instead, which is the only place it can live without becoming public
+  copy.
+- **No em dashes in store copy.** Neither `ios/fastlane/metadata/README.md`,
+  `screenshots/README.md` nor the `app-store-optimization` references forbid
+  them — that was checked. They are avoided anyway: a store listing is read on
+  a phone in a single column, and plain punctuation survives every renderer.
+  This document and `CHANGELOG.md` keep the house voice.
+- **Line endings are part of the payload, so they are pinned.** This repository
+  has no `.gitattributes` and `core.autocrlf` is on, so a Windows checkout
+  would have turned every LF in these files into CRLF — one extra character
+  per line, which is enough to push a 29-character title over Play's limit of
+  30. A `.gitattributes` now pins `android/fastlane/metadata/**`,
+  `ios/fastlane/metadata/**`, `screenshots/headlines.json` and `CHANGELOG.md`
+  to LF, and the single-line fields (both titles, both short descriptions,
+  `name.txt`, `subtitle.txt`, `promotional_text.txt`, `keywords.txt`) carry no
+  trailing newline at all, so there is nothing left to convert or to count.
+
 ---
 
 ## Should fix
@@ -59,10 +137,10 @@ them has been proven on a device — see *What is unverified* at the end.
 | S1 | Both | **The in-app privacy policy link does not exist.** `aboutPrivacyPolicy` and `aboutPrivacyPolicySubtitle` are already in *both* ARB files, but `lib/features/settings/about_screen.dart` shows only Licences. Apple 5.1.1(i) wants the policy reachable inside the app. Wire the tile as soon as B1 gives it a URL — the strings are waiting, so this is one `ListTile` and a `url_launcher` call. Doing it before the URL exists would ship a dead link, which is Guideline 2.1. | Us, after B1 |
 | S2 | Both | **The UI font is downloaded at runtime.** `google_fonts` serves Inter, and Inter is not in `pubspec.yaml`'s `fonts:` — only the four terminal faces are. So a fresh install fetches `fonts.gstatic.com` on first launch: an offline first run draws the UI in a fallback face, and an app that says "nothing leaves the device" makes a request to Google before it has shown a screen. Bundling Inter the way the terminal faces are bundled removes both, and removes a question from the Data safety form. | Us — a separate change, not part of this audit |
 | S3 | App Store | **No `ios-release.yml` workflow and no `ios/ExportOptions.plist`.** The shared pipeline (`popupbits-release-pipeline`) expects both; the fastlane lanes under `ios/` are correct and complete, so a release is possible from a Mac by hand, but not from CI. | Us / owner |
-| S4 | App Store | **`ios/fastlane/metadata/` is missing `primary_category.txt`, `secondary_category.txt` and `review_information/`,** which the shared pipeline lists. Without `review_information/` the App Review notes (below) have nowhere to live in the repo and have to be typed into ASC each time. Suggested category: **Developer Tools**, secondary **Utilities**. | Us |
-| S5 | App Store | `subtitle.txt`, `keywords.txt` and `promotional_text.txt` are empty. Not rejections, but Apple indexes only name + subtitle + keywords, so an empty subtitle and empty keywords make the app effectively unfindable. | Owner / `app-store-optimization` |
-| S6 | Play | `android/fastlane/metadata/android/` has only `en-US`. Play accepts Nepali (`ne-NP`) and the app is localised into it; the App Store's fixed language list has no `ne`, which is why that asymmetry exists. Adding `ne-NP` is free reach. | Owner |
-| S7 | Both | The app has no "what's new" for a first release worth reading, and `changelogs/default.txt` is still the template's warning text. **Owned by a parallel change — not touched here.** | Other agent |
+| S4 | App Store | ~~`ios/fastlane/metadata/` is missing `primary_category.txt`, `secondary_category.txt` and `review_information/`.~~ **Done.** `DEVELOPER_TOOLS` / `UTILITIES`, matching the bare-identifier form the other PopupBits apps use, and a filled `review_information/`. The category values were not checked against a live App Store Connect account — if ASC rejects one, that is where it will show. | — |
+| S5 | App Store | ~~`subtitle.txt`, `keywords.txt` and `promotional_text.txt` are empty.~~ **Drafted**, within limits, with no term repeated between name, subtitle and keywords. Still the owner's to approve. | Owner to approve |
+| S6 | Play | ~~`android/fastlane/metadata/android/` has only `en-US`.~~ **Drafted.** `ne-NP` now carries title, short and full description and its own release notes. The App Store's fixed language list has no `ne`, so that listing stays English only — deliberate, not an omission. Wants a native read before it goes public. | Owner to review the Nepali |
+| S7 | Both | ~~No "what's new" worth reading, and `changelogs/default.txt` is still the template's warning text.~~ **Done** — `CHANGELOG.md` at the root, plus per-store release notes in both locales. | — |
 | S8 | Play | After the first release that ships the keep-alive service, watch **Android vitals → excessive partial wake locks**. `specialUse` has no six-hour cap, but the wake lock is still measured, and a bad score is a store-listing penalty. PROJECT.md §12c says so too. | Owner, post-release |
 
 ---
@@ -85,6 +163,12 @@ than being asked about.
 | **Keeping connections alive** | **Play: required declaration** — B6 | See the special-use text below. |
 
 ### App Review notes — draft
+
+**This draft now lives in the repo** as
+`ios/fastlane/metadata/review_information/notes.txt`, expanded with
+step-by-step demo instructions and the permission-by-permission reasons.
+`deliver` uploads that file; the version below is the shorter original. If the
+two disagree, the file is what a reviewer reads.
 
 > SSHetu is an SSH client. It connects to servers that the person using it
 > owns or administers, with credentials they enter themselves, and shows a
@@ -310,7 +394,7 @@ server. Adding a config file would be noise.
 | `targetSdk` | `flutter.targetSdkVersion` = **36** on Flutter 3.47.2 | Meets Play's 31 August 2026 requirement |
 | `compileSdk` | 37, pinned above Flutter's default for `flutter_secure_storage` | Fine — compile surface only |
 | `minSdk` | `flutter.minSdkVersion` = 24 | Fine for `local_auth` and `BiometricPrompt` |
-| `versionCode` / `versionName` | `flutter.versionCode` / `flutter.versionName` from `pubspec.yaml` (`1.0.0+1`) | The bump is a parallel change; not touched here. **A version code may never be reused, including by a build uploaded outside git.** |
+| `versionCode` / `versionName` | `flutter.versionCode` / `flutter.versionName` from `pubspec.yaml` (`1.0.0+1`), so **code 1, name 1.0.0** | **Staying at 1.0.0+1 by owner decision** — read the decisions table at the top. `android-release.yml` passes no `--build-number`, so the AAB carries code 1 and `changelogs/1.txt` is the file `supply` will match. **A version code may never be reused, including by a build uploaded outside git**, so a failed first upload costs code 1 and the next attempt needs `1.0.0+2`. |
 | 64-bit / ABIs | Flutter's App Bundle carries `arm64-v8a`, `armeabi-v7a` and `x86_64` | Play's 64-bit requirement is met by the bundle |
 | Upload format | `play_publish` builds an **AAB** | Correct; APKs are not accepted for new apps |
 | Adaptive icon | `mipmap-anydpi-v26/ic_launcher.xml` with background, foreground **and monochrome** | Complete, including the themed-icon layer |
@@ -320,59 +404,94 @@ server. Adding a config file would be noise.
 | Account deletion | Not applicable | No account, no sign-in, nothing to delete. Apple 5.1.1(v) and Play's deletion requirement both apply only to apps with account creation. |
 | Third-party sign-in | None | Apple 4.8 does not apply. |
 | In-app purchase | None | Apple 3.1.1 does not apply. |
-| Placeholder scan | `TODO` in two listing files (B3); no `example.com`, no `lorem ipsum`, no `http://` in `lib/` | |
+| Placeholder scan | Clean as of 23 September 2026. The two `TODO` listing files and the two template changelog warnings are replaced with real copy; no `example.com`, no `lorem ipsum`, no `http://` in `lib/`. The empty files that remain — `privacy_url.txt`, `support_url.txt`, `marketing_url.txt`, `video.txt`, `demo_user.txt`, `demo_password.txt` — are empty on purpose, which is honest, not placeholder. | |
 
 ---
 
 ## First release, step by step
 
-Do these in order. The first four are not in this repository.
+**The first release goes to internal testers only** — Play's internal testing
+track and TestFlight — and the same build, version code 1, is promoted from
+there. That reorders the list below: everything a *public* listing needs moves
+after the testers have the build, because none of it gates an internal one.
 
-**Before anything is built**
+### Stage 1 — what the internal round actually needs
 
-1. **Write the privacy policy and host it** (B1). `docs/privacy-policy.md` is a
-   complete draft — read it, fix the contact line, put it on a public
-   `https://` page that is not a PDF and not geofenced. Put the URL in
-   `ios/fastlane/metadata/en-US/privacy_url.txt`, in the Play Console listing,
-   and in App Store Connect.
-2. **Put up a support page and fill `support_url.txt`** (B2). A page, not a
-   `mailto:`.
-3. **Write the listing copy** (B3) — `full_description.txt`, `description.txt`,
-   `subtitle.txt`, `keywords.txt`. The `app-store-optimization` skill is for
-   exactly this.
-4. **Generate the screenshots** (B4): *Actions → Screenshots (Android)* and
-   *Screenshots (iOS)*. Both open a pull request; review the diff. Then produce
-   the 512×512 icon and the 1024×500 feature graphic — the `moksha` skill
-   renders and validates both against each store's upload rules.
+Short, because internal testing is deliberately cheap.
 
-**Console setup**
-
-5. Create the app in the **Play Console** (it stays a Draft until the first
-   release) and in **App Store Connect**.
-6. Play → App content: **Data safety** (answers above), **content rating**
-   (IARC), **target audience** 18+, **ads** none, **privacy policy URL**, and
-   the **foreground service declaration with its video** (B6).
-7. App Store Connect: **App Privacy → Data Not Collected**, **age rating 4+**,
-   **category Developer Tools**, privacy and support URLs, and paste the
-   **App Review notes** from above.
-8. Start the **export-compliance filing** (B5). It gates the iOS submission and
-   it is the item with the longest lead time — begin it first, not last.
-
-**Build and upload**
-
-9. Confirm the Android signing secrets are set on the repository (B8):
+1. **Start the export-compliance filing** (B5). It does not gate the AAB, but
+   it gates TestFlight: until the documentation is on file the iOS build sits
+   in **Missing Compliance** and testers cannot install it. It has the longest
+   lead time of anything here, so it is first even though it finishes last.
+2. **Create the app** in the **Play Console** (it stays a Draft, which is all
+   internal testing needs) and in **App Store Connect**.
+3. **Confirm the Android signing secrets** are set on the repository (B8):
    `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
    `ANDROID_KEY_PASSWORD`, `PLAY_STORE_JSON_KEY_DATA`, `APP_IDENTIFIER`. Never
    read or copy the values — confirm the names exist in the Settings page.
-10. **Actions → Android Release → `internal`.** Internal first, always: it is
-    the cheapest place to discover that a build was debug-signed or that a
-    version code was already used. Install from the internal track on a real
-    phone and connect to a real server.
-11. iOS: from a Mac, `cd ios && bundle exec fastlane beta` for TestFlight (S3
-    is why this is not a CI button yet). Answer the compliance prompt using the
-    filing from step 8.
-12. Promote to `beta`, then `release` on Play; submit for review on the App
-    Store.
+4. **Actions → Android Release → `internal`**, release status `draft` if the
+   Play app is still a draft. This is the cheapest place to discover that a
+   build was debug-signed or that the version code was already used. It
+   The `internal` lane passes no `upload_metadata: true`, so it does **not**
+   push the store listing; the release notes in
+   `changelogs/1.txt` travel with the release itself. Read the run's
+   conclusion rather than assuming it, and check in the Console what the
+   release notes actually say.
+5. **iOS → TestFlight**: from a Mac, `cd ios && bundle exec fastlane beta`
+   (S3 is why this is not a CI button yet). The `beta` lane goes to
+   `upload_to_testflight` and does not touch the listing. Answer the
+   compliance prompt from the filing in step 1.
+6. **Add the testers** and install on a real phone: Play internal testers by
+   email or a Google Group, TestFlight internal testers from the ASC users
+   list (no Beta App Review needed for internal). Connect to a real server,
+   open a tunnel, move a file.
+
+At this point the app is in testers' hands and **nothing below has to be true
+yet**. Everything from here is what a *public* release needs.
+
+### Stage 2 — before the build is promoted to anyone outside the team
+
+7. **Write the privacy policy and host it** (B1). `docs/privacy-policy.md` is a
+   complete draft — read it, fix the contact line, put it on a public
+   `https://` page that is not a PDF and not geofenced. Put the URL in
+   `ios/fastlane/metadata/en-US/privacy_url.txt`, in the Play Console listing,
+   and in App Store Connect. Play needs it before the Data safety form can be
+   submitted, so it blocks step 10 too.
+8. **Put up a support page and fill `support_url.txt`** (B2). A page, not a
+   `mailto:`.
+9. **Approve the listing copy** (B3). It is written and within every limit;
+   read it as the owner and change what you do not want to say. The Nepali
+   listing wants a native read. Nothing uploads it until someone runs
+   `fastlane release`, `upload_metadata` or `upload_listing`.
+10. **Generate the screenshots** (B4): *Actions → Screenshots (Android)* and
+    *Screenshots (iOS)*, for `en-US` and `ne-NP`. Both open a pull request;
+    review the diff. The headlines they render are in
+    `screenshots/headlines.json` and are already written. Then produce the
+    512×512 icon and the 1024×500 feature graphic — the `moksha` skill renders
+    and validates both against each store's upload rules.
+11. Play → App content: **Data safety** (answers above), **content rating**
+    (IARC), **target audience** 18+, **ads** none, **privacy policy URL**, and
+    the **foreground service declaration with its video** (B6).
+12. App Store Connect: **App Privacy → Data Not Collected**, **age rating 4+**,
+    **category Developer Tools**, privacy and support URLs. The **App Review
+    notes** are uploaded from
+    `ios/fastlane/metadata/review_information/notes.txt` by the `release`
+    lane, so they no longer need typing in by hand.
+
+### Stage 3 — promote the same build
+
+13. Play: promote the **existing** internal release to closed or open testing,
+    then production. Do not rebuild — the AAB is already uploaded and the
+    version code cannot be reused. Run `fastlane release` (or
+    `upload_listing`) once, and only once the copy is approved, to push the
+    listing text and images.
+14. App Store: submit the **existing** TestFlight build for review. Note that
+    the `release` lane in `ios/fastlane/Fastfile` **builds and uploads a new
+    binary** before it calls `upload_to_app_store` — it has no path that
+    submits a build already on TestFlight. To promote rather than rebuild,
+    either select that build in App Store Connect and submit it there, or add
+    a metadata-only lane (`upload_to_app_store` with `skip_binary_upload`)
+    before you need it. Decide which before step 13, not during it.
 
 **Desktop, on the same version**
 
@@ -428,19 +547,45 @@ blocker.
 - **The privacy-policy URL, the support URL and the marketing URL** do not
   exist yet, so none of them could be fetched. A 404 at either of the first two
   is a guaranteed rejection on both stores — fetch them once they are up.
-- **Play listing character limits** were not re-fetched; the copy is
-  placeholder anyway, so check the current limits when the real text is
-  written.
+- **The store limits were re-fetched on 23 September 2026** and the copy was
+  counted against them in Unicode characters, assuming the uploader does not
+  strip a trailing newline. Verified live: Play title 30, short description
+  80, full description 4000, release notes **500 per language**; Apple name
+  30, subtitle 30, keywords 100, promotional text 170. **Not verified live:**
+  Apple's 4000 for `description.txt` and `release_notes.txt` — Apple's own
+  product-page page states no number for those two. The 4000 comes from
+  `ios/fastlane/metadata/README.md`, and both files are well under it either
+  way (2891 and 533).
+- **The listing copy is unapproved.** It was written by an agent from the
+  repository and the app's strings, not from a session with the app. Every
+  claim in it traces to something in this repo, but nobody has read it as the
+  owner, and the Nepali has not been read by a native speaker.
+- **The App Store category identifiers** `DEVELOPER_TOOLS` and `UTILITIES`
+  follow the bare-identifier form the other PopupBits apps use
+  (`EDUCATION`, `UTILITIES`, `PRODUCTIVITY`). They were not confirmed against
+  a live App Store Connect account or a `deliver` run.
+- **No screenshot workflow was run** and no image was rendered.
+  `screenshots/headlines.json` was edited and parses, but the copy in it has
+  never been laid out over a real capture, so whether a headline fits its
+  layout is unknown until a render.
 
 ---
 
 ## Gates
 
-Run in this branch after the changes above. Output captured to a file and the
-exit code read from the run, per the rails.
+Run after the 22 September changes. Output captured to a file and the exit
+code read from the run, per the rails.
 
 | Gate | Exit |
 | --- | --- |
 | `dart format --output=none --set-exit-if-changed lib test` | 0 |
 | `flutter analyze` | 0 — "No issues found!" |
 | `flutter test --exclude-tags live` | 0 |
+
+**The 23 September release-paperwork change touched no Dart, Kotlin, Swift,
+Gradle or plist file** — only Markdown, `.txt` store copy and
+`screenshots/headlines.json`. Nothing under `lib/` or `test/` moved, so the
+three gates above cannot have changed and were **not re-run**. What was
+checked instead: every `.txt` counted in Unicode characters against its
+store's limit by a script, and `headlines.json` parsed back to confirm it is
+still valid JSON with its Devanagari intact.

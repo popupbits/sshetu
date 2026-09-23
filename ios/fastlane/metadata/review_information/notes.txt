@@ -1,0 +1,38 @@
+SSHetu is an SSH client. It connects to servers that the person using it owns or administers, with credentials they enter themselves, and shows a terminal. There is no account, no backend and no analytics: hosts, keys and known-host fingerprints are stored in this device's database and the iOS Keychain, and nothing is sent anywhere except to the server being connected to.
+
+HOW TO REVIEW IT
+
+Reviewing SSHetu needs a server to connect to, because the app is a protocol client and does nothing on its own. Any host that accepts SSH will do, including an SSH server on your own machine or any test VM:
+
+1. Open the app. It starts on Hosts, which is empty.
+2. Tap + and enter the address, port, username and either a password or a key.
+3. Save, then tap the host to connect. Accept the server's fingerprint the first time.
+4. A terminal opens. Type a command.
+5. From the session, the Files tab browses the same server over SFTP, and the Tunnels tab creates a port forward over the same connection.
+6. Keys generates an Ed25519 key on the device, with no server needed.
+
+We have not put demo credentials in this form, because publishing a working SSH login in a metadata field is not something we are willing to do. If it is easier for you than using your own host, please ask and we will create a temporary throwaway account and send you the credentials directly through Resolution Center.
+
+GUIDELINE 4.2.7
+
+4.2.7 covers remote desktop apps that mirror specific software or a host's screen. SSHetu mirrors nothing and streams no display. It is a terminal emulator speaking the SSH protocol to a server, the way an email client speaks IMAP, and the app does not download or execute code on the device: nothing about its features changes at runtime.
+
+PERMISSIONS, AND WHY EACH ONE IS ASKED FOR
+
+Local network: "Send to a device" copies the user's own configuration between their own two devices over the local network, sealed with a single-use secret carried in a QR code. This is the only feature that listens on a socket, and it listens only while that screen is open. It is also why a server at a 192.168.x.x address can be reached at all.
+
+Camera: to scan that QR code, and nothing else. The code can also be typed in as text, so the app is fully usable if camera access is declined.
+
+Face ID / Touch ID: an optional lock, off by default, in front of saved passwords and keys.
+
+TWO THINGS THAT MAY LOOK ODD IN A STRINGS DUMP
+
+The app can install tmux on a server, so that a session survives a dropped connection. That runs on the remote server, over the connection the user already opened, using their own account and that server's own sudo policy, and always in a shell the user is watching. Nothing is elevated on the device.
+
+The app contains the code for a local integration server for AI assistants. It is desktop only and gated by a platform capability, so the switch does not exist in the iOS build and the server can never start on iOS.
+
+ENCRYPTION
+
+ITSAppUsesNonExemptEncryption is true. SSHetu implements the SSH transport itself and carries published, standard algorithms (AES-GCM, ChaCha20-Poly1305, Curve25519, ECDH, Ed25519, ECDSA, RSA). None of them is proprietary or non-standard.
+
+Contact: ***REMOVED***

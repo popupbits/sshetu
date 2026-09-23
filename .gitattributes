@@ -1,0 +1,9 @@
+# Store listing copy is uploaded verbatim and counted in characters, so its
+# line endings are part of the payload. core.autocrlf is on by default on
+# Windows, and a CRLF checkout adds one character per line — enough to push a
+# 29-character title over Play's 30-character limit, which is a rejection.
+# Pin these to LF everywhere.
+android/fastlane/metadata/** text eol=lf
+ios/fastlane/metadata/**     text eol=lf
+screenshots/headlines.json   text eol=lf
+CHANGELOG.md                 text eol=lf

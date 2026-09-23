@@ -1,1 +1,1 @@
-SSH client and server manager for every device.
+SSH client with a real terminal, SFTP and port forwarding. No account needed.

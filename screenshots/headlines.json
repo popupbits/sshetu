@@ -11,7 +11,11 @@
     "`npm run render -- --schema` in a moksha checkout to list them.",
     "",
     "These are store copy, not UI strings: write the benefit, not the feature.",
-    "Most people never scroll past the first two."
+    "Most people never scroll past the first two, so `hosts` and `sessions`",
+    "have to carry the whole app between them.",
+    "",
+    "Keep a headline short enough to read at thumbnail size; the subhead is",
+    "the second read, for someone who has already stopped."
   ],
 
   "background": { "type": "gradient", "id": "sunset-pink" },
@@ -19,53 +23,64 @@
   "layouts": ["hero-center", "tilt-right", "float-up", "tilt-left"],
 
   "fonts": {
-    "default": "Inter"
+    "default": "Inter",
+    "ne-NP": "Noto Sans Devanagari"
   },
 
   "scenes": [
     {
       "id": "hosts",
       "headline": {
-        "en-US": "Hosts"
+        "en-US": "Every server in one place",
+        "ne-NP": "सबै सर्भर एकै ठाउँमा"
       },
       "subhead": {
-        "en-US": ""
+        "en-US": "Groups, tags and jump hosts. Import the ~/.ssh/config you already have.",
+        "ne-NP": "समूह, ट्याग र जम्प होस्ट। पहिल्यै भएको ~/.ssh/config आयात गर्नुहोस्।"
       }
     },
     {
       "id": "sessions",
       "headline": {
-        "en-US": "Sessions"
+        "en-US": "A dropped connection keeps your work",
+        "ne-NP": "जडान टुटे पनि काम हराउँदैन"
       },
       "subhead": {
-        "en-US": ""
+        "en-US": "A real terminal, running inside tmux, picking up where it left off.",
+        "ne-NP": "साँचो टर्मिनल, tmux भित्र चल्छ र जहाँको त्यहीँबाट फेरि सुरु हुन्छ।"
       }
     },
     {
       "id": "keys",
       "headline": {
-        "en-US": "Keys"
+        "en-US": "Keys you make on the device",
+        "ne-NP": "यही डिभाइसमा बनेका कुञ्जी"
       },
       "subhead": {
-        "en-US": ""
+        "en-US": "Ed25519 in a tap, or import the ones you have. Swap a password for a key, verified first.",
+        "ne-NP": "एक ट्यापमा Ed25519, वा आफ्ना कुञ्जी आयात। पासवर्डको साटो कुञ्जी, जाँचेपछि मात्र।"
       }
     },
     {
       "id": "tunnels",
       "headline": {
-        "en-US": "Tunnels"
+        "en-US": "Port forwards you don't have to remember",
+        "ne-NP": "सम्झिरहनु नपर्ने पोर्ट फर्वार्ड"
       },
       "subhead": {
-        "en-US": ""
+        "en-US": "Local and remote forwards, saved and started from a list.",
+        "ne-NP": "लोकल र रिमोट फर्वार्ड, सूचीबाटै सेभ गरेर सुरु गर्नुहोस्।"
       }
     },
     {
       "id": "settings",
       "headline": {
-        "en-US": "Settings"
+        "en-US": "Nothing leaves your device",
+        "ne-NP": "केही पनि डिभाइसबाट बाहिर जाँदैन"
       },
       "subhead": {
-        "en-US": ""
+        "en-US": "No account, no backend. Credentials stay in the system keychain.",
+        "ne-NP": "न खाता, न सर्भर। पासवर्ड र कुञ्जी सिस्टमकै कीस्टोरमा रहन्छन्।"
       }
     }
   ]

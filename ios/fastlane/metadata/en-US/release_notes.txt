@@ -1,4 +1,7 @@
 First release.
 
-Replace this before every submission — unlike the Play changelog there is no
-per-build fallback, so whatever is here is what reviewers and users read.
+SSHetu is an SSH client for iPhone and iPad: a real terminal, SFTP with a remote text editor, local and remote port forwarding, and SSH keys you generate on the device. When the server has tmux, each tab runs inside it, so a dropped connection picks up where it left off.
+
+There is no account and no SSHetu server. Hosts, keys and known-host fingerprints are stored on the device, credentials in the Keychain, and nothing is sent anywhere except to the server you are connecting to.
+
+The app is in English and Nepali.

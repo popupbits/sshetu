@@ -1,1 +1,1 @@
-SSHetu
+SSHetu: SSH Client & SFTP

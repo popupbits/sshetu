@@ -1,7 +1,37 @@
-SSH client and server manager for every device.
+SSHetu keeps the servers you look after in one place and connects to them from your phone: a real terminal, a file browser over SFTP, port forwarding, and SSH keys you can generate on the device.
 
-TODO: Write the full Play listing here before the first release.
+There is no SSHetu account and no SSHetu server. Your hosts, keys, tunnels and known-host fingerprints live in a database on this device, your credentials live in the Android keystore, and nothing is sent anywhere except to the server you are connecting to.
 
-Play allows up to 4000 characters. Lead with what the app does for the
-reader, not with a feature list — the first two lines are all most people
-see before tapping "read more".
+A TERMINAL THAT HOLDS UP ON A PHONE
+
+A real VT/xterm emulator with an adjustable grid, search, adjustable text size, and a key bar for the Ctrl, Alt, Esc and arrow keys a software keyboard does not give you. When the server has tmux, each tab runs inside it, so a connection dropped on a train picks up where it left off instead of losing what was running. If tmux is missing, SSHetu offers to install it, and shows you the exact command before it runs.
+
+FILES, OVER THE SAME CONNECTION
+
+Browse the remote filesystem, upload, download, rename and change permissions. Open a remote file in a text editor that notices when something else has changed the file while you were typing, instead of quietly overwriting it.
+
+TUNNELS
+
+Local and remote port forwards, saved and started from a list rather than remembered as a command line, with the far end watched while they run.
+
+KEYS, PROPERLY
+
+Generate an Ed25519 key on the device, or ECDSA and RSA if a server requires it, or import the keys you already have in OpenSSH, PEM or PuTTY format. Still signing in with a password? SSHetu installs a key for you, proves it works over a second, independent connection, and only then deletes the password. It never edits sshd_config, because turning off password authentication on a server affects everyone who uses it.
+
+BRING YOUR SETUP WITH YOU
+
+SSHetu reads your existing ~/.ssh/config, your keys and your known_hosts, so the first five minutes are not spent retyping servers you already wrote down. It reads those files and never writes to them.
+
+Moving to a new phone is a direct transfer over your own network: one device shows a QR code carrying a single-use secret, the other scans it, and the two talk on a channel sealed with it. For keeping a copy, there is an encrypted backup file that you store yourself, with the passphrase turned into a key by Argon2id.
+
+THE REST
+
+Snippets for commands you run often, with placeholders that ask for a value when you use them. A command palette that searches servers, tabs, snippets and actions at once. A panel of server stats. Session logging, off by default, written to a folder you choose. An optional lock that asks for a fingerprint, your face or the device PIN before a saved password or key is used. Jump hosts, host groups and tags, and known-host pinning with a fingerprint you can check by eye.
+
+SSHetu is in English and Nepali.
+
+WHAT IT DOES NOT DO
+
+There is no cloud sync, and that is deliberate: an app holding the keys to your infrastructure has no business keeping a copy of them on someone else's machine. Nepali printed by a remote shell is readable in the terminal but does not line up, because no monospaced Devanagari face exists.
+
+From सेतु (setu), a bridge.
