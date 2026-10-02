@@ -15,7 +15,7 @@ rather than a copy of it.
 
 Nothing yet.
 
-## [1.0.0] - 2026-09-23
+## [1.0.0] - 2026-10-02
 
 First release. There is no previous version to compare against, so this
 section describes what the app is rather than what changed.
