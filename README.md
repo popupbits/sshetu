@@ -44,6 +44,16 @@ That has two consequences the app handles deliberately rather than ignoring:
 - **Known-host pinning**, a fingerprint you can check by eye, and an on-device
   diagnostics log that never leaves the device unless you share it
 
+## Screenshots
+
+<!-- Before the repository goes public: put four or five PNGs in docs/images/
+     and link them here — hosts, terminal, SFTP, keys. -->
+
+_None yet._ The store images are produced by
+[`.github/workflows/screenshots-android.yml`](.github/workflows/screenshots-android.yml)
+and its iOS counterpart, and neither has been run. Until then the fastest way
+to see the app is `flutter run`.
+
 ## Platforms
 
 One codebase, adapting by window width rather than by operating system.
@@ -99,14 +109,45 @@ Platform notes worth knowing before the first build:
 - **macOS** — if the build reports "CocoaPods not installed", `pod` is often at
   `/usr/local/bin` and off the default PATH.
 
+## The gates
+
+CI runs exactly these three, on every push and on every pull request —
+including one from a fork, because none of them needs a secret:
+
+```sh
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze                 # zero errors and zero warnings
+flutter test --exclude-tags live
+```
+
+`live` tests start a real `sshd` on loopback and are excluded on CI;
+[CONTRIBUTING.md](CONTRIBUTING.md) says how to run them locally.
+
 ## Contributing
 
 **[PROJECT.md](PROJECT.md) is the guide** — architecture, conventions, the
 registries you extend instead of editing shared code, and the one import rule
 that will bite you. It is written for humans and coding agents alike.
 
-[CONTRIBUTING.md](CONTRIBUTING.md) covers the practical side: the gates your
-change has to pass and how to run them.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers the practical side: the gates, the
+two-language string rule, and how to run the live tests.
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) applies to everyone here.
+
+### Where the documentation is
+
+| File | What is in it |
+|---|---|
+| [PROJECT.md](PROJECT.md) | Architecture, conventions, every decision and why |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Gates, house style, the optional tooling |
+| [SECURITY.md](SECURITY.md) | Threat model, what is in scope, how to report |
+| [CHANGELOG.md](CHANGELOG.md) | Keep a Changelog, including the known limits |
+| [docs/privacy-policy.md](docs/privacy-policy.md) | What leaves the device: nothing |
+| [docs/prior-art.md](docs/prior-art.md) | Decisions taken, and one reversed |
+| [docs/export-format.md](docs/export-format.md) | The backup and transfer formats |
+| [docs/macos-sandbox.md](docs/macos-sandbox.md) | Entitlements, and why each one |
+| [docs/agent-tooling.md](docs/agent-tooling.md) | `.mcp.json` and the agent skills |
+| [RELEASE_READINESS.md](RELEASE_READINESS.md) | The store audit, open and honest |
+| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | Every shipped dependency and its licence |
 
 ## Security
 
@@ -116,9 +157,13 @@ disclosure route and what is in scope.
 
 ## Third-party
 
-Package licences are listed in the app itself, under *Settings → About →
-Open-source licences*. Two are worth calling out here because a licence page
-does not make them obvious:
+Every shipped dependency, its version and its licence are in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), generated from the lockfile
+by `dart run tool/third_party_notices.dart`. The same licences are listed in
+the app itself, under *Settings → About → Open-source licences*.
+
+Three things are worth calling out here, because a licence page does not make
+them obvious:
 
 - **[xterm2](https://github.com/SoFluffyOS/xterm2)** (MIT) — the terminal
   emulator, **vendored and forked** under `packages/xterm2/`. What diverges
@@ -126,6 +171,11 @@ does not make them obvious:
   [`packages/xterm2/VENDORED.md`](packages/xterm2/VENDORED.md).
 - **[dartssh2](https://pub.dev/packages/dartssh2)** (MIT) — SSH, SFTP and port
   forwarding, in pure Dart.
+- **The four terminal fonts** under `assets/fonts/` — JetBrains Mono, Fira
+  Code, Source Code Pro and IBM Plex Mono, all SIL OFL 1.1. Each ships its
+  `OFL.txt` beside the face, and `lib/core/theme/terminal_fonts.dart`
+  registers that text with Flutter at startup, so the licence travels with
+  the installed app as the OFL asks.
 
 ## Licence
 

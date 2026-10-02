@@ -14,7 +14,7 @@ void main() {
   PairingCode sample() => PairingCode.generate(
     addresses: ['192.168.1.5', '10.0.0.2'],
     port: 53101,
-    deviceName: "dlohani's MacBook",
+    deviceName: "tester's MacBook",
     random: Random(7),
   );
 
@@ -39,7 +39,7 @@ void main() {
   test('a name with spaces and an apostrophe survives', () {
     expect(
       PairingCode.decode(sample().encode()).deviceName,
-      "dlohani's MacBook",
+      "tester's MacBook",
     );
   });
 

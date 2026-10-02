@@ -7,3 +7,10 @@ android/fastlane/metadata/** text eol=lf
 ios/fastlane/metadata/**     text eol=lf
 screenshots/headlines.json   text eol=lf
 CHANGELOG.md                 text eol=lf
+
+# Flutter rewrites these on every `pub get`, always with LF. Without a pin,
+# that rewrite shows as a whole-file modification on a Windows checkout
+# (core.autocrlf) in a tree nobody edited.
+**/generated_plugin_registrant.*   text eol=lf
+**/generated_plugins.cmake         text eol=lf
+**/GeneratedPluginRegistrant.swift text eol=lf

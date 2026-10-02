@@ -10,6 +10,7 @@ import 'package:sshetu/core/ssh/openssh_import.dart';
 import 'package:sshetu/core/ssh/ssh_target.dart';
 import 'package:sshetu/features/import/import_controller.dart';
 
+import '../ssh/fixtures/pasted_keys.dart';
 import '../support/test_database.dart';
 
 /// End-to-end over the import: a real `.ssh` directory on disk, the real
@@ -25,13 +26,13 @@ void main() {
   late InMemorySecretVault vault;
   late ProviderContainer container;
 
-  const privateKey = '''
------BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
------END OPENSSH PRIVATE KEY-----
-''';
-  const publicKey =
-      'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP1kR7QhQxPPFdMbCfvhLDNyIYAmYaLPnJTMkQGDtxNu me@laptop';
+  // Made for this run rather than checked in. A private key literal in the
+  // repository — even a throwaway one — is exactly what a secret scanner is
+  // right to flag, and a fixture nobody can tell apart from a leaked key is
+  // a fixture that trains people to click through the warning.
+  final pair = generatedOpenSshPair(comment: 'me@laptop');
+  final privateKey = pair.privateKey;
+  final publicKey = pair.publicKey;
 
   setUp(() async {
     sshDir = await Directory.systemTemp.createTemp('sshetu_import');

@@ -103,7 +103,7 @@ so each one was counted in Unicode characters against its store's limit.
 | `ios/…/en-US/description.txt` | 2891 | 4000 | Not indexed by Apple, so it is persuasion only. |
 | `ios/fastlane/metadata/primary_category.txt` | — | — | `DEVELOPER_TOOLS` (S4) |
 | `ios/fastlane/metadata/secondary_category.txt` | — | — | `UTILITIES` (S4) |
-| `ios/fastlane/metadata/review_information/` | notes 3228 / 4000 | — | The App Review notes from this document, turned into the file `deliver` actually reads (S4): the 4.2.7 answer, what the app does, the permission-by-permission reasons, the tmux and MCP paragraphs, and step-by-step demo instructions. `demo_user.txt` and `demo_password.txt` are **empty on purpose** — no credentials were invented; the notes say any SSH server works and offer a throwaway account through Resolution Center on request. |
+| `ios/fastlane/metadata/review_information/` | notes 3228 / 4000 | — | The App Review notes from this document, turned into the file `deliver` actually reads (S4): the 4.2.7 answer, what the app does, the permission-by-permission reasons, the tmux and MCP paragraphs, and step-by-step demo instructions. `demo_user.txt` and `demo_password.txt` are **empty on purpose** — no credentials were invented; the notes say any SSH server works and offer a throwaway account through Resolution Center on request. The six contact files are **no longer tracked** — see *App Store review contact* below. |
 | `screenshots/headlines.json` | — | — | Headlines and subheads replaced (they were the bare screen names) with copy matching the real feature set, and `ne-NP` strings added throughout with `Noto Sans Devanagari` as that locale's font. The workflows were **not** run. |
 
 Two judgement calls worth knowing about:
@@ -127,6 +127,45 @@ Two judgement calls worth knowing about:
   to LF, and the single-line fields (both titles, both short descriptions,
   `name.txt`, `subtitle.txt`, `promotional_text.txt`, `keywords.txt`) carry no
   trailing newline at all, so there is nothing left to convert or to count.
+
+### App Store review contact — not in the repository
+
+`deliver` reads six files under `ios/fastlane/metadata/review_information/`
+and uploads them verbatim: `first_name.txt`, `last_name.txt`,
+`email_address.txt`, `phone_number.txt`, `demo_user.txt`, `demo_password.txt`.
+Four of them are a real person's name, email address and phone number. This
+repository is going public, and a contact detail is not a secret that can be
+rotated — once it is published it stays published — so **they are no longer
+tracked**. They are listed in `.gitignore`, with a `.example` beside each one.
+
+Before an upload, whoever runs the lane writes the real values:
+
+```sh
+cd ios/fastlane/metadata/review_information
+for f in first_name last_name email_address phone_number; do
+  cp -n "$f.txt.example" "$f.txt"   # then edit each one with the real value
+done
+printf '' > demo_user.txt           # deliberately empty; see below
+printf '' > demo_password.txt
+```
+
+`notes.txt` stays in the repository: it is review guidance — what the app is,
+how to exercise it, the 4.2.7 answer, the permission reasons — and it no
+longer carries a contact line. `demo_user.txt` and `demo_password.txt` are
+**empty on purpose**: no working SSH credentials go in a metadata field, and
+the notes offer a throwaway account through Resolution Center instead.
+
+**What happens if they are missing.** `upload_to_app_store` runs with
+`submit_for_review: false`, so it uploads the build and the listing and does
+*not* fail on an absent review-contact file — it leaves the field unset. The
+failure lands later and quieter: App Store Connect will not let a version be
+submitted for review without a contact name, email and phone. Treat writing
+these four files as a step of the release, not as something `fastlane` will
+remind you about.
+
+**History.** These values were committed in `3e66a281` and `c137d334` and stay
+reachable in the history of a repository that is about to become public. See
+`OPEN_SOURCE_READINESS.md` for the remedy and the judgement call.
 
 ---
 

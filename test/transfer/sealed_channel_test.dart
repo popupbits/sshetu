@@ -43,11 +43,11 @@ void main() {
   test('the wire carries nothing readable', () {
     final (:sender, receiver: _) = pair(secret());
 
-    final frame = sender.seal({'type': 'hello', 'device': 'dlohani-iPhone'});
+    final frame = sender.seal({'type': 'hello', 'device': 'tester-iPhone'});
 
     // The one property worth asserting literally: a name that went in must not
     // come out of a hex dump of the frame.
-    expect(String.fromCharCodes(frame), isNot(contains('dlohani')));
+    expect(String.fromCharCodes(frame), isNot(contains('tester')));
     expect(String.fromCharCodes(frame), isNot(contains('hello')));
   });
 

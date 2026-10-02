@@ -34,5 +34,3 @@ The app contains the code for a local integration server for AI assistants. It i
 ENCRYPTION
 
 ITSAppUsesNonExemptEncryption is true. SSHetu implements the SSH transport itself and carries published, standard algorithms (AES-GCM, ChaCha20-Poly1305, Curve25519, ECDH, Ed25519, ECDSA, RSA). None of them is proprietary or non-standard.
-
-Contact: ***REMOVED***

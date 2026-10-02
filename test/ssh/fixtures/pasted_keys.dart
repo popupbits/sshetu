@@ -142,3 +142,20 @@ const pkcs8Pem =
     '-----BEGIN PRIVATE KEY-----\n'
     'bm90IGEgcmVhbCBrZXk=\n'
     '-----END PRIVATE KEY-----\n';
+
+/// A full, unencrypted modern OpenSSH key pair, generated fresh for each run.
+///
+/// For tests that need something that genuinely *is* a key file — an import
+/// from disk, or the key type read out of the `openssh-key-v1` blob — rather
+/// than a legacy format being converted. The returned public key is the whole
+/// `.pub` line, comment included, so it can be written beside the private key
+/// the way `ssh-keygen` does.
+({String privateKey, String publicKey}) generatedOpenSshPair({
+  String comment = 'fixture@test',
+}) {
+  final generated = SshKeyGenerator.generate(
+    SshKeyType.ed25519,
+    comment: comment,
+  );
+  return (privateKey: generated.privateKey, publicKey: generated.publicKey);
+}

@@ -40,6 +40,21 @@ of languages; it includes `hi`, `bn-BD`, `ur-PK` and nine Indian languages,
 but no `ne`. A directory named for a language Apple does not know is rejected,
 so beej does not create one.
 
+## Review contact: not in this repository
+
+`review_information/` holds `first_name.txt`, `last_name.txt`,
+`email_address.txt`, `phone_number.txt`, `demo_user.txt` and
+`demo_password.txt`. Four of them are a real person's details, and this
+repository is public, so they are **git-ignored** with a `.example` beside
+each one. Write the real files before `fastlane release`; see
+`RELEASE_READINESS.md` § *App Store review contact*.
+
+`deliver` does not fail on a missing one — it uploads with the field unset,
+and App Store Connect then refuses the submission. Nothing warns you at
+upload time, so this is a step of the release rather than a safety net.
+
+`notes.txt` is tracked: it is review guidance and carries no personal data.
+
 ## Uploading
 
 ```sh

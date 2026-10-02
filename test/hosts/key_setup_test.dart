@@ -15,7 +15,7 @@ void main() {
   const key =
       'ssh-ed25519 '
       'AAAAC3NzaC1lZDI1NTE5AAAAIH1234567890abcdefghijklmnopqrstuvwxyzAB '
-      'dlohani@laptop';
+      'tester@laptop';
 
   const privateKey = SshPrivateKey(
     identityId: 'k1',

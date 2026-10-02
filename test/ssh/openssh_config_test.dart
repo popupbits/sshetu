@@ -3,6 +3,8 @@ import 'package:path/path.dart' as p;
 import 'package:sshetu/core/ssh/openssh_config.dart';
 import 'package:sshetu/core/ssh/openssh_import.dart';
 
+import 'fixtures/pasted_keys.dart';
+
 void main() {
   group('OpenSshConfig.parse', () {
     test('reads a plain block', () {
@@ -260,12 +262,14 @@ MIIEowIBAAKCAQEA
   });
 
   group('key type without a .pub', () {
-    // A real ed25519 key in the modern OpenSSH format, unencrypted. Its public
-    // half sits in the clear inside the blob, which is what makes the type
-    // readable at all.
-    const opensshEd25519 = '''
-***REMOVED: throwaway test key, replaced by generated fixtures***
-''';
+    // A real ed25519 key in the modern OpenSSH format, unencrypted — made for
+    // this run rather than checked in. Its public half sits in the clear
+    // inside the blob, which is what makes the type readable at all.
+    //
+    // Generated, because a private key literal in the repository is exactly
+    // what a secret scanner is right to flag, and a fixture nobody can tell
+    // apart from a leaked key trains people to click through the warning.
+    final opensshEd25519 = generatedOpenSshPair().privateKey;
 
     test('is read from the openssh-key-v1 blob', () {
       // Every key imported through a mobile file picker arrives alone — the

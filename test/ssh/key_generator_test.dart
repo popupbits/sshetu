@@ -49,7 +49,7 @@ void main() {
 
   for (final type in SshKeyType.values) {
     test('ssh-keygen reads the ${type.name} private key we wrote', () {
-      final key = SshKeyGenerator.generate(type, comment: 'dlohani@sshetu');
+      final key = SshKeyGenerator.generate(type, comment: 'tester@sshetu');
       final file = write('id_${type.name}', key.privateKey, private: true);
 
       final result = Process.runSync('ssh-keygen', ['-y', '-f', file.path]);

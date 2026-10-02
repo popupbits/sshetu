@@ -75,7 +75,7 @@ void main() {
     return TransferSender.start(
       payload: payload,
       vault: senderVault,
-      deviceName: "dlohani's MacBook",
+      deviceName: "tester's MacBook",
       addresses: ['127.0.0.1'],
     );
   }
@@ -90,7 +90,7 @@ void main() {
       deviceName: 'iPhone',
     );
 
-    expect(client.offer.deviceName, "dlohani's MacBook");
+    expect(client.offer.deviceName, "tester's MacBook");
     expect(client.offer.hosts, 3);
     expect(client.offer.identities, 1);
     expect(client.offer.includesSecrets, isTrue);

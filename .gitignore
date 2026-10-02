@@ -73,3 +73,15 @@ packages/*/pubspec.lock
 
 # Agent worktrees: separate checkouts, never part of this one.
 .claude/worktrees/
+
+# App Store review contact details. `deliver` uploads these verbatim, so they
+# carry a real person's name, email and phone — which a public repository
+# would publish. The owner (or the release job) writes the real files from the
+# `.example` templates beside them before `fastlane release` runs; see
+# RELEASE_READINESS.md § "App Store review contact".
+ios/fastlane/metadata/review_information/first_name.txt
+ios/fastlane/metadata/review_information/last_name.txt
+ios/fastlane/metadata/review_information/email_address.txt
+ios/fastlane/metadata/review_information/phone_number.txt
+ios/fastlane/metadata/review_information/demo_user.txt
+ios/fastlane/metadata/review_information/demo_password.txt
