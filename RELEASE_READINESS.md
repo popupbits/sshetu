@@ -65,7 +65,7 @@ Ordered by what stops you first.
 | B5 | App Store | **Export compliance is unanswered, and the honest answer is not the house default.** `ITSAppUsesNonExemptEncryption` was absent. It is now `true` (see below) — which is correct for an SSH client and which means the build lands in **Missing Compliance** until documentation is on file. | US EAR; App Store Connect export compliance | **Owner** (BIS filing) |
 | B6 | Play | **`FOREGROUND_SERVICE_SPECIAL_USE` is undeclared in the Play Console,** and the declaration needs a screen-recorded demo video. Without it the release is rejected at review. Text is written (PROJECT.md §12c, repeated below); the video is not recorded. | Play foreground service policy | **Owner** |
 | B7 | Play | **Data safety form and IARC content rating are not submitted.** An unrated app cannot be published, and the Data safety form is mandatory even for an app that collects nothing. | Play policy | **Owner** — answers below |
-| B8 | Play | **Release signing is unproven.** `android/key.properties` is absent (correctly — it is gitignored), and `android/app/build.gradle.kts` falls back to the **debug** signing config when it is missing. That builds fine and is rejected at upload with a confusing error. The CI workflow injects a keystore from secrets; nobody has yet uploaded an AAB from it. | Play upload | **Owner** — confirm secrets, then upload to the internal track first |
+| B8 | Play | **The upload key exists; nothing has been uploaded with it yet.** The keystore was generated on 2 Oct 2026 — alias `upload`, 4096-bit RSA, valid to Feb 2054, `SHA256:6B:81:DF:C5:98:0F:73:7B:A1:0A:9C:73:BB:98:86:91:68:90:2D:B3:6D:ED:C9:33:B3:1E:DD:5E:BA:82:D0:D7` — and lives in the PopupBits publishing-backups folder, never in this repository. Its four values are set as **environment** secrets on `release`. `android/app/build.gradle.kts` still falls back to **debug** signing when `android/key.properties` is absent, which builds fine locally and is rejected at upload with a confusing error; `release.yml` guards against that with an `apksigner` check. Still unproven end to end: no AAB has been uploaded. | Play upload | **Owner** — upload to the internal track first |
 
 ### Fixed in this branch
 
@@ -464,10 +464,10 @@ Short, because internal testing is deliberately cheap.
    lead time of anything here, so it is first even though it finishes last.
 2. **Create the app** in the **Play Console** (it stays a Draft, which is all
    internal testing needs) and in **App Store Connect**.
-3. **Confirm the Android signing secrets** are set on the repository (B8):
-   `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
-   `ANDROID_KEY_PASSWORD`, `PLAY_STORE_JSON_KEY_DATA`, `APP_IDENTIFIER`. Never
-   read or copy the values — confirm the names exist in the Settings page.
+3. **Add the two remaining Play secrets** to the `release` environment
+   (Settings → Environments → release): `PLAY_STORE_JSON_KEY_DATA` and
+   `APP_IDENTIFIER`. The four `ANDROID_*` keystore secrets are already there
+   (B8). Confirm the names exist on that page; never read or copy the values.
 4. **Actions → Android Release → `internal`**, release status `draft` if the
    Play app is still a draft. This is the cheapest place to discover that a
    build was debug-signed or that the version code was already used. It
