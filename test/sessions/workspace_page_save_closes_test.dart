@@ -13,6 +13,7 @@ import 'package:sshetu/features/sessions/workspace_pages.dart';
 import 'package:sshetu/features/snippets/snippet_editor_screen.dart';
 import 'package:sshetu/l10n/app_localizations.dart';
 
+import '../support/settle.dart';
 import '../support/test_database.dart';
 
 /// A form opened as a desktop workspace tab closes its tab when it saves.
@@ -42,17 +43,6 @@ void main() {
   });
 
   tearDown(() async => database.raw.close());
-
-  Future<void> settle(WidgetTester tester) async {
-    // Real turns: the screens read and write sqlite, and a real future never
-    // completes under the test binding's fake clock.
-    for (var i = 0; i < 8; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-    }
-  }
 
   Future<void> openInWorkspaceTab(
     WidgetTester tester,
@@ -85,7 +75,7 @@ void main() {
             builder: builder,
           ),
         );
-    await settle(tester);
+    await tester.pump();
   }
 
   testWidgets('saving a new host closes its tab', (tester) async {
@@ -94,7 +84,7 @@ void main() {
       'host/new',
       (_) => const HostEditorScreen(embedded: true),
     );
-    expect(find.byType(HostEditorScreen), findsOneWidget);
+    await settleUntilFound(tester, find.byType(HostEditorScreen));
 
     await tester.enterText(
       find.byType(TextFormField).first,
@@ -102,9 +92,14 @@ void main() {
     );
     await tester.pump();
     await tester.tap(find.text('Save'));
-    await settle(tester);
+    // Waited for rather than counted out: the save writes to sqlite, and how
+    // long that takes is the runner's business, not this test's.
+    await settleUntil(
+      tester,
+      () => container.read(workspacePagesProvider).isEmpty,
+      reason: 'the saved host tab',
+    );
 
-    expect(container.read(workspacePagesProvider), isEmpty);
     expect(find.byType(HostEditorScreen), findsNothing);
     late List<Map<String, Object?>> rows;
     await tester.runAsync(() async => rows = await database.raw.query('hosts'));
@@ -117,16 +112,19 @@ void main() {
       'snippet/new',
       (_) => const SnippetEditorScreen(embedded: true),
     );
-    expect(find.byType(SnippetEditorScreen), findsOneWidget);
+    await settleUntilFound(tester, find.byType(SnippetEditorScreen));
 
     final fields = find.byType(TextFormField);
     await tester.enterText(fields.at(0), 'uptime');
     await tester.enterText(fields.at(1), 'uptime');
     await tester.pump();
     await tester.tap(find.text('Save'));
-    await settle(tester);
+    await settleUntil(
+      tester,
+      () => container.read(workspacePagesProvider).isEmpty,
+      reason: 'the saved snippet tab',
+    );
 
-    expect(container.read(workspacePagesProvider), isEmpty);
     expect(find.byType(SnippetEditorScreen), findsNothing);
   });
 }
