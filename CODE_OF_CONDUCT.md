@@ -60,16 +60,11 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-**`<CONDUCT CONTACT — set this before the repository is made public>`**.
-All complaints will be reviewed and investigated promptly and fairly.
+**popupbits@gmail.com**. All complaints will be reviewed and investigated
+promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
-
-> **Note for maintainers.** This project is pre-release and the line above is
-> deliberately unfilled rather than pointed at a personal inbox. A code of
-> conduct with no working reporting route is worse than none, so this must be
-> replaced with a monitored address before the repository is published.
 
 ## Enforcement Guidelines
 
