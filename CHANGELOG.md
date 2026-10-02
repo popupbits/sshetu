@@ -108,8 +108,6 @@ Worth knowing before you install, rather than after.
 - **Linux has never been run by a person.** It compiles on CI and is shipped
   as a bundle from there. Every other platform has been built and driven by
   hand.
-- The UI font is fetched from Google Fonts on first launch, so a first run
-  with no network draws the interface in a fallback face.
 
 [Unreleased]: https://github.com/popupbits/sshetu/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/popupbits/sshetu/releases/tag/v1.0.0

@@ -8,9 +8,10 @@
 /// the intent visible where a missing glyph would otherwise be a mystery.
 ///
 /// **Named, not bundled.** Every platform SSHetu targets already carries a
-/// Devanagari face, so bundling one would add weight for nothing, and
-/// google_fonts would fetch it over the network — the same failure the
-/// terminal faces avoid (see terminal_fonts.dart). A name that is not
+/// Devanagari face, and one costs about a megabyte — weight for nothing,
+/// when the alternative is a name the platform resolves for free. Fetching
+/// one instead is not an option: nothing in this app reaches the network for
+/// a typeface (see terminal_fonts.dart and ui_font.dart). A name that is not
 /// installed is skipped, so listing faces for every platform is harmless.
 ///
 /// These are only consulted for a glyph the primary face lacks: Latin text is

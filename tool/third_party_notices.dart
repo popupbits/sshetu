@@ -324,6 +324,10 @@ String _render(List<_Entry> entries) {
     '[`packages/xterm2/LICENSE`](packages/xterm2/LICENSE) |',
   );
   b.writeln(
+    '| Inter — the UI face | <https://github.com/rsms/inter> | OFL-1.1 | '
+    '[`assets/fonts/inter/OFL.txt`](assets/fonts/inter/OFL.txt) |',
+  );
+  b.writeln(
     '| JetBrains Mono | '
     '<https://github.com/JetBrains/JetBrainsMono> | OFL-1.1 | '
     '[`assets/fonts/jetbrains_mono/OFL.txt`]'
@@ -345,7 +349,7 @@ String _render(List<_Entry> entries) {
     '(assets/fonts/ibm_plex_mono/OFL.txt) |',
   );
   b.writeln();
-  b.writeln('The four font licences are also registered with Flutter at');
+  b.writeln('The five font licences are also registered with Flutter at');
   b.writeln('startup (`lib/core/theme/terminal_fonts.dart`), so the OFL text');
   b.writeln("travels with the installed app as the licence asks, and shows");
   b.writeln('under *Settings → About → Open-source licences*.');

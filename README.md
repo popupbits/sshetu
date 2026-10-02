@@ -179,11 +179,14 @@ them obvious:
   [`packages/xterm2/VENDORED.md`](packages/xterm2/VENDORED.md).
 - **[dartssh2](https://pub.dev/packages/dartssh2)** (MIT) — SSH, SFTP and port
   forwarding, in pure Dart.
-- **The four terminal fonts** under `assets/fonts/` — JetBrains Mono, Fira
-  Code, Source Code Pro and IBM Plex Mono, all SIL OFL 1.1. Each ships its
-  `OFL.txt` beside the face, and `lib/core/theme/terminal_fonts.dart`
-  registers that text with Flutter at startup, so the licence travels with
-  the installed app as the OFL asks.
+- **The five fonts** under `assets/fonts/` — Inter for the interface,
+  JetBrains Mono, Fira Code, Source Code Pro and IBM Plex Mono for the
+  terminal, all SIL OFL 1.1. Every one is bundled, never fetched: an app
+  that tells you nothing leaves the device should not ask a CDN for its own
+  typeface before you have touched anything. Each ships its `OFL.txt` beside
+  the face, and `lib/core/theme/terminal_fonts.dart` registers that text
+  with Flutter at startup, so the licence travels with the installed app as
+  the OFL asks.
 
 ## Licence
 

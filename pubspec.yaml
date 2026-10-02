@@ -30,10 +30,6 @@ dependencies:
   cupertino_icons: ^1.0.9
   flutter_riverpod: ^3.4.2
 
-  # Use googleFontsTextTheme() from core/theme/, never
-  # GoogleFonts.xTextTheme() — the latter returns a frozen-Material
-  # TextTheme that material_ui ThemeData rejects.
-  google_fonts: ^8.2.1
   intl: ^0.20.3
 
   # Backs the persisted user settings (accent, theme, language, text size),
@@ -143,16 +139,33 @@ flutter:
     - lib/core/db/migrations/
     # The SIL OFL text of each bundled terminal face; the licence asks that
     # it travel with the font. Shown on the licences page.
+    - assets/fonts/inter/OFL.txt
     - assets/fonts/jetbrains_mono/OFL.txt
     - assets/fonts/fira_code/OFL.txt
     - assets/fonts/source_code_pro/OFL.txt
     - assets/fonts/ibm_plex_mono/OFL.txt
 
-  # Terminal faces, bundled rather than fetched through google_fonts: that
-  # downloads on first use, so an offline first launch would draw the grid
-  # in a fallback face. See core/theme/terminal_fonts.dart. Regular and Bold
-  # only — the grid draws bold, and italic is a slant xterm2 can synthesise.
+  # Every face is bundled, never downloaded. An app whose promise is that
+  # nothing leaves the device cannot fetch its own typeface from a CDN on
+  # first launch — and an offline first run would draw in whatever the
+  # platform guessed instead.
   fonts:
+    # The UI face. Four static weights rather than the variable font,
+    # because that is what the interface actually asks for: 400 body, 500
+    # Material's titles and labels, 600 and 700 where this app emphasises.
+    # No italic — nothing in lib/ draws any.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter/Inter-Regular.ttf
+        - asset: assets/fonts/inter/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/inter/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/inter/Inter-Bold.ttf
+          weight: 700
+    # Terminal faces. Regular and Bold only — the grid draws bold, and
+    # italic is a slant xterm2 can synthesise. See core/theme/
+    # terminal_fonts.dart.
     - family: JetBrains Mono
       fonts:
         - asset: assets/fonts/jetbrains_mono/JetBrainsMono-Regular.ttf

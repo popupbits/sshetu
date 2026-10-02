@@ -1,10 +1,9 @@
-import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'accent.dart';
-import 'google_fonts_text_theme.dart';
 import 'script_fallback.dart';
 import 'tokens.dart';
+import 'ui_font.dart';
 
 /// Builds the app's light and dark themes from the chosen accent.
 ///
@@ -26,14 +25,12 @@ abstract final class AppTheme {
     final base = ThemeData(brightness: brightness, colorScheme: colorScheme);
 
     return base.copyWith(
-      // See google_fonts_text_theme.dart for why this is not
-      // `GoogleFonts.interTextTheme()`. Inter has no Devanagari, so the
-      // Nepali UI falls back to the platform's own face; see
-      // script_fallback.dart.
-      textTheme: googleFontsTextTheme(
-        base.textTheme,
-        GoogleFonts.inter,
-      ).apply(fontFamilyFallback: ScriptFallback.devanagari),
+      // Inter, from the app bundle. It has no Devanagari, so the Nepali UI
+      // falls back to the platform's own face; see script_fallback.dart.
+      textTheme: base.textTheme.apply(
+        fontFamily: UiFont.family,
+        fontFamilyFallback: ScriptFallback.devanagari,
+      ),
       scaffoldBackgroundColor: colorScheme.surface,
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,
