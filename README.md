@@ -71,22 +71,30 @@ this table says which one each platform has earned.
 
 ## Installing
 
-**There is no release yet** — no tag, no store listing. For now, build it
-yourself (below), or take a bundle from a CI run: **Actions → a green run →
-Artifacts**, which carries one per desktop platform.
+Each tagged version is built by CI and attached to the project's
+[Releases](https://github.com/popupbits/sshetu/releases) page: an APK for
+Android, an installer and a portable zip for Windows, a `.dmg` for macOS, a
+`.deb` and a tarball for Linux, and a `SHA256SUMS.txt` covering all of them.
+There is no store listing yet.
 
-On Windows there is an installer:
+The desktop builds are **not signed by a certificate authority**, so the
+first launch looks alarming: Windows SmartScreen says "Windows protected your
+PC" (More info → Run anyway), and macOS calls it an unidentified developer
+(right click → Open). Signing them means a paid certificate from Microsoft
+and from Apple.
 
-```sh
-powershell -ExecutionPolicy Bypass -File tool\make_installer.ps1 -Build
-# -> windows/installer/output/SSHetu-Setup-<version>.exe
-```
+On Windows the installer is worth preferring over the portable zip, because
+it adds the firewall rule that lets another device reach the transfer
+listener — an app cannot grant itself one.
 
-It is worth using rather than running the loose `.exe`, because it adds the
-firewall rule that lets another device reach the transfer listener — an app
-cannot grant itself one.
+The same files can be built from a local release build, by the same scripts
+CI runs:
 
-On macOS, `tool/make_dmg.sh` builds a `.dmg` from a release build.
+| Platform | Command | Output |
+| --- | --- | --- |
+| Windows | `powershell -ExecutionPolicy Bypass -File tool\make_installer.ps1 -Build` | `windows/installer/output/SSHetu-Setup-<version>.exe` |
+| macOS | `tool/make_dmg.sh` | `build/macos/SSHetu-<version>+<build>.dmg` |
+| Linux | `dart run tool/package_linux.dart --version <version> --build <build>` | `dist/sshetu-<version>-linux-x64.tar.gz`, `dist/sshetu_<version>-<build>_amd64.deb` |
 
 ## Building from source
 
