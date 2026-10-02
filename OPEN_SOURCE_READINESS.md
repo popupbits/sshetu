@@ -32,8 +32,8 @@ them is in the code, and none can be fixed by an agent.
 
 | # | Blocker | Who must act | Status |
 |---|---|---|---|
-| **B1** | **A throwaway ed25519 private key is in the history** at commit `62c3f7d` (#3 of 84, 3 Sep) and again at `b0a9460` (#19), as the `opensshEd25519` fixture in `test/ssh/openssh_config_test.dart`. Removed from the tree in this branch, but history is history. GitHub's secret scanning runs over a repository when it becomes public and *will* raise an alert on it. | Owner — decide between rewrite and accept (below) | **Open** |
-| **B2** | **The owner's real name, email (a business address) and phone (`+977…`) are in the history**, added by `c137d33` — which is the current tip of `main`. Removed from the tree in this branch. A phone number cannot be rotated. | Owner | **Open** |
+| **B1** | **Closed on 2 October 2026 by a history rewrite**, run with git-filter-repo and force-pushed before the repository was made public. Was: a throwaway ed25519 private key, the `opensshEd25519` fixture in `test/ssh/openssh_config_test.dart`, added at commit `62c3f7d` and touched at `b0a9460` — with `dlohani@DLs-M1.local` baked into the blob. Every private-key block in every commit is now a placeholder; the only key material left anywhere is the **public** half quoted below, kept on purpose so servers can be grepped for it. | Done | **Closed** |
+| **B2** | **Closed by the same rewrite.** Was: the owner's name, business email and phone number in `ios/fastlane/metadata/review_information/`. Both strings are gone from every commit; the files are now `.example` templates and the real ones are gitignored. The author field of each commit still carries the maintainer's name and email, as it does in any repository. | Done | **Closed** |
 | **B3** | **`CODE_OF_CONDUCT.md` has no reporting address.** It is written and complete apart from one line, which is deliberately left as `<CONDUCT CONTACT — set this before the repository is made public>`. A code of conduct with no working route to report is worse than not having one, and inventing an address that nobody reads is the same failure with better manners. | Owner | **Open** |
 | **B4** | **`README.md` has no screenshots.** A terminal app with no picture is a hard sell, and the section is currently an honest placeholder. The screenshot workflows exist and have never been run. | Owner, or a later batch | Open — cosmetic, not a correctness blocker |
 
@@ -99,7 +99,15 @@ A local ref, `refs/karmashala/checkpoints/<session>`, holds two extra
 checkpoint commits (`7ee925b`, `3e66a28`). It is not pushed and does not reach
 GitHub; it is noted only because it appeared in the `--all` scan.
 
-### B1 — the private key in history: the remedy, and the honest option
+### B1 — the private key in history: what was done
+
+> **Done on 2 October 2026.** The rewrite below was carried out with
+> git-filter-repo and force-pushed, and the repository was made public
+> afterwards. What follows is kept as the record of the decision — and
+> because the one job it names is still worth doing: grep your servers for
+> the public half. Pre-rewrite objects can linger on GitHub's side until it
+> garbage-collects; they are reachable only by exact commit hash, and
+> GitHub Support will purge them on request.
 
 The key's **public** half, derived from the committed blob so it can be
 searched for:
@@ -141,7 +149,7 @@ Then choose:
 there is exactly one branch, and a project that ships an SSH client should not
 have a private key in its history when the fix is an afternoon.
 
-### B2 — the personal data in history
+### B2 — the personal data in history (done)
 
 `c137d33` is the **tip of `main`**, so this one is unusually cheap: the four
 files can be removed with an amend of a single commit and a force-push, with

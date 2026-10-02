@@ -85,3 +85,6 @@ ios/fastlane/metadata/review_information/email_address.txt
 ios/fastlane/metadata/review_information/phone_number.txt
 ios/fastlane/metadata/review_information/demo_user.txt
 ios/fastlane/metadata/review_information/demo_password.txt
+
+# A vendored package builds its own test assets; they are not sources.
+packages/*/build/
