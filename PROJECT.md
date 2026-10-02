@@ -87,16 +87,17 @@ argument type 'ThemeData' can't be assigned to the parameter type
 'ThemeData'"*. `test/no_frozen_material_test.dart` fails the build if any file
 under `lib/` breaks this rule.
 
-Third-party packages that still use frozen Material (`picons`, `google_fonts`, `go_router`)
+Third-party packages that still use frozen Material (`picons`, `go_router`)
 are fine — `MaterialUiCompatibilityBridge`, wired into `MaterialApp.builder` in
 `core/app.dart`, bridges them.
 
 Three consequences worth knowing:
 
-- Use `googleFontsTextTheme(base, GoogleFonts.inter)` from
-  `core/theme/google_fonts_text_theme.dart`, never `GoogleFonts.interTextTheme()` —
-  the latter returns a frozen `TextTheme` that `material_ui`'s `ThemeData`
-  rejects.
+- The UI face is **bundled Inter**, applied with
+  `base.textTheme.apply(fontFamily: UiFont.family)` (`core/theme/ui_font.dart`).
+  Do not reach for `google_fonts`: it is no longer a dependency, it downloads
+  a face from a CDN on first use, and its `*TextTheme()` helpers return a
+  frozen `TextTheme` that `material_ui`'s `ThemeData` rejects anyway.
 - Localization delegates come from `GlobalMaterialLocalizations.delegates`
   (exported by `material_ui`), covering Flutter, Material and Cupertino. This
   app neither declares nor imports `flutter_localizations`. That package has
@@ -837,7 +838,7 @@ a task matches. See `docs/agent-tooling.md`.
 ## Anti-patterns
 
 - `import 'package:flutter/material.dart'` — see §4
-- `GoogleFonts.xTextTheme()` — see §4
+- `google_fonts` for any face — every one is bundled; see §4
 - Raw `Color(0xFF…)` in a widget — use the colour scheme
 - Literal strings in the UI — use the ARB files
 - `withOpacity` — deprecated; use `withValues(alpha: x)`

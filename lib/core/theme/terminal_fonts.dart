@@ -4,13 +4,15 @@ import 'package:xterm2/xterm.dart';
 
 import '../bootstrap.dart';
 import 'terminal_theme.dart';
+import 'ui_font.dart';
 
 /// A face the terminal grid can be drawn in.
 ///
 /// **Bundled, never fetched.** Every face but the system one ships inside the
 /// app as a font asset (`assets/fonts/`, declared under `flutter: fonts:` in
-/// pubspec.yaml). google_fonts is a dependency, but it downloads a face the
-/// first time it is asked for and caches it; until that download finishes —
+/// pubspec.yaml), as the UI face does — see ui_font.dart. A font package
+/// that fetches from a CDN downloads a face the first time it is asked for
+/// and caches it; until that download finishes —
 /// or forever, on a machine that is offline, air-gapped or behind a proxy —
 /// text is drawn in the fallback instead. An SSH client is exactly the app
 /// people open on a network that is not working, and a terminal whose columns
@@ -112,7 +114,8 @@ abstract final class TerminalFonts {
       all.firstWhere((f) => f.id == id, orElse: () => system);
 }
 
-/// Puts the bundled faces' licences on the licences page.
+/// Puts every bundled face's licence on the licences page — the UI face as
+/// well as the terminal ones.
 ///
 /// The SIL OFL asks that the licence travel with the font. The text is read
 /// lazily — only when someone opens that page — so this costs nothing at
@@ -126,6 +129,9 @@ class RegisterFontLicenses extends BootstrapStep {
   @override
   Future<void> run() async {
     LicenseRegistry.addLicense(() async* {
+      yield LicenseEntryWithLineBreaks([
+        UiFont.family,
+      ], await rootBundle.loadString(UiFont.licenseAsset));
       for (final font in TerminalFonts.all) {
         final asset = font.licenseAsset;
         final family = font.family;

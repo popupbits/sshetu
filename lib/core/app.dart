@@ -52,7 +52,7 @@ class SshetuApp extends ConsumerWidget {
 
       builder: (context, child) {
         // Bridges packages that still import package:flutter/material.dart —
-        // google_fonts, go_router's MaterialPage, picons — so their widgets
+        // go_router's MaterialPage, picons — so their widgets
         // can resolve a legacy Theme and MaterialLocalizations inside this
         // material_ui tree. Without it they throw at runtime.
         // Deprecated upstream on purpose: it is a migration utility, and

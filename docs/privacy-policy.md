@@ -42,7 +42,7 @@ there is nowhere for it to go: the app has no backend.
 
 ## What leaves your device
 
-Four things, and nothing else.
+Three things, and nothing else.
 
 **1. Your SSH connections.** When you connect to a server, the app talks to
 that server — the one whose address you typed. What you send and what it sends
@@ -55,14 +55,7 @@ sealed with a single-use secret carried in the QR code you scan. The data goes
 from one of your devices to the other. It does not pass through any server,
 ours or anyone else's, and the listener is open only while that screen is.
 
-**3. A font, once.** The app's interface font is downloaded from Google's font
-service (`fonts.gstatic.com`) the first time it is needed and then cached on
-the device. Google receives the request, which — like any web request — carries
-your IP address. Google's handling of it is covered by the
-[Google Privacy Policy](https://policies.google.com/privacy). Nothing about you
-or your servers is included in that request.
-
-**4. Google Play, on Android.** The Android build asks Google Play whether a
+**3. Google Play, on Android.** The Android build asks Google Play whether a
 newer version of the app exists, and can show Play's own "rate this app" sheet.
 Both are Google Play services on your device; they tell Play which app asked,
 not who you are or what is in it. They do not run on any other platform.

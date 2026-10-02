@@ -17,12 +17,13 @@ time, so their licence text travels with this repository.
 | What | Upstream | Licence | Text |
 | --- | --- | --- | --- |
 | `packages/xterm2/` — vendored fork of xterm2 5.3.0 | <https://github.com/SoFluffyOS/xterm2> | MIT, © 2020 xuty | [`packages/xterm2/LICENSE`](packages/xterm2/LICENSE) |
+| Inter — the UI face | <https://github.com/rsms/inter> | OFL-1.1 | [`assets/fonts/inter/OFL.txt`](assets/fonts/inter/OFL.txt) |
 | JetBrains Mono | <https://github.com/JetBrains/JetBrainsMono> | OFL-1.1 | [`assets/fonts/jetbrains_mono/OFL.txt`](assets/fonts/jetbrains_mono/OFL.txt) |
 | Fira Code | <https://github.com/tonsky/FiraCode> | OFL-1.1 | [`assets/fonts/fira_code/OFL.txt`](assets/fonts/fira_code/OFL.txt) |
 | Source Code Pro | <https://github.com/adobe-fonts/source-code-pro> | OFL-1.1 | [`assets/fonts/source_code_pro/OFL.txt`](assets/fonts/source_code_pro/OFL.txt) |
 | IBM Plex Mono | <https://github.com/IBM/plex> | OFL-1.1 | [`assets/fonts/ibm_plex_mono/OFL.txt`](assets/fonts/ibm_plex_mono/OFL.txt) |
 
-The four font licences are also registered with Flutter at
+The five font licences are also registered with Flutter at
 startup (`lib/core/theme/terminal_fonts.dart`), so the OFL text
 travels with the installed app as the licence asks, and shows
 under *Settings → About → Open-source licences*.
@@ -44,7 +45,6 @@ Declared in `pubspec.yaml`.
 | `flutter_riverpod` | 3.4.2 | MIT | https://pub.dev/packages/flutter_riverpod |
 | `flutter_secure_storage` | 11.0.0 | BSD-3-Clause | https://pub.dev/packages/flutter_secure_storage |
 | `go_router` | 17.5.0 | BSD-3-Clause | https://pub.dev/packages/go_router |
-| `google_fonts` | 8.2.1 | BSD-3-Clause | https://pub.dev/packages/google_fonts |
 | `in_app_review` | 2.0.12 | MIT | https://pub.dev/packages/in_app_review |
 | `in_app_update` | 5.0.0 | MIT | https://pub.dev/packages/in_app_update |
 | `intl` | 0.20.3 | BSD-3-Clause | https://pub.dev/packages/intl |

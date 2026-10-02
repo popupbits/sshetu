@@ -182,7 +182,7 @@ reachable in the history of a repository that is about to become public. See
 | # | Store | Finding | Who |
 | --- | --- | --- | --- |
 | S1 | Both | **The in-app privacy policy link does not exist.** `aboutPrivacyPolicy` and `aboutPrivacyPolicySubtitle` are already in *both* ARB files, but `lib/features/settings/about_screen.dart` shows only Licences. Apple 5.1.1(i) wants the policy reachable inside the app. Wire the tile as soon as B1 gives it a URL — the strings are waiting, so this is one `ListTile` and a `url_launcher` call. Doing it before the URL exists would ship a dead link, which is Guideline 2.1. | Us, after B1 |
-| S2 | Both | **The UI font is downloaded at runtime.** `google_fonts` serves Inter, and Inter is not in `pubspec.yaml`'s `fonts:` — only the four terminal faces are. So a fresh install fetches `fonts.gstatic.com` on first launch: an offline first run draws the UI in a fallback face, and an app that says "nothing leaves the device" makes a request to Google before it has shown a screen. Bundling Inter the way the terminal faces are bundled removes both, and removes a question from the Data safety form. | Us — a separate change, not part of this audit |
+| S2 | Both | ~~**The UI font is downloaded at runtime.**~~ **Closed 2 October 2026.** Inter is bundled — four static weights under `assets/fonts/inter/`, declared in `pubspec.yaml` beside the terminal faces — and `google_fonts` is no longer a dependency at all. Nothing fetches `fonts.gstatic.com`, an offline first run draws in Inter, and the privacy policy no longer has to mention Google. | Done |
 | S3 | App Store | **No `ios-release.yml` workflow and no `ios/ExportOptions.plist`.** The shared pipeline (`popupbits-release-pipeline`) expects both; the fastlane lanes under `ios/` are correct and complete, so a release is possible from a Mac by hand, but not from CI. | Us / owner |
 | S4 | App Store | ~~`ios/fastlane/metadata/` is missing `primary_category.txt`, `secondary_category.txt` and `review_information/`.~~ **Done.** `DEVELOPER_TOOLS` / `UTILITIES`, matching the bare-identifier form the other PopupBits apps use, and a filled `review_information/`. The category values were not checked against a live App Store Connect account — if ASC rejects one, that is where it will show. | — |
 | S5 | App Store | ~~`subtitle.txt`, `keywords.txt` and `promotional_text.txt` are empty.~~ **Drafted**, within limits, with no term repeated between name, subtitle and keywords. Still the owner's to approve. | Owner to approve |
@@ -276,14 +276,9 @@ the answers are on record if a future version collects anything):
   there is nothing to request. Uninstalling removes the database, the settings
   and the credential-store entries.
 
-**Two things to be honest about, neither of which changes the "No":**
+**One thing to be honest about, which does not change the "No":**
 
-1. **The font fetch.** `google_fonts` downloads Inter from `fonts.gstatic.com`
-   on first launch (S2). That request carries the device's IP address, like any
-   web request; Play does not treat standard network transmission as collected
-   data, and nothing about the user or their servers is in it. Bundling Inter
-   removes the question entirely — do it.
-2. **Play Core.** `in_app_update` and `in_app_review` talk to the Google Play
+1. **Play Core.** `in_app_update` and `in_app_review` talk to the Google Play
    services on the device. They are Google's services, not the developer's,
    and they are outside the Data safety declaration.
 
