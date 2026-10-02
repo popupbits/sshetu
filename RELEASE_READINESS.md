@@ -18,7 +18,14 @@ the Nepali Play listing). The blocker table below is updated with what that
 closed and what it did not: **drafted is not approved**, and nothing about
 artwork, hosted URLs or a console has changed.
 
-**Verdict: not submittable today.** The build itself is in good shape — the
+**Updated: 2 October 2026 — the first release does not go to a store.**
+v1.0.0 ships as a **GitHub release**: the APK beside the Windows installer,
+the macOS disk image and the Linux package, all built and attached by
+`.github/workflows/release.yml`. Everything below still stands as the audit
+of a *store* submission, and none of it blocks that release. The one piece
+that mattered either way — the Android upload key — exists now (B8).
+
+**Verdict on a store submission: not submittable today.** The build itself is in good shape — the
 target API level is current, the permissions are all justified, the foreground
 service is typed and documented. What is missing is everything outside the
 binary: there is no privacy policy anywhere, no support URL, no store artwork
@@ -35,7 +42,8 @@ Made by the owner, and binding on everything below.
 | Decision | Value | Consequence |
 | --- | --- | --- |
 | **Version** | **1.0.0+1**, unchanged | `versionCode` **1** and `versionName` **1.0.0**, read from `pubspec.yaml` by `flutter.versionCode` / `flutter.versionName` in `android/app/build.gradle.kts`. Nothing in `android-release.yml` passes `--build-number`, so the AAB really is code 1. The Play release notes therefore live in `changelogs/1.txt`. **Code 1 can be spent only once** — a failed upload still burns it. |
-| **Audience** | **Internal testers only** | Play **internal testing** track and **TestFlight**. No public store listing yet, no production track, no App Store review submission. |
+| **First channel** | **GitHub Releases** | The APK, the Windows installer, the macOS `.dmg` and the Linux `.deb`/tarball on one release page, signed with the upload key but sent to no store. `android-release.yml` — the Play pipeline — stays in the repository, unused. |
+| **Audience** | **Internal testers only** *(when a store round happens)* | Play **internal testing** track and **TestFlight**. No public store listing yet, no production track, no App Store review submission. |
 | **Later** | **The same build is promoted** | Not rebuilt. Promotion from internal → closed/open → production on Play, and from TestFlight → App Store review, all carry version code 1. |
 
 Two things follow from "internal testers only" that are easy to get wrong:
