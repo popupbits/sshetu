@@ -1,19 +1,22 @@
-# Build every file a person can download, and open a draft GitHub release.
+# Build every file a person can download, and attach them to the release.
 #
 # ci.yml proves the app compiles on each desktop platform; this turns those
-# builds into things someone can actually install — an installer, a disk
-# image, a package — and attaches them to a release with the checksums and
-# the notes from CHANGELOG.md.
+# builds into things someone can install — an APK, an installer, a disk
+# image, a package — and uploads them to a GitHub release with their
+# checksums. Nothing is sent to Google Play; android-release.yml is that, and
+# it is not part of releasing.
 #
-# Triggered by pushing a tag (`git tag v1.0.0 && git push origin v1.0.0`) or
-# by hand from the Actions tab. Either way the release is created as a
-# **draft**: the artifacts are built and uploaded, and publishing stays a
-# decision someone makes after looking at them. A pull request that touches
-# any of this builds everything and publishes nothing.
+# How a release happens, the same way it does in karmashala:
 #
-# Play and the App Store are a different pipeline — android-release.yml and
-# fastlane. This is the direct-download half, which is the only half Windows
-# and Linux have.
+#   1. `dart run tool/release_meta.dart body` for the notes, if you want them
+#      written for you.
+#   2. Draft a release on `v<version>` in the GitHub UI and **publish** it.
+#   3. That fires this workflow. Each job uploads its files as it finishes,
+#      so the release fills up over the twenty minutes the builds take.
+#
+# `workflow_dispatch` does the same thing without the UI, creating the
+# release if it does not exist yet. A pull request that touches any of this
+# builds everything and uploads nothing.
 #
 # ---------------------------------------------------------------
 # Secrets live in the `release` **environment**, not on the repository
@@ -29,23 +32,17 @@
 # one a pull request adds. An environment's secrets reach only the jobs that
 # name it, never a fork's run, and the environment can be given required
 # reviewers later without touching this file.
-#
-# The same keystore Play signs with, so an APK downloaded from here and an
-# install from Play are the same application and can replace each other. The
-# Android job refuses to run without it rather than falling back to the debug
-# key, because an APK signed with a key everybody has is not a release.
-#
-# Run with `skip_android: true` to ship the desktop files alone.
 # ---------------------------------------------------------------
 
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  # Published only, not tag pushes: creating a release from a tag would
+  # otherwise fire this twice for the same version.
+  release:
+    types: [published]
   # A dry run whenever the release machinery itself changes: everything is
-  # built and packaged, nothing is published. Otherwise a broken installer
+  # built and packaged, nothing is uploaded. Otherwise a broken installer
   # script is only discovered on the day it is needed, by the person least
   # able to wait for it.
   pull_request:
@@ -58,8 +55,8 @@ on:
       - "windows/installer/**"
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Tag to release (blank = v<pubspec version>, created at this ref)"
+      version:
+        description: "Version to release, e.g. 1.0.0 (creates the release on v<version> if it does not exist)"
         required: false
         type: string
       skip_android:
@@ -76,9 +73,10 @@ on:
 permissions:
   contents: write
 
-# Two runs of the same tag would race to upload the same assets.
+# One release at a time, never cancelled: a half-cancelled run leaves a
+# release holding some of its files, which is worse than one holding none.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event.release.tag_name || inputs.version || github.ref }}
   cancel-in-progress: false
 
 env:
@@ -103,12 +101,15 @@ jobs:
           channel: stable
           cache: true
 
+      # The lock file as committed. A release built from a fresh resolution
+      # is not the thing that was tested; `--enforce-lockfile` makes the two
+      # the same build or no build.
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
-      # The same three gates as ci.yml. A tag can be pushed without a green
-      # run behind it, and "we tagged it, so it must have been fine" is how a
-      # broken release happens.
+      # The same three gates as ci.yml. A release can be published without a
+      # green run behind it, and "we tagged it, so it must have been fine" is
+      # how a broken release happens.
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed lib test
 
@@ -120,18 +121,21 @@ jobs:
 
       - name: Version and tag
         id: meta
+        env:
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           VERSION="$(dart run tool/release_meta.dart version)"
           BUILD="$(dart run tool/release_meta.dart build)"
-          TAG="${{ inputs.tag }}"
-          if [ -z "$TAG" ] && [ "${{ github.ref_type }}" = tag ]; then
-            TAG="${{ github.ref_name }}"
-          fi
-          [ -n "$TAG" ] || TAG="v$VERSION"
+          case "${{ github.event_name }}" in
+            release) TAG="$EVENT_TAG" ;;
+            workflow_dispatch) TAG="v${INPUT_VERSION:-$VERSION}" ;;
+            *) TAG="v$VERSION" ;;
+          esac
           # Fails the whole release when the tag and pubspec disagree, which
-          # is the one mistake that is invisible afterwards: the files would
-          # all be named after a version the app does not report.
+          # is the one mistake that is invisible afterwards: every file would
+          # be named after a version the app does not report.
           dart run tool/release_meta.dart check-tag "$TAG"
           {
             echo "version=$VERSION"
@@ -139,20 +143,32 @@ jobs:
             echo "tag=$TAG"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Release notes
-        run: dart run tool/release_meta.dart notes > release-notes.md
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: release-notes.md
-          if-no-files-found: error
+      # Only when this was started by hand. A release that a person published
+      # already has the words they chose on it, and overwriting those would
+      # be rude.
+      - name: Create the release, if dispatching made one necessary
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "$TAG already exists; its notes are left alone."
+            exit 0
+          fi
+          dart run tool/release_meta.dart body "$VERSION" > body.md
+          PRERELEASE=()
+          case "$TAG" in *-*) PRERELEASE=(--prerelease) ;; esac
+          gh release create "$TAG" "${PRERELEASE[@]}" \
+            --target "$GITHUB_SHA" \
+            --title "SSHetu $VERSION" \
+            --notes-file body.md
 
   android:
     name: Android APKs
     needs: prepare
-    # Not on a pull request: a fork's run has no secrets, and the only APK
-    # worth producing is one signed with the release key.
     if: ${{ !inputs.skip_android && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     # The one job that may read the signing key.
@@ -169,13 +185,16 @@ jobs:
       - uses: actions/checkout@v7
 
       # Checked before anything is built, so a missing secret costs ten
-      # seconds rather than ten minutes.
+      # seconds rather than ten minutes. Deliberately a failure and not a
+      # warning: Gradle falls back to the debug key when key.properties is
+      # missing, and a debug-signed APK is indistinguishable from a real one
+      # until someone tries to update it.
       - name: Require the signing secrets
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 is not set. Add the four ANDROID_* secrets (see the header of this workflow), or re-run with skip_android: true to ship the desktop files alone."
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set on the release environment. Add the four ANDROID_* secrets (see the header of this workflow), or re-run with skip_android: true to ship the desktop files alone."
             exit 1
           fi
 
@@ -212,7 +231,7 @@ jobs:
             "$ANDROID_KEY_ALIAS" "$KS" > android/key.properties
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       # Both shapes, because a download page serves two people: one who knows
       # their phone is arm64 and wants 25 MB, and one who does not and wants
@@ -234,9 +253,6 @@ jobs:
           cp "$APK/app-release.apk" "dist/sshetu-$VERSION-android-universal.apk"
           ls -la dist
 
-      # The guard that matters: Gradle falls back to the debug key when
-      # key.properties is missing or unreadable, and a debug-signed APK looks
-      # exactly like a real one until someone tries to update it.
       - name: Check the signer is not the debug key
         run: |
           set -euo pipefail
@@ -252,6 +268,13 @@ jobs:
           name: dist-android
           path: dist
           if-no-files-found: error
+
+      - name: Attach to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          files: dist/*
+          fail_on_unmatched_files: true
 
   windows:
     name: Windows installer
@@ -272,7 +295,7 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Build
         run: flutter build windows --release
@@ -306,6 +329,14 @@ jobs:
           path: dist
           if-no-files-found: error
 
+      - name: Attach to the release
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          files: dist/*
+          fail_on_unmatched_files: true
+
   macos:
     name: macOS disk image
     needs: prepare
@@ -325,7 +356,7 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Build
         run: flutter build macos --release
@@ -355,6 +386,14 @@ jobs:
           path: dist
           if-no-files-found: error
 
+      - name: Attach to the release
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          files: dist/*
+          fail_on_unmatched_files: true
+
   linux:
     name: Linux tarball and .deb
     needs: prepare
@@ -383,7 +422,7 @@ jobs:
             libjsoncpp-dev libsqlite3-dev
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Build
         run: flutter build linux --release
@@ -408,11 +447,20 @@ jobs:
           path: dist
           if-no-files-found: error
 
-  publish:
-    name: Draft release
+      - name: Attach to the release
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          files: dist/*
+          fail_on_unmatched_files: true
+
+  checksums:
+    name: Checksums
     needs: [prepare, android, windows, macos, linux]
-    # `always()`, because skip_android leaves the Android job skipped rather
-    # than successful — but every job that did run still has to have passed.
+    # `always()`, because skip_android and a pull request both leave the
+    # Android job skipped rather than successful — but every job that did run
+    # still has to have passed.
     if: >-
       always()
       && github.event_name != 'pull_request'
@@ -424,87 +472,39 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    env:
-      GH_TOKEN: ${{ github.token }}
-      TAG: ${{ needs.prepare.outputs.tag }}
-      VERSION: ${{ needs.prepare.outputs.version }}
-
     steps:
-      - uses: actions/checkout@v7
-
       - uses: actions/download-artifact@v4
         with:
           pattern: dist-*
           merge-multiple: true
           path: dist
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-notes
-          path: notes
-
+      # Last, and from the files as uploaded, so the list covers everything
+      # the release actually holds.
       - name: Checksums
         run: |
           set -euo pipefail
           cd dist
-          sha256sum * > SHA256SUMS.txt
-          cat SHA256SUMS.txt
+          sha256sum * > ../SHA256SUMS.txt
+          cat ../SHA256SUMS.txt
 
-      # What to download, and what each file is not. Both warnings are real:
-      # the desktop builds are unsigned, and a first launch that looks like a
-      # malware warning is better explained here than discovered.
-      - name: Compose the release body
+      - name: Attach to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          files: SHA256SUMS.txt
+          fail_on_unmatched_files: true
+
+      - name: Say what landed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # No checkout in this job, so gh has no repository to infer.
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.prepare.outputs.tag }}
         run: |
-          set -euo pipefail
-          cat > body.md <<'HEADER'
-          ## Downloads
-
-          | Platform | File |
-          | --- | --- |
-          | Android | `…-android-universal.apk` — works on any phone. The per-ABI files are smaller if you know which one you need. |
-          | Windows | `…-windows-x64-setup.exe` — the installer also adds the firewall rule that lets another device reach "send to a device". The `portable.zip` does not. |
-          | macOS | `…-macos.dmg` |
-          | Linux | `…_amd64.deb` on Debian or Ubuntu, `…-linux-x64.tar.gz` anywhere else. |
-
-          `SHA256SUMS.txt` has a checksum for every file above.
-
-          **The desktop builds are not signed by a certificate authority.**
-          Windows SmartScreen will say "Windows protected your PC" — More info
-          → Run anyway. macOS will call it an unidentified developer — right
-          click → Open. Both are what an unsigned build looks like; signing
-          them means a paid certificate from Microsoft and from Apple.
-
-          ---
-
-          HEADER
-          cat notes/release-notes.md >> body.md
-          cat body.md
-
-      - name: Draft the release
-        run: |
-          set -euo pipefail
-          PRERELEASE=()
-          case "$TAG" in
-            *-*) PRERELEASE=(--prerelease) ;;
-          esac
-          if gh release view "$TAG" > /dev/null 2>&1; then
-            # A re-run replaces the files rather than failing on the second
-            # upload of the same name.
-            gh release edit "$TAG" --title "SSHetu $VERSION" --notes-file body.md
-            gh release upload "$TAG" dist/* --clobber
-          else
-            gh release create "$TAG" \
-              --draft "${PRERELEASE[@]}" \
-              --target "$GITHUB_SHA" \
-              --title "SSHetu $VERSION" \
-              --notes-file body.md \
-              dist/*
-          fi
-          gh release view "$TAG" --json isDraft,tagName,assets \
-            --jq '"\(.tagName) draft=\(.isDraft) assets=\(.assets | length)"'
-
-      - name: Say what is left
-        run: |
-          echo "### Draft release $TAG is ready" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Review the files, then publish it: <${{ github.server_url }}/${{ github.repository }}/releases>" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### $TAG"
+            echo
+            gh release view "$TAG" --json assets \
+              --jq '.assets[] | "- \(.name) (\(.size) bytes)"'
+          } >> "$GITHUB_STEP_SUMMARY"

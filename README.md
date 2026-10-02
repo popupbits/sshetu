@@ -71,7 +71,7 @@ this table says which one each platform has earned.
 
 ## Installing
 
-Each tagged version is built by CI and attached to the project's
+Each release is built by CI and attached to the project’s
 [Releases](https://github.com/popupbits/sshetu/releases) page: an APK for
 Android, an installer and a portable zip for Windows, a `.dmg` for macOS, a
 `.deb` and a tarball for Linux, and a `SHA256SUMS.txt` covering all of them.
