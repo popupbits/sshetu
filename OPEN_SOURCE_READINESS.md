@@ -33,7 +33,7 @@ them is in the code, and none can be fixed by an agent.
 | # | Blocker | Who must act | Status |
 |---|---|---|---|
 | **B1** | **A throwaway ed25519 private key is in the history** at commit `62c3f7d` (#3 of 84, 3 Sep) and again at `b0a9460` (#19), as the `opensshEd25519` fixture in `test/ssh/openssh_config_test.dart`. Removed from the tree in this branch, but history is history. GitHub's secret scanning runs over a repository when it becomes public and *will* raise an alert on it. | Owner — decide between rewrite and accept (below) | **Open** |
-| **B2** | **The owner's real name, email (`***REMOVED***`) and phone (`+977…`) are in the history**, added by `c137d33` — which is the current tip of `main`. Removed from the tree in this branch. A phone number cannot be rotated. | Owner | **Open** |
+| **B2** | **The owner's real name, email (a business address) and phone (`+977…`) are in the history**, added by `c137d33` — which is the current tip of `main`. Removed from the tree in this branch. A phone number cannot be rotated. | Owner | **Open** |
 | **B3** | **`CODE_OF_CONDUCT.md` has no reporting address.** It is written and complete apart from one line, which is deliberately left as `<CONDUCT CONTACT — set this before the repository is made public>`. A code of conduct with no working route to report is worse than not having one, and inventing an address that nobody reads is the same failure with better manners. | Owner | **Open** |
 | **B4** | **`README.md` has no screenshots.** A terminal app with no picture is a hard sell, and the section is currently an honest placeholder. The screenshot workflows exist and have never been run. | Owner, or a later batch | Open — cosmetic, not a correctness blocker |
 
@@ -83,7 +83,7 @@ separately, because `git log -p` does not show their contents.
 | `keyAlias = keystoreProperties["keyAlias"]`, `storePassword=` | `android/app/build.gradle.kts`, `android/key.properties.example` | Yes | **Not secrets.** The Gradle plumbing and an example file whose values are empty. |
 | `passphrase: 'anything'` | `test/backup/backup_file_test.dart` | Yes | **Not a secret.** A literal called `anything`. |
 | `/home/me/…`, `/Users/test//x`, `C:\Users\me\keys\work.ppk`, `/home/someone/Documents` | several tests | Yes | **Not personal.** Invented paths in test data. |
-| Name, `***REMOVED***`, `+977…` | `ios/fastlane/metadata/review_information/`, `3e66a28`/`c137d33` | **No — removed in this branch** | **Genuine personal data.** See B2 and §2. |
+| Name, the business email, `+977…` | `ios/fastlane/metadata/review_information/`, `3e66a28`/`c137d33` | **No — removed in this branch** | **Genuine personal data.** See B2 and §2. |
 
 **No** AWS, GCP, GitHub, Slack, Stripe or OAuth credential; **no** JWT; **no**
 `.env` contents; **no** keystore bytes or base64 blob of one; **no**
@@ -173,7 +173,7 @@ repository:
   a `.example` beside each one. The real files stay on disk locally.
 - `notes.txt` is **kept** — it is review guidance (what the app is, how to
   exercise it, the 4.2.7 answer, the permission reasons) — with its trailing
-  `Contact: ***REMOVED***` line removed. Nothing else in it is personal.
+  the `Contact:` line removed. Nothing else in it is personal.
 - Documented in `RELEASE_READINESS.md` § *App Store review contact* and in
   `ios/fastlane/metadata/README.md`, including the trap: `deliver` runs with
   `submit_for_review: false`, so a **missing file does not fail the upload** —
