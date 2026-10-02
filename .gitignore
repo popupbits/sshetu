@@ -88,3 +88,8 @@ ios/fastlane/metadata/review_information/demo_password.txt
 
 # A vendored package builds its own test assets; they are not sources.
 packages/*/build/
+
+# Distributables. Built by tool/package_linux.dart, tool/make_installer.ps1
+# and tool/make_dmg.sh, attached to a GitHub release, never committed.
+/dist/
+/windows/installer/output/

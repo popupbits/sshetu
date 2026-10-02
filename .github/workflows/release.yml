@@ -1,0 +1,502 @@
+# Build every file a person can download, and open a draft GitHub release.
+#
+# ci.yml proves the app compiles on each desktop platform; this turns those
+# builds into things someone can actually install — an installer, a disk
+# image, a package — and attaches them to a release with the checksums and
+# the notes from CHANGELOG.md.
+#
+# Triggered by pushing a tag (`git tag v1.0.0 && git push origin v1.0.0`) or
+# by hand from the Actions tab. Either way the release is created as a
+# **draft**: the artifacts are built and uploaded, and publishing stays a
+# decision someone makes after looking at them. A pull request that touches
+# any of this builds everything and publishes nothing.
+#
+# Play and the App Store are a different pipeline — android-release.yml and
+# fastlane. This is the direct-download half, which is the only half Windows
+# and Linux have.
+#
+# ---------------------------------------------------------------
+# Required repository secrets (Android only; the desktop jobs need none)
+#   Settings -> Secrets and variables -> Actions
+#
+#   ANDROID_KEYSTORE_BASE64    base64 of the release keystore (.jks)
+#   ANDROID_KEYSTORE_PASSWORD  keystore password
+#   ANDROID_KEY_ALIAS          key alias inside the keystore
+#   ANDROID_KEY_PASSWORD       key password
+#
+# The same keystore Play signs with, so an APK downloaded from here and an
+# install from Play are the same application and can replace each other. The
+# Android job refuses to run without it rather than falling back to the debug
+# key, because an APK signed with a key everybody has is not a release.
+#
+# Run with `skip_android: true` to ship the desktop files alone.
+# ---------------------------------------------------------------
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  # A dry run whenever the release machinery itself changes: everything is
+  # built and packaged, nothing is published. Otherwise a broken installer
+  # script is only discovered on the day it is needed, by the person least
+  # able to wait for it.
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - "tool/package_linux.dart"
+      - "tool/release_meta.dart"
+      - "tool/make_dmg.sh"
+      - "tool/make_installer.ps1"
+      - "windows/installer/**"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (blank = v<pubspec version>, created at this ref)"
+        required: false
+        type: string
+      skip_android:
+        description: "Desktop only — skip the APKs"
+        required: false
+        type: boolean
+        default: false
+      flutter_version:
+        description: "Flutter SDK version to build with"
+        required: false
+        type: string
+        default: "3.47.5"
+
+permissions:
+  contents: write
+
+# Two runs of the same tag would race to upload the same assets.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: ${{ inputs.flutter_version || '3.47.5' }}
+
+jobs:
+  prepare:
+    name: Gate and version
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      build: ${{ steps.meta.outputs.build }}
+      tag: ${{ steps.meta.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # The same three gates as ci.yml. A tag can be pushed without a green
+      # run behind it, and "we tagged it, so it must have been fine" is how a
+      # broken release happens.
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test --exclude-tags live
+
+      - name: Version and tag
+        id: meta
+        run: |
+          set -euo pipefail
+          VERSION="$(dart run tool/release_meta.dart version)"
+          BUILD="$(dart run tool/release_meta.dart build)"
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ] && [ "${{ github.ref_type }}" = tag ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          [ -n "$TAG" ] || TAG="v$VERSION"
+          # Fails the whole release when the tag and pubspec disagree, which
+          # is the one mistake that is invisible afterwards: the files would
+          # all be named after a version the app does not report.
+          dart run tool/release_meta.dart check-tag "$TAG"
+          {
+            echo "version=$VERSION"
+            echo "build=$BUILD"
+            echo "tag=$TAG"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Release notes
+        run: dart run tool/release_meta.dart notes > release-notes.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+          if-no-files-found: error
+
+  android:
+    name: Android APKs
+    needs: prepare
+    # Not on a pull request: a fork's run has no secrets, and the only APK
+    # worth producing is one signed with the release key.
+    if: ${{ !inputs.skip_android && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    env:
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Checked before anything is built, so a missing secret costs ten
+      # seconds rather than ten minutes.
+      - name: Require the signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set. Add the four ANDROID_* secrets (see the header of this workflow), or re-run with skip_android: true to ship the desktop files alone."
+            exit 1
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Decode the release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p android/keystore
+          KS="$PWD/android/keystore/upload-keystore.jks"
+          # `tr -d '\r\n'` defends against a CRLF or line-wrapped secret. GNU
+          # base64 folds stray bytes into its output silently, and the
+          # resulting "keystore" then trips the JDK's ASN.1 parser deep
+          # inside Gradle.
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n' | base64 -d > "$KS"
+          if [ "$(stat -c%s "$KS")" -lt 1000 ]; then
+            echo "::error::Decoded keystore is implausibly small — check ANDROID_KEYSTORE_BASE64."
+            exit 1
+          fi
+          printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=%s\n" \
+            "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEY_PASSWORD" \
+            "$ANDROID_KEY_ALIAS" "$KS" > android/key.properties
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Both shapes, because a download page serves two people: one who knows
+      # their phone is arm64 and wants 25 MB, and one who does not and wants
+      # the file that always works.
+      - name: Build per-ABI APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build the universal APK
+        run: flutter build apk --release
+
+      - name: Collect
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          APK=build/app/outputs/flutter-apk
+          for abi in armeabi-v7a arm64-v8a x86_64; do
+            cp "$APK/app-$abi-release.apk" "dist/sshetu-$VERSION-android-$abi.apk"
+          done
+          cp "$APK/app-release.apk" "dist/sshetu-$VERSION-android-universal.apk"
+          ls -la dist
+
+      # The guard that matters: Gradle falls back to the debug key when
+      # key.properties is missing or unreadable, and a debug-signed APK looks
+      # exactly like a real one until someone tries to update it.
+      - name: Check the signer is not the debug key
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(ls -d "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+          "$APKSIGNER" verify --print-certs "dist/sshetu-$VERSION-android-universal.apk" | tee signer.txt
+          if grep -q "CN=Android Debug" signer.txt; then
+            echo "::error::The APK is signed with the Android debug key — the release keystore was not used."
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-android
+          path: dist
+          if-no-files-found: error
+
+  windows:
+    name: Windows installer
+    needs: prepare
+    runs-on: windows-latest
+    timeout-minutes: 40
+
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build
+        run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      # The same script people run locally — tool/make_installer.ps1 — so the
+      # installer CI produces and the one a maintainer builds by hand are the
+      # same artifact, firewall rule and all.
+      - name: Build the installer
+        shell: pwsh
+        run: ./tool/make_installer.ps1
+
+      - name: Collect
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item "windows/installer/output/SSHetu-Setup-$env:VERSION.exe" `
+            "dist/sshetu-$env:VERSION-windows-x64-setup.exe"
+          # A zip beside the installer, for a locked-down machine where
+          # nothing may be installed. It has no firewall rule, so "send to a
+          # device" will prompt or silently fail there.
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+            -DestinationPath "dist/sshetu-$env:VERSION-windows-x64-portable.zip"
+          Get-ChildItem dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-windows
+          path: dist
+          if-no-files-found: error
+
+  macos:
+    name: macOS disk image
+    needs: prepare
+    runs-on: macos-latest
+    timeout-minutes: 40
+
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build
+        run: flutter build macos --release
+
+      - name: Build the disk image
+        run: ./tool/make_dmg.sh
+
+      # Printed rather than asserted: what this .dmg contains and how it is
+      # signed is something the release notes should not have to guess at.
+      - name: Describe the build
+        run: |
+          APP=build/macos/Build/Products/Release/SSHetu.app
+          lipo -archs "$APP/Contents/MacOS/SSHetu" || true
+          codesign -dv "$APP" 2>&1 || true
+
+      - name: Collect
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          DMG="$(ls build/macos/SSHetu-*.dmg | head -1)"
+          cp "$DMG" "dist/sshetu-$VERSION-macos.dmg"
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-macos
+          path: dist
+          if-no-files-found: error
+
+  linux:
+    name: Linux tarball and .deb
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      BUILD: ${{ needs.prepare.outputs.build }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # The -dev half of what the app links against; the list and the reason
+      # for each entry are in ci.yml.
+      - name: Build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev libsecret-1-dev \
+            libjsoncpp-dev libsqlite3-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build
+        run: flutter build linux --release
+
+      - name: Package
+        run: dart run tool/package_linux.dart --version "$VERSION" --build "$BUILD"
+
+      # Proof the package is installable rather than merely well-formed: this
+      # resolves its declared dependencies against a real apt.
+      - name: Install the .deb
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y ./dist/sshetu_${VERSION}-${BUILD}_amd64.deb
+          dpkg -s sshetu | sed -n '1,12p'
+          test -x /usr/bin/sshetu
+          test -f /usr/share/applications/com.popupbits.sshetu.desktop
+          sudo apt-get remove -y sshetu
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-linux
+          path: dist
+          if-no-files-found: error
+
+  publish:
+    name: Draft release
+    needs: [prepare, android, windows, macos, linux]
+    # `always()`, because skip_android leaves the Android job skipped rather
+    # than successful — but every job that did run still has to have passed.
+    if: >-
+      always()
+      && github.event_name != 'pull_request'
+      && needs.prepare.result == 'success'
+      && needs.windows.result == 'success'
+      && needs.macos.result == 'success'
+      && needs.linux.result == 'success'
+      && (needs.android.result == 'success' || needs.android.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: notes
+
+      - name: Checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # What to download, and what each file is not. Both warnings are real:
+      # the desktop builds are unsigned, and a first launch that looks like a
+      # malware warning is better explained here than discovered.
+      - name: Compose the release body
+        run: |
+          set -euo pipefail
+          cat > body.md <<'HEADER'
+          ## Downloads
+
+          | Platform | File |
+          | --- | --- |
+          | Android | `…-android-universal.apk` — works on any phone. The per-ABI files are smaller if you know which one you need. |
+          | Windows | `…-windows-x64-setup.exe` — the installer also adds the firewall rule that lets another device reach "send to a device". The `portable.zip` does not. |
+          | macOS | `…-macos.dmg` |
+          | Linux | `…_amd64.deb` on Debian or Ubuntu, `…-linux-x64.tar.gz` anywhere else. |
+
+          `SHA256SUMS.txt` has a checksum for every file above.
+
+          **The desktop builds are not signed by a certificate authority.**
+          Windows SmartScreen will say "Windows protected your PC" — More info
+          → Run anyway. macOS will call it an unidentified developer — right
+          click → Open. Both are what an unsigned build looks like; signing
+          them means a paid certificate from Microsoft and from Apple.
+
+          ---
+
+          HEADER
+          cat notes/release-notes.md >> body.md
+          cat body.md
+
+      - name: Draft the release
+        run: |
+          set -euo pipefail
+          PRERELEASE=()
+          case "$TAG" in
+            *-*) PRERELEASE=(--prerelease) ;;
+          esac
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            # A re-run replaces the files rather than failing on the second
+            # upload of the same name.
+            gh release edit "$TAG" --title "SSHetu $VERSION" --notes-file body.md
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" \
+              --draft "${PRERELEASE[@]}" \
+              --target "$GITHUB_SHA" \
+              --title "SSHetu $VERSION" \
+              --notes-file body.md \
+              dist/*
+          fi
+          gh release view "$TAG" --json isDraft,tagName,assets \
+            --jq '"\(.tagName) draft=\(.isDraft) assets=\(.assets | length)"'
+
+      - name: Say what is left
+        run: |
+          echo "### Draft release $TAG is ready" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Review the files, then publish it: <${{ github.server_url }}/${{ github.repository }}/releases>" >> "$GITHUB_STEP_SUMMARY"
