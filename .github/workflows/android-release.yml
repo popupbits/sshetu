@@ -7,18 +7,22 @@
 # Manual only — there is no push trigger. Shipping is a decision.
 #
 # ---------------------------------------------------------------
-# Required repository secrets
-#   Settings -> Secrets and variables -> Actions
+# Secrets live in the `release` **environment**, not on the repository
+#   Settings -> Environments -> release
 #
+#   ANDROID_KEYSTORE_BASE64    base64 of the upload keystore (.jks)   [set]
+#   ANDROID_KEYSTORE_PASSWORD  keystore password                      [set]
+#   ANDROID_KEY_ALIAS          key alias inside the keystore          [set]
+#   ANDROID_KEY_PASSWORD       key password                           [set]
 #   PLAY_STORE_JSON_KEY_DATA   base64 of the Play service-account JSON
-#   ANDROID_KEYSTORE_BASE64    base64 of the release keystore (.jks)
-#   ANDROID_KEYSTORE_PASSWORD  keystore password
-#   ANDROID_KEY_ALIAS          key alias inside the keystore
-#   ANDROID_KEY_PASSWORD       key password
 #   APP_IDENTIFIER             com.popupbits.sshetu
 #
-# Organization secrets reach public repositories, but not private ones on the
-# free plan — so while this repository is private, set them per repository.
+# The two unmarked ones are still missing, so this workflow cannot upload to
+# Play yet. release.yml, which only needs the keystore, can.
+#
+# An environment rather than repository secrets, because this repository is
+# public: a repository secret is readable by any workflow in it. See the
+# header of release.yml.
 #
 # Encode binaries with:  base64 -w0 file    (Linux)
 #                        base64 -i  file    (macOS)
@@ -63,6 +67,8 @@ jobs:
   publish:
     name: Build and upload (${{ inputs.release_type }})
     runs-on: ubuntu-latest
+    # Where the signing key and the Play credentials live.
+    environment: release
     timeout-minutes: 60
 
     env:

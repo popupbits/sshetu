@@ -16,13 +16,19 @@
 # and Linux have.
 #
 # ---------------------------------------------------------------
-# Required repository secrets (Android only; the desktop jobs need none)
-#   Settings -> Secrets and variables -> Actions
+# Secrets live in the `release` **environment**, not on the repository
+#   Settings -> Environments -> release
 #
-#   ANDROID_KEYSTORE_BASE64    base64 of the release keystore (.jks)
+#   ANDROID_KEYSTORE_BASE64    base64 of the upload keystore (.jks)
 #   ANDROID_KEYSTORE_PASSWORD  keystore password
 #   ANDROID_KEY_ALIAS          key alias inside the keystore
 #   ANDROID_KEY_PASSWORD       key password
+#
+# An environment rather than repository secrets, because this repository is
+# public: a repository secret is readable by any workflow in it, including
+# one a pull request adds. An environment's secrets reach only the jobs that
+# name it, never a fork's run, and the environment can be given required
+# reviewers later without touching this file.
 #
 # The same keystore Play signs with, so an APK downloaded from here and an
 # install from Play are the same application and can replace each other. The
@@ -149,6 +155,8 @@ jobs:
     # worth producing is one signed with the release key.
     if: ${{ !inputs.skip_android && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
+    # The one job that may read the signing key.
+    environment: release
     timeout-minutes: 40
 
     env:
